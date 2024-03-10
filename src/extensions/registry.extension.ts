@@ -9,7 +9,7 @@ import {
   TServiceParams,
   ZCC,
 } from "@digital-alchemy/core";
-import { ALL_DOMAINS } from "@digital-alchemy/core/hass";
+import { ALL_DOMAINS } from "@digital-alchemy/hass";
 import { createHash } from "crypto";
 
 type BaseEntity = {
