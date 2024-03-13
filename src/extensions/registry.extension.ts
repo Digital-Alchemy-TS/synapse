@@ -7,7 +7,6 @@ import {
   TBlackHole,
   TContext,
   TServiceParams,
-  ZCC,
 } from "@digital-alchemy/core";
 import { ALL_DOMAINS } from "@digital-alchemy/hass";
 import { createHash } from "crypto";
@@ -40,13 +39,14 @@ export function Registry({
   hass,
   cache,
   config,
+  internal,
   context,
   scheduler,
 }: TServiceParams) {
   // # Common
   const LOADERS = new Map<ALL_DOMAINS, () => object[]>();
   let initComplete = false;
-  const HEARTBEAT = `digital_alchemy_heartbeat_${ZCC.application.name}`;
+  const HEARTBEAT = `digital_alchemy_heartbeat_${internal.application.name}`;
 
   async function SendEntityList() {
     logger.debug(`send entity list`);
@@ -58,7 +58,7 @@ export function Registry({
     );
     const hash = generateHash(JSON.stringify(domains));
     await hass.socket.fireEvent(`digital_alchemy_application_state`, {
-      app: ZCC.application.name,
+      app: internal.application.name,
       boot: BOOT_TIME,
       domains,
       hash,
@@ -80,7 +80,7 @@ export function Registry({
   lifecycle.onShutdownStart(async () => {
     logger.debug(`notifying synapse extension of shutdown`);
     await hass.socket.fireEvent(
-      `digital_alchemy_application_shutdown_${ZCC.application.name}`,
+      `digital_alchemy_application_shutdown_${internal.application.name}`,
     );
   });
 
@@ -101,7 +101,7 @@ export function Registry({
     context,
     event: "digital_alchemy_app_reload",
     exec: async ({ app }: { app: string }) => {
-      if (app !== ZCC.application.name) {
+      if (app !== internal.application.name) {
         return;
       }
       logger.info(`digital-alchemy.reload(%s)`, app);
@@ -218,7 +218,7 @@ export function Registry({
         await hass.socket.fireEvent(
           `digital_alchemy_retrieve_state_${domain}`,
           {
-            app: ZCC.application.name,
+            app: internal.application.name,
           },
         );
         // wait 1 second
@@ -251,7 +251,7 @@ export function Registry({
       // ### Add
       add(data: DATA) {
         const id = is.empty(data.unique_id)
-          ? generateHash(`${ZCC.application.name}:${data.name}`)
+          ? generateHash(`${internal.application.name}:${data.name}`)
           : data.unique_id;
         if (registry.has(id)) {
           throw new InternalError(
