@@ -3,7 +3,6 @@ import {
   TBlackHole,
   TContext,
   TServiceParams,
-  ZCC,
 } from "@digital-alchemy/core";
 
 type TSwitch = {
@@ -34,6 +33,7 @@ export function Switch({
   logger,
   context,
   lifecycle,
+  internal,
   hass,
   synapse,
 }: TServiceParams) {
@@ -95,7 +95,7 @@ export function Switch({
         await each(
           callbacks,
           async callback =>
-            await ZCC.safeExec(async () => await callback(state === "on")),
+            await internal.safeExec(async () => await callback(state === "on")),
         );
       });
     }

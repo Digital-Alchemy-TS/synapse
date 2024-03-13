@@ -4,7 +4,6 @@ import {
   TBlackHole,
   TContext,
   TServiceParams,
-  ZCC,
 } from "@digital-alchemy/core";
 
 import { OnOff } from "..";
@@ -29,6 +28,7 @@ export function BinarySensor({
   logger,
   context,
   lifecycle,
+  internal,
   synapse,
 }: TServiceParams) {
   const callbacks = [] as BinarySensorUpdateCallback[];
@@ -62,7 +62,7 @@ export function BinarySensor({
         await each(
           callbacks,
           async callback =>
-            await ZCC.safeExec(async () => await callback(state === "on")),
+            await internal.safeExec(async () => await callback(state === "on")),
         );
       });
     }

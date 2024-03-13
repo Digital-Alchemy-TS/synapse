@@ -1,9 +1,4 @@
-import {
-  TBlackHole,
-  TContext,
-  TServiceParams,
-  ZCC,
-} from "@digital-alchemy/core";
+import { TBlackHole, TContext, TServiceParams } from "@digital-alchemy/core";
 
 type TScene = {
   exec: () => TBlackHole;
@@ -17,7 +12,13 @@ type HassSceneUpdateEvent = {
   data: { id: string };
 };
 
-export function Scene({ logger, hass, synapse, context }: TServiceParams) {
+export function Scene({
+  logger,
+  hass,
+  synapse,
+  context,
+  internal,
+}: TServiceParams) {
   const registry = synapse.registry<TScene>({
     context,
     domain: "scene",
@@ -35,7 +36,7 @@ export function Scene({ logger, hass, synapse, context }: TServiceParams) {
       const { exec, name } = item;
       logger.trace({ name }, `scene activate service call`);
       setImmediate(async () => {
-        await ZCC.safeExec(async () => await exec());
+        await internal.safeExec(async () => await exec());
       });
     },
   });

@@ -1,9 +1,4 @@
-import {
-  TBlackHole,
-  TContext,
-  TServiceParams,
-  ZCC,
-} from "@digital-alchemy/core";
+import { TBlackHole, TContext, TServiceParams } from "@digital-alchemy/core";
 
 import {
   BUTTON_ERRORS,
@@ -24,7 +19,13 @@ type HassButtonUpdateEvent = {
   data: { id: string };
 };
 
-export function Button({ logger, hass, context, synapse }: TServiceParams) {
+export function Button({
+  logger,
+  hass,
+  context,
+  synapse,
+  internal,
+}: TServiceParams) {
   const registry = synapse.registry<TButton>({
     context,
     domain: "button",
@@ -42,7 +43,7 @@ export function Button({ logger, hass, context, synapse }: TServiceParams) {
       const { exec, context, label, name } = item;
       logger.trace({ data, label: name }, `received button press`);
       setImmediate(async () => {
-        await ZCC.safeExec({
+        await internal.safeExec({
           duration: BUTTON_EXECUTION_TIME,
           errors: BUTTON_ERRORS,
           exec: async () => await exec(),

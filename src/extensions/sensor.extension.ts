@@ -5,7 +5,6 @@ import {
   TBlackHole,
   TContext,
   TServiceParams,
-  ZCC,
 } from "@digital-alchemy/core";
 
 import { SensorDeviceClasses } from "..";
@@ -39,6 +38,7 @@ export type VirtualSensor<
 export function Sensor({
   logger,
   context,
+  internal,
   lifecycle,
   synapse,
 }: TServiceParams) {
@@ -80,7 +80,7 @@ export function Sensor({
         await each(
           callbacks,
           async callback =>
-            await ZCC.safeExec(async () => await callback({ state })),
+            await internal.safeExec(async () => await callback({ state })),
         );
       });
     }
@@ -98,7 +98,7 @@ export function Sensor({
         await each(
           callbacks,
           async callback =>
-            await ZCC.safeExec(async () => await callback({ attributes })),
+            await internal.safeExec(async () => await callback({ attributes })),
         );
       });
     }
@@ -119,7 +119,7 @@ export function Sensor({
         await each(
           callbacks,
           async callback =>
-            await ZCC.safeExec(async () => await callback({ attributes })),
+            await internal.safeExec(async () => await callback({ attributes })),
         );
       });
     }
