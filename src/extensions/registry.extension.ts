@@ -57,12 +57,11 @@ export function Registry({
       }),
     );
     const hash = generateHash(JSON.stringify(domains));
-    await hass.socket.fireEvent(`digital_alchemy_application_state`, {
-      app: internal.application.name,
-      boot: BOOT_TIME,
-      domains,
-      hash,
-    });
+    await hass.socket.fireEvent(
+      `digital_alchemy_application_state`,
+      { app: internal.application.name, boot: BOOT_TIME, domains, hash },
+      false,
+    );
   }
 
   // ## Heartbeat
@@ -72,7 +71,7 @@ export function Registry({
     }
     logger.trace(`starting heartbeat`);
     scheduler.interval({
-      exec: async () => await hass.socket.fireEvent(HEARTBEAT),
+      exec: async () => await hass.socket.fireEvent(HEARTBEAT, {}, false),
       interval: HEARTBEAT_INTERVAL * SECOND,
     });
   });
@@ -81,6 +80,8 @@ export function Registry({
     logger.debug(`notifying synapse extension of shutdown`);
     await hass.socket.fireEvent(
       `digital_alchemy_application_shutdown_${internal.application.name}`,
+      {},
+      false,
     );
   });
 
@@ -88,7 +89,7 @@ export function Registry({
   // ### At boot
   hass.socket.onConnect(async () => {
     initComplete = true;
-    await hass.socket.fireEvent(HEARTBEAT);
+    await hass.socket.fireEvent(HEARTBEAT, {}, false);
     if (!config.synapse.ANNOUNCE_AT_CONNECT) {
       return;
     }
@@ -217,9 +218,8 @@ export function Registry({
         // send request for data
         await hass.socket.fireEvent(
           `digital_alchemy_retrieve_state_${domain}`,
-          {
-            app: internal.application.name,
-          },
+          { app: internal.application.name },
+          false,
         );
         // wait 1 second
         await sleep(SECOND);
@@ -285,13 +285,17 @@ export function Registry({
 
       // ### send
       async send(id: string, data: object) {
-        if (!hass.socket.getConnectionActive()) {
+        if (hass.socket.connectionState !== "connected") {
           logger.debug(
             `socket connection isn't active, not sending update event`,
           );
           return;
         }
-        await hass.socket.fireEvent(`digital_alchemy_event`, { data, id });
+        await hass.socket.fireEvent(
+          `digital_alchemy_event`,
+          { data, id },
+          false,
+        );
       },
       // ### setCache
       async setCache(id: string, value: unknown) {
