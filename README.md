@@ -4,15 +4,16 @@ Welcome to `@digital-alchemy/synapse`!
 
 This project builds on the functions provided by `@digital-alchemy/hass` to provide the ability to generate entities within your Home Assistant install. With the help of a [custom component](https://github.com/Digital-Alchemy-TS/synapse-extension), you can gate logic behind switches, report states with sensors, attach functions to buttons, and more!
 
+> See the extended docs at: https://docs.digital-alchemy.app/02-Home-Automation/02.02-synapse/
+
 ## 💾 Install
 
 You can install the custom component through HACS. See the repo for more detailed install instructions of the component: https://github.com/Digital-Alchemy-TS/synapse-extension
 
 This library can be installed as a simple dependency
 ```bash
-npm i @digital-alchemy/synapse
+npm i @digital-alchemy/synapse @digital-alchemy/hass
 ```
-> Requires [@digital-alchemy/hass](https://github.com/Digital-Alchemy-TS/hass)!
 
 ## 🛠️ Operation
 
@@ -82,7 +83,6 @@ Current support includes
 
 | GitHub                                                              | Description                                                                            | NPM                                                                                      |
 | ------------------------------------------------------------------- | -------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
-| [synapse](https://github.com/Digital-Alchemy-TS/synapse)            | Tools for generating entities within Home Assistant.                                   | [@digital-alchemy/synapse](https://www.npmjs.com/package/@digital-alchemy/synapse)      |
 | [automation](https://github.com/Digital-Alchemy-TS/automation)      | Advanced automation tools for creating dynamic workflows.                              | [@digital-alchemy/automation](https://www.npmjs.com/package/@digital-alchemy/automation) |
 | [type-writer](https://github.com/Digital-Alchemy-TS/terminal)       | Generate custom type definitions for your setup.                                       | [@digital-alchemy/type-writer](https://www.npmjs.com/package/@digital-alchemy/terminal)  |
 | [automation-template](https://github.com/Digital-Alchemy-TS/gotify) | Start your own Home Automation project with the `@digital-alchemy` quick start template|                                                                                          |

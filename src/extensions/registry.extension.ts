@@ -46,7 +46,7 @@ export function Registry({
   // # Common
   const LOADERS = new Map<ALL_DOMAINS, () => object[]>();
   let initComplete = false;
-  const HEARTBEAT = `digital_alchemy_heartbeat_${internal.application.name}`;
+  const HEARTBEAT = `digital_alchemy_heartbeat_${internal.boot.application.name}`;
 
   async function SendEntityList() {
     logger.debug(`send entity list`);
@@ -59,7 +59,7 @@ export function Registry({
     const hash = generateHash(JSON.stringify(domains));
     await hass.socket.fireEvent(
       `digital_alchemy_application_state`,
-      { app: internal.application.name, boot: BOOT_TIME, domains, hash },
+      { app: internal.boot.application.name, boot: BOOT_TIME, domains, hash },
       false,
     );
   }
@@ -79,7 +79,7 @@ export function Registry({
   lifecycle.onShutdownStart(async () => {
     logger.debug(`notifying synapse extension of shutdown`);
     await hass.socket.fireEvent(
-      `digital_alchemy_application_shutdown_${internal.application.name}`,
+      `digital_alchemy_application_shutdown_${internal.boot.application.name}`,
       {},
       false,
     );
@@ -102,7 +102,7 @@ export function Registry({
     context,
     event: "digital_alchemy_app_reload",
     exec: async ({ app }: { app: string }) => {
-      if (app !== internal.application.name) {
+      if (app !== internal.boot.application.name) {
         return;
       }
       logger.info(`digital-alchemy.reload(%s)`, app);
@@ -218,7 +218,7 @@ export function Registry({
         // send request for data
         await hass.socket.fireEvent(
           `digital_alchemy_retrieve_state_${domain}`,
-          { app: internal.application.name },
+          { app: internal.boot.application.name },
           false,
         );
         // wait 1 second
@@ -251,7 +251,7 @@ export function Registry({
       // ### Add
       add(data: DATA) {
         const id = is.empty(data.unique_id)
-          ? generateHash(`${internal.application.name}:${data.name}`)
+          ? generateHash(`${internal.boot.application.name}:${data.name}`)
           : data.unique_id;
         if (registry.has(id)) {
           throw new InternalError(
