@@ -89,7 +89,7 @@ export function Switch({
       }
       state = newState;
       setImmediate(async () => {
-        logger.trace({ id, state }, `switch state updated`);
+        logger.trace({ id, name: setState, state }, `switch state updated`);
         await registry.setCache(id, state);
         await registry.send(id, { state });
         await each(

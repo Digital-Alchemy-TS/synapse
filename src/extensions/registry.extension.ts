@@ -23,8 +23,9 @@ type SynapseSocketOptions<DATA extends object> = {
   details?: (data: DATA) => object;
 };
 
-const HEARTBEAT_INTERVAL = 5;
 const BOOT_TIME = new Date().toISOString();
+// anecdotally, it only needs a single retry
+// can't think of what a 2nd might accomplish, let alone 3rd
 const RETRY = 3;
 
 function generateHash(input: string) {
@@ -46,7 +47,8 @@ export function Registry({
   // # Common
   const LOADERS = new Map<ALL_DOMAINS, () => object[]>();
   let initComplete = false;
-  const HEARTBEAT = `digital_alchemy_heartbeat_${internal.boot.application.name}`;
+  const getIdentifier = () =>
+    config.synapse.APPLICATION_IDENTIFIER || internal.boot.application.name;
 
   async function SendEntityList() {
     logger.debug(`send entity list`);
@@ -59,7 +61,7 @@ export function Registry({
     const hash = generateHash(JSON.stringify(domains));
     await hass.socket.fireEvent(
       `digital_alchemy_application_state`,
-      { app: internal.boot.application.name, boot: BOOT_TIME, domains, hash },
+      { app: getIdentifier(), boot: BOOT_TIME, domains, hash },
       false,
     );
   }
@@ -69,17 +71,25 @@ export function Registry({
     if (!config.synapse.EMIT_HEARTBEAT) {
       return;
     }
-    logger.trace(`starting heartbeat`);
+    logger.trace({ name: "onPostConfig" }, `starting heartbeat`);
     scheduler.interval({
-      exec: async () => await hass.socket.fireEvent(HEARTBEAT, {}, false),
-      interval: HEARTBEAT_INTERVAL * SECOND,
+      exec: async () =>
+        await hass.socket.fireEvent(
+          `digital_alchemy_heartbeat_${getIdentifier()}`,
+          {},
+          false,
+        ),
+      interval: config.synapse.HEARTBEAT_INTERVAL * SECOND,
     });
   });
 
-  lifecycle.onShutdownStart(async () => {
-    logger.debug(`notifying synapse extension of shutdown`);
+  lifecycle.onPreShutdown(async () => {
+    logger.debug(
+      { name: "onPreShutdown" },
+      `notifying synapse extension of shutdown`,
+    );
     await hass.socket.fireEvent(
-      `digital_alchemy_application_shutdown_${internal.boot.application.name}`,
+      `digital_alchemy_application_shutdown_${getIdentifier()}`,
       {},
       false,
     );
@@ -89,11 +99,15 @@ export function Registry({
   // ### At boot
   hass.socket.onConnect(async () => {
     initComplete = true;
-    await hass.socket.fireEvent(HEARTBEAT, {}, false);
+    await hass.socket.fireEvent(
+      `digital_alchemy_heartbeat_${getIdentifier()}`,
+      {},
+      false,
+    );
     if (!config.synapse.ANNOUNCE_AT_CONNECT) {
       return;
     }
-    logger.debug(`[socket connect] sending entity list`);
+    logger.debug({ name: "onConnect" }, `[socket connect] sending entity list`);
     await SendEntityList();
   });
 
@@ -102,7 +116,7 @@ export function Registry({
     context,
     event: "digital_alchemy_app_reload",
     exec: async ({ app }: { app: string }) => {
-      if (app !== internal.boot.application.name) {
+      if (app !== getIdentifier()) {
         return;
       }
       logger.info(`digital-alchemy.reload(%s)`, app);
@@ -173,10 +187,13 @@ export function Registry({
           return;
         }
         // not so lucky
-        logger.debug({ id }, `value restoration failed`);
+        logger.debug({ id, name: loadFromHass }, `value restoration failed`);
         return;
       }
-      logger.trace({ id, name: domain }, `adding lookup for entity`);
+      logger.trace(
+        { domain, id, name: loadFromHass },
+        `adding lookup for entity`,
+      );
       LOAD_ME.add({ callback: callback as TCallback, id });
     }
 
@@ -189,7 +206,10 @@ export function Registry({
       if (is.empty(LOAD_ME)) {
         return;
       }
-      logger.debug({ name: domain }, `retrieving state from synapse`);
+      logger.debug(
+        { domain, name: "onConnect" },
+        `retrieving state from synapse`,
+      );
       let loaded = false;
       // listen for reply
       const remove = hass.socket.onEvent({
@@ -211,14 +231,14 @@ export function Registry({
       for (let i = START; i <= RETRY; i++) {
         if (i > START) {
           logger.warn(
-            { domain, missing: missingEntities() },
+            { domain, missing: missingEntities(), name: "onConnect" },
             `retrying state retrieval...`,
           );
         }
         // send request for data
         await hass.socket.fireEvent(
           `digital_alchemy_retrieve_state_${domain}`,
-          { app: internal.boot.application.name },
+          { app: getIdentifier() },
           false,
         );
         // wait 1 second
@@ -239,7 +259,12 @@ export function Registry({
       //
 
       logger.warn(
-        { attempts: RETRY, missing: missingEntities(), name: domain },
+        {
+          attempts: RETRY,
+          domain,
+          missing: missingEntities(),
+          name: "onConnect",
+        },
         `could not retrieve current data from synapse`,
       );
       LOAD_ME = undefined;
@@ -251,7 +276,7 @@ export function Registry({
       // ### Add
       add(data: DATA) {
         const id = is.empty(data.unique_id)
-          ? generateHash(`${internal.boot.application.name}:${data.name}`)
+          ? generateHash(`${getIdentifier()}:${data.name}`)
           : data.unique_id;
         if (registry.has(id)) {
           throw new InternalError(
@@ -263,7 +288,7 @@ export function Registry({
         registry.set(id, data);
         if (initComplete) {
           logger.warn(
-            { context: context, name: domain },
+            { context: context, domain, name: data.name },
             `late entity generation`,
           );
         }
@@ -287,6 +312,7 @@ export function Registry({
       async send(id: string, data: object) {
         if (hass.socket.connectionState !== "connected") {
           logger.debug(
+            { name: "send" },
             `socket connection isn't active, not sending update event`,
           );
           return;

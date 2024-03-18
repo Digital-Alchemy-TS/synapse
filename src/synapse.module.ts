@@ -32,6 +32,11 @@ export const LIB_SYNAPSE = CreateLibrary({
       description: ["Emit a pulse so the extension knows the service is alive"],
       type: "boolean",
     },
+    HEARTBEAT_INTERVAL: {
+      default: 5,
+      description: "Seconds between heartbeats",
+      type: "number",
+    },
   },
   depends: [LIB_HASS],
   name: "synapse",
