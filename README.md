@@ -5,6 +5,7 @@ Welcome to `@digital-alchemy/synapse`!
 This project builds on the functions provided by `@digital-alchemy/hass` to provide the ability to generate entities within your Home Assistant install. With the help of a [custom component](https://github.com/Digital-Alchemy-TS/synapse-extension), you can gate logic behind switches, report states with sensors, attach functions to buttons, and more!
 
 > See more at the [extended docs](https://docs.digital-alchemy.app/02-Home-Automation/02.02-synapse/%F0%9F%A7%AD-Synapse-Overview)
+> Ask questions on [Discord](https://discord.digital-alchemy.app)
 
 ## 💾 Install
 
@@ -13,6 +14,25 @@ You can install the custom component through HACS. See the repo for more detaile
 This library can be installed as a simple dependency
 ```bash
 npm i @digital-alchemy/synapse @digital-alchemy/hass
+```
+
+Then add to your application / library
+
+```typescript
+import { LIB_SYNAPSE } from "@digital-alchemy/synapse";
+import { LIB_HASS } from "@digital-alchemy/hass";
+
+// application
+const MY_APP = CreateApplication({
+  libraries: [LIB_SYNAPSE, LIB_HASS],
+  name: "home_automation",
+})
+
+// library
+export const MY_LIBRARY = CreateLibrary({
+  depends: [LIB_SYNAPSE, LIB_HASS],
+  name: "special_logic",
+})
 ```
 
 ## 🛠️ Operation
