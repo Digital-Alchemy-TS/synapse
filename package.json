@@ -1,8 +1,8 @@
 {
   "name": "@digital-alchemy/synapse",
   "repository": "https://github.com/Digital-Alchemy-TS/synapse",
-  "homepage": "https://docs.digital-alchemy.app/02-Home-Automation/02.02-synapse/%F0%9F%A7%AD-Synapse-Overview",
-  "version": "0.3.3",
+  "homepage": "https://docs.digital-alchemy.app/Synapse",
+  "version": "0.3.4",
   "scripts": {
     "build": "rm -rf dist; tsc",
     "lint": "eslint src",
@@ -24,8 +24,8 @@
   },
   "license": "MIT",
   "dependencies": {
-    "@digital-alchemy/core": "^0.3.5",
-    "@digital-alchemy/hass": "^0.3.3",
+    "@digital-alchemy/core": "^0.3.6",
+    "@digital-alchemy/hass": "^0.3.4",
     "dayjs": "^1.11.10",
     "prom-client": "^15.1.0",
     "ws": "^8.16.0"
@@ -59,7 +59,7 @@
     "prettier": "^3.2.5",
     "ts-jest": "^29.1.2",
     "tsx": "^4.7.1",
-    "type-fest": "^4.13.0",
-    "typescript": "^5.4.2"
+    "type-fest": "^4.13.1",
+    "typescript": "^5.4.3"
   }
 }
