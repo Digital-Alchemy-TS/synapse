@@ -11,6 +11,8 @@ import {
 import { ALL_DOMAINS } from "@digital-alchemy/hass";
 import { createHash } from "crypto";
 
+import { TSynapseId } from "..";
+
 type BaseEntity = {
   name: string;
   icon?: string;
@@ -20,6 +22,9 @@ type BaseEntity = {
 type SynapseSocketOptions<DATA extends object> = {
   context: TContext;
   domain: ALL_DOMAINS;
+  /**
+   * used to export data for payloads to extension
+   */
   details?: (data: DATA) => object;
 };
 
@@ -46,6 +51,8 @@ export function Registry({
 }: TServiceParams) {
   // # Common
   const LOADERS = new Map<ALL_DOMAINS, () => object[]>();
+  type TDomain = ReturnType<typeof create>;
+  const domains = new Map<ALL_DOMAINS, TDomain>();
   let initComplete = false;
   const getIdentifier = () =>
     config.synapse.APPLICATION_IDENTIFIER || internal.boot.application.name;
@@ -135,22 +142,22 @@ export function Registry({
   });
 
   // # Domain registry
-  return function <DATA extends BaseEntity>({
+  function create<DATA extends BaseEntity>({
     domain,
     context,
     details,
-  }: SynapseSocketOptions<DATA>) {
+  }: SynapseSocketOptions<DATA>): TRegistry<DATA> {
     logger.trace({ name: domain }, `init domain`);
-    const registry = new Map<string, DATA>();
-    const CACHE_KEY = (id: string) => `${domain}_cache:${id}`;
+    const registry = new Map<TSynapseId, DATA>();
+    const CACHE_KEY = (id: TSynapseId) => `${domain}_cache:${id}`;
     type TCallback = (argument: unknown) => TBlackHole;
     let LOAD_ME = new Set<{
-      id: string;
+      id: TSynapseId;
       callback: TCallback;
     }>();
     const missingEntities = () =>
       [...LOAD_ME.values()].map(({ id }) => registry.get(id).name);
-    let LOADED_SYNAPSE_DATA: Record<string, unknown>;
+    let LOADED_SYNAPSE_DATA: Record<TSynapseId, unknown>;
 
     // ## Export the data for hass
     LOADERS.set(domain, () => {
@@ -166,7 +173,7 @@ export function Registry({
 
     // ## Value restoration
     function loadFromHass<T extends object>(
-      id: string,
+      id: TSynapseId,
       callback: (argument: T) => void,
     ) {
       // ? loading already occurred, acts as a flag and minor garbage collection
@@ -272,12 +279,14 @@ export function Registry({
     });
 
     // ## Registry interactions
-    return {
+    const out = {
       // ### Add
       add(data: DATA) {
-        const id = is.empty(data.unique_id)
-          ? generateHash(`${getIdentifier()}:${data.name}`)
-          : data.unique_id;
+        const id = (
+          is.empty(data.unique_id)
+            ? generateHash(`${getIdentifier()}:${data.name}`)
+            : data.unique_id
+        ) as TSynapseId;
         if (registry.has(id)) {
           throw new InternalError(
             context,
@@ -295,21 +304,41 @@ export function Registry({
         logger.debug({ name: data.name }, `register {%s}`, domain);
         return id;
       },
+
       // ### byId
-      byId(id: string) {
+      byId(id: TSynapseId) {
         return registry.get(id);
       },
 
+      /**
+       * The domain this registry was created with
+       */
+      domain,
+
+      generate<RESULT extends object>(
+        callback: (options: DATA, id: TSynapseId) => TBlackHole,
+      ) {
+        return function (options: DATA): RESULT {
+          const id = out.add(options);
+          callback(options, id);
+          return undefined;
+        };
+      },
+
       // ### getCache
-      async getCache<T>(id: string, defaultValue?: T): Promise<T> {
+      async getCache<T>(id: TSynapseId, defaultValue?: T): Promise<T> {
         return await cache.get(CACHE_KEY(id), defaultValue);
+      },
+
+      // ### list
+      list() {
+        return [...registry.keys()];
       },
 
       // ### loadFromHass
       loadFromHass,
-
       // ### send
-      async send(id: string, data: object) {
+      async send(id: TSynapseId, data: object): Promise<void> {
         if (hass.socket.connectionState !== "connected") {
           logger.debug(
             { name: "send" },
@@ -324,9 +353,30 @@ export function Registry({
         );
       },
       // ### setCache
-      async setCache(id: string, value: unknown) {
+      async setCache(id: TSynapseId, value: unknown): Promise<void> {
         await cache.set(CACHE_KEY(id), value);
       },
     };
-  };
+    domains.set(domain, out as unknown as TDomain);
+    return out;
+  }
+  create.registeredDomains = domains;
+  return create;
 }
+
+export type TRegistry<DATA extends unknown = unknown> = {
+  add(data: DATA): TSynapseId;
+  byId(id: TSynapseId): DATA;
+  domain: ALL_DOMAINS;
+  generate<RESULT extends object>(
+    callback: (options: DATA, id: TSynapseId) => TBlackHole,
+  ): (options: DATA) => RESULT;
+  getCache<T>(id: TSynapseId, defaultValue?: T): Promise<T>;
+  loadFromHass: <T extends object>(
+    id: TSynapseId,
+    callback: (argument: T) => void,
+  ) => void;
+  list: () => TSynapseId[];
+  send: (id: TSynapseId, data: object) => Promise<void>;
+  setCache: (id: TSynapseId, value: unknown) => Promise<void>;
+};

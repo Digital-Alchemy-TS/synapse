@@ -1,22 +1,18 @@
-import {
-  each,
-  is,
-  TBlackHole,
-  TContext,
-  TServiceParams,
-} from "@digital-alchemy/core";
+import { TBlackHole, TContext, TServiceParams } from "@digital-alchemy/core";
 
-import { OnOff } from "..";
+import { OnOff, TRegistry } from "..";
 
-type TBinarySensor = {
+type TBinarySensor<ATTRIBUTES extends object = object> = {
   context: TContext;
   defaultState?: OnOff;
   icon?: string;
   name: string;
+  defaultAttributes?: ATTRIBUTES;
 };
 
-export type VirtualBinarySensor = {
+export type VirtualBinarySensor<ATTRIBUTES extends object = object> = {
   state: OnOff;
+  attributes: ATTRIBUTES;
   name: string;
   icon: string;
   onUpdate: (callback: BinarySensorUpdateCallback) => void;
@@ -24,13 +20,7 @@ export type VirtualBinarySensor = {
 };
 type BinarySensorUpdateCallback = (state: boolean) => TBlackHole;
 
-export function BinarySensor({
-  logger,
-  context,
-  lifecycle,
-  internal,
-  synapse,
-}: TServiceParams) {
+export function BinarySensor({ context, synapse }: TServiceParams) {
   const callbacks = [] as BinarySensorUpdateCallback[];
 
   const registry = synapse.registry<VirtualBinarySensor>({
@@ -40,52 +30,13 @@ export function BinarySensor({
   });
 
   // # Binary sensor entity creation function
-  function create(entity: TBinarySensor) {
+  function create<ATTRIBUTES extends object = object>(
+    entity: TBinarySensor<ATTRIBUTES>,
+  ) {
     let state: OnOff;
 
-    // ## Handle state updates. Ignore non-updates
-    async function setState(newState: OnOff) {
-      if (newState === state) {
-        return;
-      }
-      state = newState;
-      setImmediate(async () => {
-        logger.trace(
-          {
-            name: entity.context,
-            sensor: entity.name,
-          },
-          `syncing state`,
-        );
-        await registry.setCache(id, state);
-        await registry.send(id, { state });
-        await each(
-          callbacks,
-          async callback =>
-            await internal.safeExec(async () => await callback(state === "on")),
-        );
-      });
-    }
-
-    // ## Wait until bootstrap to load cache
-    lifecycle.onBootstrap(async () => {
-      state = await registry.getCache(id);
-      if (is.undefined(state)) {
-        state = entity.defaultState || "off";
-        registry.loadFromHass<{ state: OnOff }>(id, data => {
-          if (is.empty(data)) {
-            // wat
-            return;
-          }
-          logger.debug({ data, id, name: entity.name }, `received value`);
-          state = data.state;
-        });
-      }
-    });
-
-    // ## Proxy object as return
-    const out = new Proxy({} as VirtualBinarySensor, {
-      get(_, property: keyof VirtualBinarySensor) {
+    const out = new Proxy({} as VirtualBinarySensor<ATTRIBUTES>, {
+      get(_, property: keyof VirtualBinarySensor<ATTRIBUTES>) {
         if (property === "state") {
           return state;
         }
@@ -104,19 +55,28 @@ export function BinarySensor({
         }
         return undefined;
       },
-      set(_, property: keyof VirtualBinarySensor, value: unknown) {
+      set(_, property: keyof VirtualBinarySensor<ATTRIBUTES>, value: unknown) {
         if (property === "state") {
-          setState(value as OnOff);
+          loader.setState(value as OnOff);
           return true;
         }
         if (property === "on") {
-          setState(value ? "on" : "off");
+          loader.setState(value ? "on" : "off");
           return true;
         }
         return false;
       },
     });
+
     const id = registry.add(out);
+    const loader = synapse.storage.loader<OnOff, ATTRIBUTES>({
+      id,
+      registry: registry as TRegistry<unknown>,
+      value: {
+        attributes: {} as ATTRIBUTES,
+        state: "off" as OnOff,
+      },
+    });
     return out;
   }
 

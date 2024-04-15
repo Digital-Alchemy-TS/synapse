@@ -1,5 +1,7 @@
 import { TBlackHole, TContext, TServiceParams } from "@digital-alchemy/core";
 
+import { TSynapseId } from "../helpers";
+
 type TScene = {
   exec: () => TBlackHole;
   context: TContext;
@@ -9,7 +11,7 @@ type TScene = {
 
 type HassSceneUpdateEvent = {
   event_type: "digital_alchemy_activate";
-  data: { id: string };
+  data: { id: TSynapseId };
 };
 
 export function Scene({

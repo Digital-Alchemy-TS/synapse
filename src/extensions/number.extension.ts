@@ -1,35 +1,48 @@
-import { TBlackHole, TContext, TServiceParams } from "@digital-alchemy/core";
+import {
+  NOT_FOUND,
+  TBlackHole,
+  TContext,
+  TServiceParams,
+} from "@digital-alchemy/core";
 
 import { SensorDeviceClasses, TRegistry } from "..";
 
-type TSensor<STATE extends SensorValue, ATTRIBUTES extends object = object> = {
+type TNumber<STATE extends NumberValue, ATTRIBUTES extends object = object> = {
   context: TContext;
   defaultState?: STATE;
   icon?: string;
-  defaultAttributes?: ATTRIBUTES;
+  defaultAttributes?: Omit<ATTRIBUTES, keyof BaseNumberAttributes>;
   name: string;
-} & SensorDeviceClasses;
+} & SensorDeviceClasses &
+  BaseNumberAttributes;
 
-type SensorValue = string | number;
-type SwitchUpdateCallback<
-  STATE extends SensorValue = SensorValue,
+type NumberValue = string | number;
+type NumberUpdateCallback<
+  STATE extends NumberValue = NumberValue,
   ATTRIBUTES extends object = object,
 > = (options: { state?: STATE; attributes?: ATTRIBUTES }) => TBlackHole;
 
-export type VirtualSensor<
-  STATE extends SensorValue = SensorValue,
+export type VirtualNumber<
+  STATE extends NumberValue = NumberValue,
   ATTRIBUTES extends object = object,
 > = {
   icon: string;
   attributes: ATTRIBUTES;
   _rawAttributes?: ATTRIBUTES;
-  name: string;
-  onUpdate: (callback: SwitchUpdateCallback<STATE, ATTRIBUTES>) => void;
+  onUpdate: (callback: NumberUpdateCallback<STATE, ATTRIBUTES>) => void;
   state: STATE;
-} & SensorDeviceClasses;
+} & SensorDeviceClasses &
+  BaseNumberAttributes;
 
-export function Sensor({ context, synapse }: TServiceParams) {
-  const registry = synapse.registry<VirtualSensor>({
+type BaseNumberAttributes = {
+  min?: number;
+  name: string;
+  max?: number;
+  step?: number;
+};
+
+export function NumberDomain({ context, synapse }: TServiceParams) {
+  const registry = synapse.registry<VirtualNumber>({
     context,
     details: entity => ({
       attributes: entity._rawAttributes,
@@ -37,17 +50,18 @@ export function Sensor({ context, synapse }: TServiceParams) {
       state: entity.state,
       unit_of_measurement: entity.unit_of_measurement,
     }),
-    domain: "sensor",
+    // @ts-expect-error need to add more examples to `hass` to populate types
+    domain: "number",
   });
 
   // # Sensor creation function
   function create<
-    STATE extends SensorValue = SensorValue,
-    ATTRIBUTES extends object = object,
-  >(entity: TSensor<STATE, ATTRIBUTES>) {
-    const sensorOut = new Proxy({} as VirtualSensor<STATE, ATTRIBUTES>, {
+    STATE extends NumberValue = NumberValue,
+    ATTRIBUTES extends BaseNumberAttributes = BaseNumberAttributes,
+  >(entity: TNumber<STATE, ATTRIBUTES>) {
+    const numberOut = new Proxy({} as VirtualNumber<STATE, ATTRIBUTES>, {
       // ### Getters
-      get(_, property: keyof VirtualSensor<STATE, ATTRIBUTES>) {
+      get(_, property: keyof VirtualNumber<STATE, ATTRIBUTES>) {
         if (property === "state") {
           return loader.state;
         }
@@ -59,6 +73,15 @@ export function Sensor({ context, synapse }: TServiceParams) {
         }
         if (property === "name") {
           return entity.name;
+        }
+        if (property === "max") {
+          return entity.max;
+        }
+        if (property === "min") {
+          return entity.min;
+        }
+        if (property === "step") {
+          return entity.step;
         }
         if (property === "onUpdate") {
           return loader.onUpdate();
@@ -102,7 +125,6 @@ export function Sensor({ context, synapse }: TServiceParams) {
           "attributes",
         ];
       },
-      // ### Setters
       set(_, property: string, value: unknown) {
         if (property === "state") {
           loader.setState(value as STATE);
@@ -116,9 +138,7 @@ export function Sensor({ context, synapse }: TServiceParams) {
       },
     });
 
-    // ## Validate a good id was passed, and it's the only place in code that's using it
-    const id = registry.add(sensorOut);
-
+    const id = registry.add(numberOut);
     const loader = synapse.storage.loader<STATE, ATTRIBUTES>({
       id,
       registry: registry as TRegistry<unknown>,
@@ -127,8 +147,7 @@ export function Sensor({ context, synapse }: TServiceParams) {
         state: "" as STATE,
       },
     });
-    return sensorOut;
+    return numberOut;
   }
-
   return create;
 }

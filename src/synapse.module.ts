@@ -1,14 +1,23 @@
-import { CreateLibrary } from "@digital-alchemy/core";
+import { CreateLibrary, StringConfig } from "@digital-alchemy/core";
 import { LIB_HASS } from "@digital-alchemy/hass";
 
 import {
   BinarySensor,
   Button,
+  NumberDomain,
   Registry,
   Scene,
   Sensor,
   Switch,
+  ValueStorage,
 } from "./extensions";
+
+enum StorageTypes {
+  none = "none",
+  cache = "cache",
+  file = "file",
+  external = "external",
+}
 
 export const LIB_SYNAPSE = CreateLibrary({
   configuration: {
@@ -37,36 +46,61 @@ export const LIB_SYNAPSE = CreateLibrary({
       description: "Seconds between heartbeats",
       type: "number",
     },
+    STORAGE: {
+      default: "cache",
+      description: "Persistence type",
+      enum: Object.values(StorageTypes),
+      type: "string",
+    } as StringConfig<`${StorageTypes}`>,
+    STORAGE_FILE_LOCATION: {
+      description:
+        "If using file storage, a base folder to store data at is required. Defaults to ~/.config/{app_name}/",
+      type: "string",
+    },
   },
   depends: [LIB_HASS],
   name: "synapse",
-  // everything depends registry
-  priorityInit: ["registry"],
+  priorityInit: ["registry", "storage"],
   services: {
     /**
      * create `binary_sensor` domain entities
      */
     binary_sensor: BinarySensor,
+
     /**
      * create `button` domain entities
      *
      * run callback on activation
      */
     button: Button,
+
+    /**
+     * create `number` domain entities
+     */
+    number: NumberDomain,
+
     /**
      * internal tools for managing entities
      */
     registry: Registry,
+
     /**
      * create `scene` domain entities
      *
      * run callback on activation
      */
     scene: Scene,
+
     /**
      * create `sensor` domain entities
      */
     sensor: Sensor,
+
+    /**
+     * Logic for sour
+     */
+    storage: ValueStorage,
+
     /**
      * create `switch` domain entities
      */

@@ -1,42 +1,35 @@
-import {
-  each,
-  TBlackHole,
-  TContext,
-  TServiceParams,
-} from "@digital-alchemy/core";
+import { TBlackHole, TContext, TServiceParams } from "@digital-alchemy/core";
 
-type TSwitch = {
+import { TSynapseId } from "../helpers";
+import { TRegistry } from "./registry.extension";
+
+type TSwitch<ATTRIBUTES extends object = object> = {
   context: TContext;
   defaultState?: LocalOnOff;
   icon?: string;
+  defaultAttributes?: ATTRIBUTES;
   name: string;
 };
 
 type LocalOnOff = "on" | "off";
 
-export type VirtualSwitch = {
+export type VirtualSwitch<ATTRIBUTES extends object = object> = {
   state: LocalOnOff;
   on: boolean;
   icon: string;
+  attributes?: ATTRIBUTES;
   name: string;
   onUpdate: (callback: SwitchUpdateCallback) => void;
 };
 
 type UpdateSwitchBody = {
   event_type: "digital_alchemy_switch_update";
-  data: { data: { switch: string; state: LocalOnOff } };
+  data: { data: { switch: TSynapseId; state: LocalOnOff } };
 };
 
 type SwitchUpdateCallback = (state: boolean) => TBlackHole;
 
-export function Switch({
-  logger,
-  context,
-  lifecycle,
-  internal,
-  hass,
-  synapse,
-}: TServiceParams) {
+export function Switch({ logger, context, hass, synapse }: TServiceParams) {
   const registry = synapse.registry<VirtualSwitch>({
     context,
     details: entity => ({
@@ -79,38 +72,14 @@ export function Switch({
    *
    * Can be interacted with via return object, or standard home assistant switch services
    */
-  function create(entity: TSwitch) {
-    const callbacks = [] as SwitchUpdateCallback[];
-    let state: LocalOnOff;
-
-    function setState(newState: LocalOnOff) {
-      if (newState === state) {
-        return;
-      }
-      state = newState;
-      setImmediate(async () => {
-        logger.trace({ id, name: setState, state }, `switch state updated`);
-        await registry.setCache(id, state);
-        await registry.send(id, { state });
-        await each(
-          callbacks,
-          async callback =>
-            await internal.safeExec(async () => await callback(state === "on")),
-        );
-      });
-    }
-
-    lifecycle.onBootstrap(async () => {
-      state = await registry.getCache(id, entity.defaultState ?? "off");
-    });
-
+  function create<ATTRIBUTES extends object = object>(entity: TSwitch) {
     const returnEntity = new Proxy({} as VirtualSwitch, {
       get(_, property: keyof VirtualSwitch) {
         if (property === "state") {
-          return state;
+          return loader.state;
         }
         if (property === "on") {
-          return state === "on";
+          return loader.state === "on";
         }
         if (property === "icon") {
           return entity.icon;
@@ -119,17 +88,17 @@ export function Switch({
           return entity.name;
         }
         if (property === "onUpdate") {
-          return (callback: SwitchUpdateCallback) => callbacks.push(callback);
+          return loader.onUpdate();
         }
         return undefined;
       },
       set(_, property: keyof VirtualSwitch, value: LocalOnOff) {
         if (property === "state") {
-          setImmediate(async () => await setState(value));
+          setImmediate(async () => await loader.setState(value));
           return true;
         }
         if (property === "on") {
-          setImmediate(async () => await setState(value ? "on" : "off"));
+          setImmediate(async () => await loader.setState(value ? "on" : "off"));
           return true;
         }
         return false;
@@ -137,6 +106,14 @@ export function Switch({
     });
 
     const id = registry.add(returnEntity);
+    const loader = synapse.storage.loader<LocalOnOff, ATTRIBUTES>({
+      id,
+      registry: registry as TRegistry<unknown>,
+      value: {
+        attributes: {} as ATTRIBUTES,
+        state: "off",
+      },
+    });
     return returnEntity;
   }
 
