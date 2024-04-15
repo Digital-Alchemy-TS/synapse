@@ -12,7 +12,11 @@ import { tmpdir } from "os";
 import { join } from "path";
 import { cwd } from "process";
 
-import { STORAGE_BOOTSTRAP_PRIORITY, TSynapseId } from "..";
+import {
+  ENTITY_SET_ATTRIBUTE,
+  STORAGE_BOOTSTRAP_PRIORITY,
+  TSynapseId,
+} from "..";
 import { TRegistry } from ".";
 
 type StorageData<STATE, ATTRIBUTES> = {
@@ -27,6 +31,7 @@ type ValueLoader = <STATE, ATTRIBUTES>(
 type LoaderOptions<STATE, ATTRIBUTES extends object> = {
   registry: TRegistry<unknown>;
   id: TSynapseId;
+  name: string;
   value: StorageData<STATE, ATTRIBUTES>;
 };
 
@@ -127,9 +132,11 @@ export function ValueStorage({
     loader<STATE, ATTRIBUTES extends object>({
       registry,
       id,
+      name,
       value,
     }: LoaderOptions<STATE, ATTRIBUTES>) {
       // #MARK: value init
+      const domain = registry.domain;
       lifecycle.onBootstrap(async () => {
         const loaders = synapse.storage.storage.load;
         await each(registry.list(), async (id: TSynapseId) => {
@@ -140,7 +147,7 @@ export function ValueStorage({
             }
           }
           logger.debug(
-            { name: registry.byId(id) },
+            { domain, name },
             "could not determine current value, keeping default",
           );
         });
@@ -191,9 +198,13 @@ export function ValueStorage({
           }
           value.attributes[key] = incoming;
           logger.trace(
-            { id, key, value: incoming },
+            { domain, key, name, value: incoming },
             `update number attributes (single)`,
           );
+          ENTITY_SET_ATTRIBUTE.inc({
+            domain: registry.domain,
+            name,
+          });
           RunCallbacks({ attributes: entity.attributes });
         },
 

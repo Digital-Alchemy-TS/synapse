@@ -1,43 +1,46 @@
-import { TBlackHole, TContext, TServiceParams } from "@digital-alchemy/core";
+import {
+  START,
+  TBlackHole,
+  TContext,
+  TServiceParams,
+} from "@digital-alchemy/core";
 
 import { SensorDeviceClasses, TRegistry } from "..";
 
-type TNumber<STATE extends NumberValue, ATTRIBUTES extends object = object> = {
+type TSelect<STATE extends SelectValue, ATTRIBUTES extends object = object> = {
   context: TContext;
   defaultState?: STATE;
   icon?: string;
-  defaultAttributes?: Omit<ATTRIBUTES, keyof BaseNumberAttributes>;
+  defaultAttributes?: Omit<ATTRIBUTES, keyof BaseSelectAttributes>;
   name: string;
 } & SensorDeviceClasses &
-  BaseNumberAttributes;
+  BaseSelectAttributes;
 
-type NumberValue = string | number;
-type NumberUpdateCallback<
-  STATE extends NumberValue = NumberValue,
+type SelectValue = string;
+type SelectUpdateCallback<
+  STATE extends SelectValue = SelectValue,
   ATTRIBUTES extends object = object,
 > = (options: { state?: STATE; attributes?: ATTRIBUTES }) => TBlackHole;
 
-export type VirtualNumber<
-  STATE extends NumberValue = NumberValue,
+export type VirtualSelect<
+  STATE extends SelectValue = SelectValue,
   ATTRIBUTES extends object = object,
 > = {
   icon: string;
   attributes: ATTRIBUTES;
   _rawAttributes?: ATTRIBUTES;
-  onUpdate: (callback: NumberUpdateCallback<STATE, ATTRIBUTES>) => void;
+  onUpdate: (callback: SelectUpdateCallback<STATE, ATTRIBUTES>) => void;
   state: STATE;
 } & SensorDeviceClasses &
-  BaseNumberAttributes;
+  BaseSelectAttributes;
 
-type BaseNumberAttributes = {
-  min?: number;
+type BaseSelectAttributes = {
+  options: string[];
   name: string;
-  max?: number;
-  step?: number;
 };
 
-export function NumberDomain({ context, synapse }: TServiceParams) {
-  const registry = synapse.registry<VirtualNumber>({
+export function SelectDomain({ context, synapse }: TServiceParams) {
+  const registry = synapse.registry<VirtualSelect>({
     context,
     details: entity => ({
       attributes: entity._rawAttributes,
@@ -51,12 +54,12 @@ export function NumberDomain({ context, synapse }: TServiceParams) {
 
   // # Sensor creation function
   function create<
-    STATE extends NumberValue = NumberValue,
-    ATTRIBUTES extends BaseNumberAttributes = BaseNumberAttributes,
-  >(entity: TNumber<STATE, ATTRIBUTES>) {
-    const numberOut = new Proxy({} as VirtualNumber<STATE, ATTRIBUTES>, {
+    STATE extends SelectValue = SelectValue,
+    ATTRIBUTES extends BaseSelectAttributes = BaseSelectAttributes,
+  >(entity: TSelect<STATE, ATTRIBUTES>) {
+    const numberOut = new Proxy({} as VirtualSelect<STATE, ATTRIBUTES>, {
       // ### Getters
-      get(_, property: keyof VirtualNumber<STATE, ATTRIBUTES>) {
+      get(_, property: keyof VirtualSelect<STATE, ATTRIBUTES>) {
         if (property === "state") {
           return loader.state;
         }
@@ -69,14 +72,8 @@ export function NumberDomain({ context, synapse }: TServiceParams) {
         if (property === "name") {
           return entity.name;
         }
-        if (property === "max") {
-          return entity.max;
-        }
-        if (property === "min") {
-          return entity.min;
-        }
-        if (property === "step") {
-          return entity.step;
+        if (property === "options") {
+          return entity.options;
         }
         if (property === "onUpdate") {
           return loader.onUpdate();
@@ -138,8 +135,8 @@ export function NumberDomain({ context, synapse }: TServiceParams) {
       id,
       registry: registry as TRegistry<unknown>,
       value: {
-        attributes: {} as ATTRIBUTES,
-        state: "" as STATE,
+        attributes: (entity.defaultAttributes ?? {}) as ATTRIBUTES,
+        state: entity.options[START] as STATE,
       },
     });
     return numberOut;

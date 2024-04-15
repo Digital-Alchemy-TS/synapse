@@ -1,4 +1,9 @@
-import { TBlackHole, TContext, TServiceParams } from "@digital-alchemy/core";
+import {
+  is,
+  TBlackHole,
+  TContext,
+  TServiceParams,
+} from "@digital-alchemy/core";
 
 import { OnOff, TRegistry } from "..";
 
@@ -19,8 +24,10 @@ export type VirtualBinarySensor<ATTRIBUTES extends object = object> = {
   on: boolean;
 };
 type BinarySensorUpdateCallback = (state: boolean) => TBlackHole;
+const isOnOff = (value: unknown): value is OnOff =>
+  is.string(value) && ["on", "off"].includes(value);
 
-export function BinarySensor({ context, synapse }: TServiceParams) {
+export function BinarySensor({ context, synapse, logger }: TServiceParams) {
   const callbacks = [] as BinarySensorUpdateCallback[];
 
   const registry = synapse.registry<VirtualBinarySensor>({
@@ -57,7 +64,11 @@ export function BinarySensor({ context, synapse }: TServiceParams) {
       },
       set(_, property: keyof VirtualBinarySensor<ATTRIBUTES>, value: unknown) {
         if (property === "state") {
-          loader.setState(value as OnOff);
+          if (!isOnOff(value)) {
+            logger.warn({ name: entity.name }, `bad set value value for`);
+            return false;
+          }
+          loader.setState(value);
           return true;
         }
         if (property === "on") {
@@ -71,6 +82,7 @@ export function BinarySensor({ context, synapse }: TServiceParams) {
     const id = registry.add(out);
     const loader = synapse.storage.loader<OnOff, ATTRIBUTES>({
       id,
+      name: entity.name,
       registry: registry as TRegistry<unknown>,
       value: {
         attributes: {} as ATTRIBUTES,

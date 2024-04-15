@@ -27,3 +27,9 @@ export const BUTTON_EXECUTION_TIME = new Summary({
   name: "digital_alchemy_virtual_entity_button_callback_execution_time",
   percentiles: [0.5, 0.9, 0.99],
 });
+
+export const ENTITY_SET_ATTRIBUTE = new Counter({
+  help: "",
+  labelNames: ["domain", "name", "attribute"] as const,
+  name: "digital_alchemy_virtual_entity_set_attribute",
+});
