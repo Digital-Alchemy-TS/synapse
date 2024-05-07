@@ -108,6 +108,7 @@ export function Switch({ logger, context, hass, synapse }: TServiceParams) {
     const id = registry.add(returnEntity);
     const loader = synapse.storage.loader<LocalOnOff, ATTRIBUTES>({
       id,
+      name: entity.name,
       registry: registry as TRegistry<unknown>,
       value: {
         attributes: {} as ATTRIBUTES,

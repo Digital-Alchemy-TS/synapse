@@ -121,6 +121,7 @@ export function Sensor({ context, synapse }: TServiceParams) {
 
     const loader = synapse.storage.loader<STATE, ATTRIBUTES>({
       id,
+      name: entity.name,
       registry: registry as TRegistry<unknown>,
       value: {
         attributes: {} as ATTRIBUTES,

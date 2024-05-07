@@ -1,5 +1,6 @@
 import {
   BootstrapException,
+  deepExtend,
   each,
   is,
   NOT_FOUND,
@@ -36,7 +37,8 @@ type LoaderOptions<STATE, ATTRIBUTES extends object> = {
 };
 
 type TCallback<STATE, ATTRIBUTES extends object> = (
-  options: StorageData<STATE, ATTRIBUTES>,
+  new_state: StorageData<STATE, ATTRIBUTES>,
+  old_state: StorageData<STATE, ATTRIBUTES>,
 ) => TBlackHole;
 
 export function ValueStorage({
@@ -164,11 +166,17 @@ export function ValueStorage({
       function RunCallbacks(data: StorageData<STATE, ATTRIBUTES>) {
         setImmediate(async () => {
           await store();
-          await registry.send(id, data);
+          const current = {
+            attributes: entity.attributes,
+            state: entity.state,
+          };
+          await registry.send(id, current);
           await each(
             callbacks,
             async callback =>
-              await internal.safeExec(async () => await callback(data)),
+              await internal.safeExec(
+                async () => await callback(current, data),
+              ),
           );
         });
       }
@@ -196,6 +204,13 @@ export function ValueStorage({
           if (is.equal(entity.attributes[key], incoming)) {
             return;
           }
+          const current = deepExtend(
+            {},
+            {
+              attributes: entity.attributes,
+              state: entity.state,
+            },
+          );
           value.attributes[key] = incoming;
           logger.trace(
             { domain, key, name, value: incoming },
@@ -205,7 +220,7 @@ export function ValueStorage({
             domain: registry.domain,
             name,
           });
-          RunCallbacks({ attributes: entity.attributes });
+          RunCallbacks(current);
         },
 
         setAttributes(newAttributes: ATTRIBUTES) {
