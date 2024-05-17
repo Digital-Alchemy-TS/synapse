@@ -4,6 +4,7 @@ import {
   BUTTON_ERRORS,
   BUTTON_EXECUTION_COUNT,
   BUTTON_EXECUTION_TIME,
+  TSynapseId,
 } from "..";
 
 type TButton = {
@@ -16,7 +17,7 @@ type TButton = {
 
 type HassButtonUpdateEvent = {
   event_type: "digital_alchemy_activate";
-  data: { id: string };
+  data: { id: TSynapseId };
 };
 
 export function Button({
@@ -26,8 +27,9 @@ export function Button({
   synapse,
   internal,
 }: TServiceParams) {
-  const registry = synapse.registry<TButton>({
+  const registry = synapse.registry.create<TButton>({
     context,
+    // @ts-expect-error fixme
     domain: "button",
   });
 

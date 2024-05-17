@@ -40,7 +40,7 @@ type BaseSelectAttributes = {
 };
 
 export function SelectDomain({ context, synapse }: TServiceParams) {
-  const registry = synapse.registry<VirtualSelect>({
+  const registry = synapse.registry.create<VirtualSelect>({
     context,
     details: entity => ({
       attributes: entity._rawAttributes,

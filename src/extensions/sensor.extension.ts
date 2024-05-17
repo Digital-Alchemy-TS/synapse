@@ -29,7 +29,7 @@ export type VirtualSensor<
 } & SensorDeviceClasses;
 
 export function Sensor({ context, synapse }: TServiceParams) {
-  const registry = synapse.registry<VirtualSensor>({
+  const registry = synapse.registry.create<VirtualSensor>({
     context,
     details: entity => ({
       attributes: entity._rawAttributes,

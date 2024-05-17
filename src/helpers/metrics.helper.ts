@@ -29,7 +29,7 @@ export const BUTTON_EXECUTION_TIME = new Summary({
 });
 
 export const ENTITY_SET_ATTRIBUTE = new Counter({
-  help: "",
+  help: "Set attribute",
   labelNames: ["domain", "name", "attribute"] as const,
   name: "digital_alchemy_virtual_entity_set_attribute",
 });

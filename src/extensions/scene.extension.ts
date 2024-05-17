@@ -21,8 +21,9 @@ export function Scene({
   context,
   internal,
 }: TServiceParams) {
-  const registry = synapse.registry<TScene>({
+  const registry = synapse.registry.create<TScene>({
     context,
+    // @ts-expect-error fixme
     domain: "scene",
   });
 

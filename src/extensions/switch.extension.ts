@@ -30,7 +30,7 @@ type UpdateSwitchBody = {
 type SwitchUpdateCallback = (state: boolean) => TBlackHole;
 
 export function Switch({ logger, context, hass, synapse }: TServiceParams) {
-  const registry = synapse.registry<VirtualSwitch>({
+  const registry = synapse.registry.create<VirtualSwitch>({
     context,
     details: entity => ({
       state: entity.state,

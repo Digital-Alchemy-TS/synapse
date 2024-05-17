@@ -37,7 +37,7 @@ type BaseNumberAttributes = {
 };
 
 export function NumberDomain({ context, synapse }: TServiceParams) {
-  const registry = synapse.registry<VirtualNumber>({
+  const registry = synapse.registry.create<VirtualNumber>({
     context,
     details: entity => ({
       attributes: entity._rawAttributes,

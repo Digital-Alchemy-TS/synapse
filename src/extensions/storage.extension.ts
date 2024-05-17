@@ -55,9 +55,7 @@ export function ValueStorage({
     }
     // #region file storage init
     // APPLICATION_IDENTIFIER > app name
-    const APP_NAME = is.empty(config.synapse.APPLICATION_IDENTIFIER)
-      ? internal.boot.application.name
-      : config.synapse.APPLICATION_IDENTIFIER;
+    const APP_NAME = internal.boot.application.name;
 
     const localConfig = join(cwd(), APP_NAME);
     const file = is.empty(config.synapse.STORAGE_FILE_LOCATION)
@@ -142,6 +140,7 @@ export function ValueStorage({
       lifecycle.onBootstrap(async () => {
         const loaders = synapse.storage.storage.load;
         await each(registry.list(), async (id: TSynapseId) => {
+          return;
           for (let i = START; i <= loaders.length; i++) {
             const result = await loaders[i](id, registry);
             if (result) {

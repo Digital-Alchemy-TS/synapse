@@ -8,7 +8,7 @@
     "test": "./scripts/test.sh",
     "lint": "eslint src",
     "prepublishOnly": "npm run build",
-    "upgrade": "ncu -u; npm i"
+    "upgrade": "ncu -u -f '@digital-alchemy/*'; npm i"
   },
   "author": {
     "url": "https://github.com/zoe-codez",
@@ -25,24 +25,27 @@
   },
   "license": "MIT",
   "dependencies": {
-    "@digital-alchemy/core": "^0.3.13",
-    "@digital-alchemy/hass": "^0.3.23",
+    "@digital-alchemy/core": "^0.3.16",
+    "@digital-alchemy/fastify-extension": "^0.3.3",
+    "@digital-alchemy/hass": "^0.3.25",
+    "bonjour": "^3.5.0",
     "dayjs": "^1.11.11",
     "prom-client": "^15.1.2",
     "ws": "^8.17.0"
   },
   "devDependencies": {
-    "@cspell/eslint-plugin": "^8.8.0",
+    "@cspell/eslint-plugin": "^8.8.1",
+    "@types/bonjour": "^3.5.13",
     "@types/figlet": "^1.5.8",
     "@types/jest": "^29.5.12",
     "@types/js-yaml": "^4.0.9",
     "@types/minimist": "^1.2.5",
     "@types/mute-stream": "^0.0.4",
-    "@types/node": "^20.12.10",
+    "@types/node": "^20.12.12",
     "@types/uuid": "^9.0.8",
     "@types/ws": "^8.5.10",
-    "@typescript-eslint/eslint-plugin": "7.8.0",
-    "@typescript-eslint/parser": "7.8.0",
+    "@typescript-eslint/eslint-plugin": "7.9.0",
+    "@typescript-eslint/parser": "7.9.0",
     "eslint": "8.57.0",
     "eslint-config-prettier": "9.1.0",
     "eslint-plugin-import": "^2.29.1",
@@ -53,13 +56,13 @@
     "eslint-plugin-simple-import-sort": "^12.1.0",
     "eslint-plugin-sonarjs": "^1.0.3",
     "eslint-plugin-sort-keys-fix": "^1.1.2",
-    "eslint-plugin-unicorn": "^52.0.0",
+    "eslint-plugin-unicorn": "^53.0.0",
     "jest": "^29.7.0",
     "jest-environment-node": "^29.7.0",
     "npm-check-updates": "^16.14.20",
     "prettier": "^3.2.5",
     "ts-jest": "^29.1.2",
-    "tsx": "^4.9.3",
+    "tsx": "^4.10.3",
     "type-fest": "^4.18.2",
     "typescript": "^5.4.5"
   }

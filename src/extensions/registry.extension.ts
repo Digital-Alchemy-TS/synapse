@@ -54,11 +54,9 @@ export function Registry({
   type TDomain = ReturnType<typeof create>;
   const domains = new Map<ALL_DOMAINS, TDomain>();
   let initComplete = false;
-  const getIdentifier = () =>
-    config.synapse.APPLICATION_IDENTIFIER || internal.boot.application.name;
+  const getIdentifier = () => internal.boot.application.name;
 
-  async function SendEntityList() {
-    logger.debug(`send entity list`);
+  function buildEntityState() {
     const domains = Object.fromEntries(
       [...LOADERS.keys()].map(domain => {
         const data = LOADERS.get(domain)();
@@ -66,10 +64,18 @@ export function Registry({
       }),
     );
     const hash = generateHash(JSON.stringify(domains));
+    return {
+      boot: BOOT_TIME,
+      domains,
+      hash,
+    };
+  }
+
+  async function SendEntityList() {
+    logger.debug(`send entity list`);
     await hass.socket.fireEvent(
       `digital_alchemy_application_state`,
-      { app: getIdentifier(), boot: BOOT_TIME, domains, hash },
-      false,
+      buildEntityState(),
     );
   }
 
@@ -84,7 +90,6 @@ export function Registry({
         await hass.socket.fireEvent(
           `digital_alchemy_heartbeat_${getIdentifier()}`,
           {},
-          false,
         ),
       interval: config.synapse.HEARTBEAT_INTERVAL * SECOND,
     });
@@ -98,7 +103,6 @@ export function Registry({
     await hass.socket.fireEvent(
       `digital_alchemy_application_shutdown_${getIdentifier()}`,
       {},
-      false,
     );
   });
 
@@ -109,7 +113,6 @@ export function Registry({
     await hass.socket.fireEvent(
       `digital_alchemy_heartbeat_${getIdentifier()}`,
       {},
-      false,
     );
     if (!config.synapse.ANNOUNCE_AT_CONNECT) {
       return;
@@ -210,7 +213,7 @@ export function Registry({
     // > Rebooting hass could be done to clear out the values if needed
     // > Need to go through synapse based side channels to avoid retrieving an "unavailable" state
     hass.socket.onConnect(async () => {
-      if (is.empty(LOAD_ME)) {
+      if (is.empty(LOAD_ME) || true) {
         return;
       }
       logger.debug(
@@ -246,7 +249,6 @@ export function Registry({
         await hass.socket.fireEvent(
           `digital_alchemy_retrieve_state_${domain}`,
           { app: getIdentifier() },
-          false,
         );
         // wait 1 second
         await sleep(SECOND);
@@ -346,11 +348,7 @@ export function Registry({
           );
           return;
         }
-        await hass.socket.fireEvent(
-          `digital_alchemy_event`,
-          { data, id },
-          false,
-        );
+        await hass.socket.fireEvent(`digital_alchemy_event`, { data, id });
       },
       // ### setCache
       async setCache(id: TSynapseId, value: unknown): Promise<void> {
@@ -361,7 +359,7 @@ export function Registry({
     return out;
   }
   create.registeredDomains = domains;
-  return create;
+  return { buildEntityState, create };
 }
 
 export type TRegistry<DATA extends unknown = unknown> = {

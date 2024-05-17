@@ -1,9 +1,17 @@
-import { CreateLibrary, StringConfig } from "@digital-alchemy/core";
+import {
+  CreateLibrary,
+  InternalConfig,
+  StringConfig,
+} from "@digital-alchemy/core";
+import { LIB_FASTIFY } from "@digital-alchemy/fastify-extension";
 import { LIB_HASS } from "@digital-alchemy/hass";
 
 import {
   BinarySensor,
+  BonjourExtension,
   Button,
+  Configure,
+  Controller,
   NumberDomain,
   Registry,
   Scene,
@@ -11,6 +19,7 @@ import {
   Switch,
   ValueStorage,
 } from "./extensions";
+import { HassDeviceMetadata } from "./helpers";
 
 enum StorageTypes {
   none = "none",
@@ -29,22 +38,41 @@ export const LIB_SYNAPSE = CreateLibrary({
       ],
       type: "boolean",
     },
-    APPLICATION_IDENTIFIER: {
-      description: [
-        "Used to generate unique ids in home assistant",
-        "Defaults to application name",
-      ],
-      type: "string",
-    },
     EMIT_HEARTBEAT: {
       default: true,
-      description: ["Emit a pulse so the extension knows the service is alive"],
+      description: [
+        "Emit a heartbeat pulse so the extension knows the service is alive",
+      ],
       type: "boolean",
     },
     HEARTBEAT_INTERVAL: {
       default: 5,
       description: "Seconds between heartbeats",
       type: "number",
+    },
+    METADATA: {
+      description: [
+        "A string to uniquely identify this application",
+        "Should be unique within home assistant, such as a uuid",
+        "Default value calculated from hostname + username + app_name",
+      ],
+      type: "internal",
+    } as InternalConfig<HassDeviceMetadata>,
+    METADATA_NAME: {
+      description: "Override value to report as integration entry name",
+      type: "string",
+    },
+    METADATA_UNIQUE_ID: {
+      description: [
+        "A string to uniquely identify this application",
+        "Should be unique within home assistant, such as a uuid",
+        "Default value calculated from hostname + username + app_name",
+      ],
+      type: "string",
+    },
+    PUBLISH_BONJOUR: {
+      default: true,
+      type: "boolean",
     },
     STORAGE: {
       default: "cache",
@@ -58,7 +86,7 @@ export const LIB_SYNAPSE = CreateLibrary({
       type: "string",
     },
   },
-  depends: [LIB_HASS],
+  depends: [LIB_HASS, LIB_FASTIFY],
   name: "synapse",
   priorityInit: ["registry", "storage"],
   services: {
@@ -68,11 +96,26 @@ export const LIB_SYNAPSE = CreateLibrary({
     binary_sensor: BinarySensor,
 
     /**
+     * Zeroconf discovery
+     */
+    bonjour: BonjourExtension,
+
+    /**
      * create `button` domain entities
      *
      * run callback on activation
      */
     button: Button,
+
+    /**
+     *
+     */
+    configure: Configure,
+
+    /**
+     * fastify bindings
+     */
+    controller: Controller,
 
     /**
      * create `number` domain entities

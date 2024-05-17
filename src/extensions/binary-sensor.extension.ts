@@ -30,7 +30,7 @@ const isOnOff = (value: unknown): value is OnOff =>
 export function BinarySensor({ context, synapse, logger }: TServiceParams) {
   const callbacks = [] as BinarySensorUpdateCallback[];
 
-  const registry = synapse.registry<VirtualBinarySensor>({
+  const registry = synapse.registry.create<VirtualBinarySensor>({
     context,
     details: item => ({ state: item.state }),
     domain: "binary_sensor",
