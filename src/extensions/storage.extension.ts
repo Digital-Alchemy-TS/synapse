@@ -20,25 +20,34 @@ import {
 } from "..";
 import { TRegistry } from ".";
 
-type StorageData<STATE, ATTRIBUTES> = {
-  state?: STATE;
+type StorageData<STATE, ATTRIBUTES, CONFIGURATION> = {
   attributes?: ATTRIBUTES;
+  configuration?: CONFIGURATION;
+  state?: STATE;
 };
-type ValueLoader = <STATE, ATTRIBUTES>(
+type ValueLoader = <STATE, ATTRIBUTES, CONFIGURATION>(
   id: string,
   registry: TRegistry,
-) => Promise<StorageData<STATE, ATTRIBUTES>>;
+) => Promise<StorageData<STATE, ATTRIBUTES, CONFIGURATION>>;
 
-type LoaderOptions<STATE, ATTRIBUTES extends object> = {
+type LoaderOptions<
+  STATE,
+  ATTRIBUTES extends object,
+  CONFIGURATION extends object,
+> = {
   registry: TRegistry<unknown>;
   id: TSynapseId;
   name: string;
-  value: StorageData<STATE, ATTRIBUTES>;
+  value: StorageData<STATE, ATTRIBUTES, CONFIGURATION>;
 };
 
-type TCallback<STATE, ATTRIBUTES extends object> = (
-  new_state: StorageData<STATE, ATTRIBUTES>,
-  old_state: StorageData<STATE, ATTRIBUTES>,
+type TCallback<
+  STATE,
+  ATTRIBUTES extends object,
+  CONFIGURATION extends object,
+> = (
+  new_state: StorageData<STATE, ATTRIBUTES, CONFIGURATION>,
+  old_state: StorageData<STATE, ATTRIBUTES, CONFIGURATION>,
 ) => TBlackHole;
 
 export function ValueStorage({
@@ -49,11 +58,11 @@ export function ValueStorage({
   context,
   config,
 }: TServiceParams) {
+  // #MARK: file storage init
   lifecycle.onPostConfig(() => {
     if (config.synapse.STORAGE !== "file") {
       return;
     }
-    // #region file storage init
     // APPLICATION_IDENTIFIER > app name
     const APP_NAME = internal.boot.application.name;
 
@@ -101,7 +110,6 @@ export function ValueStorage({
       "BAD_STORAGE_FILE",
       `${file} is not a valid file storage target`,
     );
-    // #endregion
   }, STORAGE_BOOTSTRAP_PRIORITY);
 
   // #MARK: Loaders
@@ -129,12 +137,12 @@ export function ValueStorage({
     CacheLoader,
     HassLoader,
 
-    loader<STATE, ATTRIBUTES extends object>({
+    loader<STATE, ATTRIBUTES extends object, CONFIGURATION extends object>({
       registry,
       id,
       name,
       value,
-    }: LoaderOptions<STATE, ATTRIBUTES>) {
+    }: LoaderOptions<STATE, ATTRIBUTES, CONFIGURATION>) {
       // #MARK: value init
       const domain = registry.domain;
       lifecycle.onBootstrap(async () => {
@@ -160,13 +168,17 @@ export function ValueStorage({
         });
       }
 
-      const callbacks = [] as TCallback<STATE, ATTRIBUTES>[];
+      const callbacks = [] as TCallback<STATE, ATTRIBUTES, CONFIGURATION>[];
 
-      function RunCallbacks(data: StorageData<STATE, ATTRIBUTES>) {
+      // #MARK: RunCallbacks
+      function RunCallbacks(
+        data: StorageData<STATE, ATTRIBUTES, CONFIGURATION>,
+      ) {
         setImmediate(async () => {
           await store();
           const current = {
             attributes: entity.attributes,
+            configuration: entity.configuration,
             state: entity.state,
           };
           await registry.send(id, current);
@@ -183,9 +195,10 @@ export function ValueStorage({
       // #MARK: storage commands
       const entity = {
         attributes: value.attributes,
+        configuration: value.configuration,
 
         onUpdate() {
-          return (callback: TCallback<STATE, ATTRIBUTES>) => {
+          return (callback: TCallback<STATE, ATTRIBUTES, CONFIGURATION>) => {
             callbacks.push(callback);
             return () => {
               const index = callbacks.indexOf(callback);
@@ -195,7 +208,7 @@ export function ValueStorage({
             };
           };
         },
-
+        // #MARK: setAttribute
         setAttribute<
           KEY extends keyof ATTRIBUTES,
           VALUE extends ATTRIBUTES[KEY],
@@ -222,6 +235,7 @@ export function ValueStorage({
           RunCallbacks(current);
         },
 
+        // #MARK: setAttributes
         setAttributes(newAttributes: ATTRIBUTES) {
           if (is.equal(entity.attributes, newAttributes)) {
             return;
@@ -234,6 +248,20 @@ export function ValueStorage({
           RunCallbacks({ attributes: entity.attributes });
         },
 
+        // #MARK: setConfiguration
+        setConfiguration(newConfiguration: CONFIGURATION) {
+          if (is.equal(entity.configuration, newConfiguration)) {
+            return;
+          }
+          entity.configuration = newConfiguration;
+          logger.trace(
+            { id, name: registry.domain, newConfiguration },
+            `update configuration (all)`,
+          );
+          RunCallbacks({ configuration: entity.configuration });
+        },
+
+        // #MARK: setState
         setState(newState: STATE) {
           if (entity.state === newState) {
             return;

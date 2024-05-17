@@ -1,6 +1,4 @@
-/**
- * TODO: this tsdoc is helpful, can it be integration with the rest of the definitions?
- */
+// #MARK: DeviceClass
 export enum DeviceClass {
   /**
    * Generic sensor. This is the default and doesn’t need to be set.
@@ -156,6 +154,8 @@ export enum DeviceClass {
   temperature = "temperature",
   /**
    * Datetime object or timestamp string (ISO 8601)
+   *
+   * ISO8601 format: https://en.wikipedia.org/wiki/ISO_8601
    */
   timestamp = "timestamp",
   /**
@@ -184,34 +184,49 @@ export enum DeviceClass {
   wind_speed = "wind_speed",
 }
 
+// #MARK: DurationSensor
 type DurationSensor = {
   device_class: "duration";
   unit_of_measurement: "h" | "min" | "s" | "d";
 };
+
+// #MARK: TemperatureSensor
 type TemperatureSensor = {
   device_class: "temperature";
   unit_of_measurement: "K" | "°C" | "°F";
 };
+
+// #MARK: Precipitation
 type Precipitation = {
   device_class: "precipitation";
   unit_of_measurement: "cm" | "in" | "mm";
 };
+
+// #MARK: ApparentPowerSensor
 type ApparentPowerSensor = {
   device_class: "apparent_power";
   unit_of_measurement: "VA";
 };
+
+// #MARK: WaterSensor
 type WaterSensor = {
   device_class: "water";
   unit_of_measurement: "L" | "gal" | "m³" | "ft³" | "CCF";
 };
+
+// #MARK: WeightSensor
 type WeightSensor = {
   device_class: "weight";
   unit_of_measurement: "kg" | "g" | "mg" | "µg" | "oz" | "lb" | "st";
 };
+
+// #MARK: WindSpeedSensor
 type WindSpeedSensor = {
   device_class: "wind_speed";
   unit_of_measurement: "ft/s" | "km/h" | "kn" | "m/s" | "mph";
 };
+
+// #MARK: SpeedSensor
 type SpeedSensor = {
   device_class: "speed";
   unit_of_measurement:
@@ -224,22 +239,32 @@ type SpeedSensor = {
     | "mph"
     | "mm/d";
 };
+
+// #MARK: VoltageSensor
 type VoltageSensor = {
   device_class: "voltage";
   unit_of_measurement: "V" | "mV";
 };
+
+// #MARK: SignalStrengthSensor
 type SignalStrengthSensor = {
   device_class: "signal_strength";
   unit_of_measurement: "dB" | "dBm";
 };
+
+// #MARK: VolumeSensor
 type VolumeSensor = {
   device_class: "volume";
   unit_of_measurement: "L" | "mL" | "gal" | "fl. oz." | "m³" | "ft³" | "CCF";
 };
+
+// #MARK: SoundPressureSensor
 type SoundPressureSensor = {
   device_class: "sound_pressure";
   unit_of_measurement: "dB" | "dBA";
 };
+
+// #MARK: PressureSensor
 type PressureSensor = {
   device_class: "pressure";
   unit_of_measurement:
@@ -252,22 +277,32 @@ type PressureSensor = {
     | "Pa"
     | "psi";
 };
+
+// #MARK: ReactivePowerSensor
 type ReactivePowerSensor = {
   device_class: "reactive_power";
   unit_of_measurement: "var";
 };
+
+// #MARK: PrecipitationIntensitySensor
 type PrecipitationIntensitySensor = {
   device_class: "precipitation_intensity";
   unit_of_measurement: "in/d" | "in/h" | "mm/d" | "mm/h";
 };
+
+// #MARK: PowerFactorSensor
 type PowerFactorSensor = {
   device_class: "power_factor";
   unit_of_measurement: "%" | "None";
 };
+
+// #MARK: PowerSensor
 type PowerSensor = {
   device_class: "power";
   unit_of_measurement: "W" | "kW";
 };
+
+// #MARK: MixedGasSensor
 type MixedGasSensor = {
   device_class:
     | "nitrogen_monoxide"
@@ -279,30 +314,44 @@ type MixedGasSensor = {
     | "volatile_organic_compounds";
   unit_of_measurement: "µg/m³";
 };
+
+// #MARK: IlluminanceSensor
 type IlluminanceSensor = {
   device_class: "illuminance";
   unit_of_measurement: "lx";
 };
+
+// #MARK: IrradianceSensor
 type IrradianceSensor = {
   device_class: "irradiance";
   unit_of_measurement: "W/m²" | "BTU/(h⋅ft²)";
 };
+
+// #MARK: GasSensor
 type GasSensor = {
   device_class: "gas";
   unit_of_measurement: "m³" | "ft³" | "CCF";
 };
+
+// #MARK: FrequencySensor
 type FrequencySensor = {
   device_class: "frequency";
   unit_of_measurement: "Hz" | "kHz" | "MHz" | "GHz";
 };
+
+// #MARK: EnergySensor
 type EnergySensor = {
   device_class: "energy";
   unit_of_measurement: "Wh" | "kWh" | "MWh" | "MJ" | "GJ";
 };
+
+// #MARK: DistanceSensor
 type DistanceSensor = {
   device_class: "distance";
   unit_of_measurement: "km" | "m" | "cm" | "mm" | "mi" | "yd" | "in";
 };
+
+// #MARK: MonetarySensor
 type MonetarySensor = {
   device_class: "monetary";
   /**
@@ -310,6 +359,8 @@ type MonetarySensor = {
    */
   unit_of_measurement: string;
 };
+
+// #MARK: DataRateSensor
 type DataRateSensor = {
   device_class: "data_rate";
   unit_of_measurement:
@@ -325,6 +376,8 @@ type DataRateSensor = {
     | "MiB/s"
     | "GiB/s";
 };
+
+// #MARK: DataSizeSensor
 type DataSizeSensor = {
   device_class: "data_size";
   unit_of_measurement:
@@ -350,6 +403,8 @@ type DataSizeSensor = {
     | "ZiB"
     | "YiB";
 };
+
+// #MARK: AtmosphericPressureSensor
 type AtmosphericPressureSensor = {
   device_class: "atmospheric_pressure";
   unit_of_measurement:
@@ -362,18 +417,24 @@ type AtmosphericPressureSensor = {
     | "Pa"
     | "psi";
 };
+
+// #MARK: CurrentSensor
 type CurrentSensor = {
   device_class: "current";
   unit_of_measurement: "A" | "mA";
 };
+
+// #MARK: CarbonSensor
 type CarbonSensor = {
   device_class: "carbon_dioxide" | "carbon_monoxide";
   unit_of_measurement: "ppm";
 };
+// #MARK: PercentSensor
 type PercentSensor = {
   device_class: "battery" | "humidity" | "moisture";
   unit_of_measurement: "%";
 };
+// #MARK: DefaultSensor
 type DefaultSensor = {
   /**
    * The type/class of the sensor to set the icon in the frontend.
@@ -384,6 +445,33 @@ type DefaultSensor = {
   unit_of_measurement?: void;
 };
 
+// #MARK: SensorStateClass
+export enum SensorStateClass {
+  /**
+   * The state represents a measurement in present time, not a historical aggregation such as statistics or a prediction of the future.
+   *
+   * Examples of what should be classified `measurement` are: current temperature, humidity or electric power.
+   *
+   * Examples of what should not be classified as `measurement`: Forecasted temperature for tomorrow, yesterday's energy consumption or anything else that doesn't include the current measurement.
+   *
+   * For supported sensors, statistics of hourly min, max and average sensor readings is updated every 5 minutes.
+   */
+  MEASUREMENT = "measurement",
+  /**
+   * The state represents a total amount that can both increase and decrease, e.g. a net energy meter.
+   * Statistics of the accumulated growth or decline of the sensor's value since it was first added is updated every 5 minutes.
+   * This state class should not be used for sensors where the absolute value is interesting instead of the accumulated growth or decline, for example remaining battery capacity or CPU load; in such cases state class measurement should be used instead.
+   */
+  TOTAL = "total",
+  /**
+   * Similar to total, with the restriction that the state represents a monotonically increasing positive total which periodically restarts counting from 0, e.g. a daily amount of consumed gas, weekly water consumption or lifetime energy consumption.
+   * Statistics of the accumulated growth of the sensor's value since it was first added is updated every 5 minutes.
+   * A decreasing value is interpreted as the start of a new meter cycle or the replacement of the meter.
+   */
+  TOTAL_INCREASING = "total_increasing",
+}
+
+// #MARK: SensorDeviceClasses
 export type SensorDeviceClasses =
   | DurationSensor
   | TemperatureSensor
@@ -417,56 +505,3 @@ export type SensorDeviceClasses =
   | DataSizeSensor
   | AtmosphericPressureSensor
   | DefaultSensor;
-
-// type ValueTypes = "number" | "date" | "string";
-
-// private valueType(deviceClass: string): ValueTypes {
-//   switch (deviceClass) {
-//     case "current":
-//     case "duration":
-//     case "temperature":
-//     case "precipitation":
-//     case "apparent_power":
-//     case "water":
-//     case "weight":
-//     case "wind_speed":
-//     case "speed":
-//     case "voltage":
-//     case "signal_strength":
-//     case "volume":
-//     case "sound_pressure":
-//     case "pressure":
-//     case "reactive_power":
-//     case "precipitation_intensity":
-//     case "power_factor":
-//     case "power":
-//     case "nitrogen_monoxide":
-//     case "nitrous_oxide":
-//     case "ozone":
-//     case "pm1":
-//     case "pm25":
-//     case "pm10":
-//     case "volatile_organic_compounds":
-//     case "illuminance":
-//     case "irradiance":
-//     case "gas":
-//     case "frequency":
-//     case "energy":
-//     case "distance":
-//     case "monetary":
-//     case "data_rate":
-//     case "data_size":
-//     case "atmospheric_pressure":
-//     case "carbon_dioxide":
-//     case "carbon_monoxide":
-//     case "battery":
-//     case "humidity":
-//     case "moisture":
-//       return "number";
-//     case "timestamp":
-//     case "date":
-//       return "date";
-//     default:
-//       return "string";
-//   }
-// }

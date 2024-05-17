@@ -6,6 +6,7 @@ words:
   - hass
   - gotify
   - desync
+  - datetime
   - homeassistant
   - zeroconf
   - endregion
