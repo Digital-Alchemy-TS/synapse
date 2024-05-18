@@ -2,8 +2,6 @@ import {
   InternalError,
   is,
   SECOND,
-  sleep,
-  START,
   TBlackHole,
   TContext,
   TServiceParams,
@@ -29,9 +27,6 @@ type SynapseSocketOptions<DATA extends object> = {
 };
 
 const BOOT_TIME = new Date().toISOString();
-// anecdotally, it only needs a single retry
-// can't think of what a 2nd might accomplish, let alone 3rd
-const RETRY = 3;
 
 function generateHash(input: string) {
   const hash = createHash("sha256");
@@ -49,12 +44,12 @@ export function Registry({
   context,
   scheduler,
 }: TServiceParams) {
-  // # Common
   const LOADERS = new Map<ALL_DOMAINS, () => object[]>();
   type TDomain = ReturnType<typeof create>;
   const domains = new Map<ALL_DOMAINS, TDomain>();
   let initComplete = false;
   const getIdentifier = () => internal.boot.application.name;
+  const name = (a: string) => ["digital_alchemy", a, getIdentifier()].join("/");
 
   function buildEntityState() {
     const domains = Object.fromEntries(
@@ -71,26 +66,20 @@ export function Registry({
     };
   }
 
+  // * SendEntityList
   async function SendEntityList() {
-    logger.debug(`send entity list`);
-    await hass.socket.fireEvent(
-      `digital_alchemy_application_state`,
-      buildEntityState(),
-    );
+    logger.debug({ name: SendEntityList }, `send entity list`);
+    await hass.socket.fireEvent(name("configuration"), buildEntityState());
   }
 
-  // ## Heartbeat
+  // * Heartbeat
   lifecycle.onPostConfig(async () => {
     if (!config.synapse.EMIT_HEARTBEAT) {
       return;
     }
     logger.trace({ name: "onPostConfig" }, `starting heartbeat`);
     scheduler.interval({
-      exec: async () =>
-        await hass.socket.fireEvent(
-          `digital_alchemy_heartbeat_${getIdentifier()}`,
-          {},
-        ),
+      exec: async () => await hass.socket.fireEvent(name("heartbeat")),
       interval: config.synapse.HEARTBEAT_INTERVAL * SECOND,
     });
   });
@@ -100,20 +89,14 @@ export function Registry({
       { name: "onPreShutdown" },
       `notifying synapse extension of shutdown`,
     );
-    await hass.socket.fireEvent(
-      `digital_alchemy_application_shutdown_${getIdentifier()}`,
-      {},
-    );
+    await hass.socket.fireEvent(name("shutdown"));
   });
 
-  // ## Different opportunities to announce
-  // ### At boot
+  // * Different opportunities to announce
+  // * At boot
   hass.socket.onConnect(async () => {
     initComplete = true;
-    await hass.socket.fireEvent(
-      `digital_alchemy_heartbeat_${getIdentifier()}`,
-      {},
-    );
+    await hass.socket.fireEvent(name("heartbeat"));
     if (!config.synapse.ANNOUNCE_AT_CONNECT) {
       return;
     }
@@ -121,25 +104,22 @@ export function Registry({
     await SendEntityList();
   });
 
-  // ### Targeted at this app
+  // * Targeted at this app
   hass.socket.onEvent({
     context,
-    event: "digital_alchemy_app_reload",
-    exec: async ({ app }: { app: string }) => {
-      if (app !== getIdentifier()) {
-        return;
-      }
-      logger.info(`digital-alchemy.reload(%s)`, app);
+    event: name("reload"),
+    exec: async () => {
+      logger.info(`reload by app`);
       await SendEntityList();
     },
   });
 
-  // ### Targeted at all digital-alchemy apps
+  // * Targeted at all digital-alchemy apps
   hass.socket.onEvent({
     context,
-    event: "digital_alchemy_app_reload_all",
+    event: "digital_alchemy/reload",
     exec: async () => {
-      logger.info({ all: true }, `digital-alchemy.reload()`);
+      logger.info(`reload global`);
       await SendEntityList();
     },
   });
@@ -153,16 +133,8 @@ export function Registry({
     logger.trace({ name: domain }, `init domain`);
     const registry = new Map<TSynapseId, DATA>();
     const CACHE_KEY = (id: TSynapseId) => `${domain}_cache:${id}`;
-    type TCallback = (argument: unknown) => TBlackHole;
-    let LOAD_ME = new Set<{
-      id: TSynapseId;
-      callback: TCallback;
-    }>();
-    const missingEntities = () =>
-      [...LOAD_ME.values()].map(({ id }) => registry.get(id).name);
-    let LOADED_SYNAPSE_DATA: Record<TSynapseId, unknown>;
 
-    // ## Export the data for hass
+    // * Export the data for hass
     LOADERS.set(domain, () => {
       return [...registry.entries()].map(([id, item]) => {
         return {
@@ -174,115 +146,9 @@ export function Registry({
       });
     });
 
-    // ## Value restoration
-    function loadFromHass<T extends object>(
-      id: TSynapseId,
-      callback: (argument: T) => void,
-    ) {
-      // ? loading already occurred, acts as a flag and minor garbage collection
-      if (!LOAD_ME) {
-        if (LOADED_SYNAPSE_DATA && LOADED_SYNAPSE_DATA[id]) {
-          // load from the snapshot
-          //
-          // > thoughts on data desync
-          //
-          // it's not clear why this entity is being loaded later, or even how much later this is
-          //   however, if it existed in the past, and came from this app, then it's value
-          //   should be in the snapshot
-          //
-          // i don't believe there is a way for the data to update inside synapse if all the assumptions hold true
-          // snapshot should contain last known value, even if we're generating the entity 2 days after boot for some reason
-          //
-          callback(LOADED_SYNAPSE_DATA[id] as T);
-          return;
-        }
-        // not so lucky
-        logger.debug({ id, name: loadFromHass }, `value restoration failed`);
-        return;
-      }
-      logger.trace(
-        { domain, id, name: loadFromHass },
-        `adding lookup for entity`,
-      );
-      LOAD_ME.add({ callback: callback as TCallback, id });
-    }
-
-    // What is visible on the dashboard is considered the second source of truth
-    // If an entity wants a state, but it wasn't able to load it from cache, it will come here
-    // Will do a quick lookup of what the extension thinks the value is, and use that to set
-    // > Rebooting hass could be done to clear out the values if needed
-    // > Need to go through synapse based side channels to avoid retrieving an "unavailable" state
-    hass.socket.onConnect(async () => {
-      if (is.empty(LOAD_ME) || true) {
-        return;
-      }
-      logger.debug(
-        { domain, name: "onConnect" },
-        `retrieving state from synapse`,
-      );
-      let loaded = false;
-      // listen for reply
-      const remove = hass.socket.onEvent({
-        context,
-        event: `digital_alchemy_respond_state_${domain}`,
-        exec: ({ data }: { data: Record<string, unknown> }) => {
-          loaded = true;
-          LOADED_SYNAPSE_DATA = data;
-          LOAD_ME.forEach(item => {
-            const { id, callback } = item;
-            callback(data[id] as object);
-            LOAD_ME.delete(item);
-          });
-          LOAD_ME = undefined;
-        },
-        once: true,
-      });
-
-      for (let i = START; i <= RETRY; i++) {
-        if (i > START) {
-          logger.warn(
-            { domain, missing: missingEntities(), name: "onConnect" },
-            `retrying state retrieval...`,
-          );
-        }
-        // send request for data
-        await hass.socket.fireEvent(
-          `digital_alchemy_retrieve_state_${domain}`,
-          { app: getIdentifier() },
-        );
-        // wait 1 second
-        await sleep(SECOND);
-        if (loaded) {
-          return;
-        }
-      }
-      //
-      // give up
-      //
-      // This can occur when the extension has not seen this app yet.
-      // Maybe this app was brought offline with no persistent cache, and hass was reset?
-      //
-      // It can call digital-alchemy.reload() to register this app to properly fulfill this request
-      // But it still wouldn't cause that data to be revived.
-      // Hopefully sane logic for value defaulting was put in
-      //
-
-      logger.warn(
-        {
-          attempts: RETRY,
-          domain,
-          missing: missingEntities(),
-          name: "onConnect",
-        },
-        `could not retrieve current data from synapse`,
-      );
-      LOAD_ME = undefined;
-      remove();
-    });
-
-    // ## Registry interactions
+    // * Registry interactions
     const out = {
-      // ### Add
+      // * Add
       add(data: DATA) {
         const id = (
           is.empty(data.unique_id)
@@ -307,7 +173,7 @@ export function Registry({
         return id;
       },
 
-      // ### byId
+      // * byId
       byId(id: TSynapseId) {
         return registry.get(id);
       },
@@ -327,19 +193,17 @@ export function Registry({
         };
       },
 
-      // ### getCache
+      // * getCache
       async getCache<T>(id: TSynapseId, defaultValue?: T): Promise<T> {
         return await cache.get(CACHE_KEY(id), defaultValue);
       },
 
-      // ### list
+      // * list
       list() {
         return [...registry.keys()];
       },
 
-      // ### loadFromHass
-      loadFromHass,
-      // ### send
+      // * send
       async send(id: TSynapseId, data: object): Promise<void> {
         if (hass.socket.connectionState !== "connected") {
           logger.debug(
@@ -348,9 +212,12 @@ export function Registry({
           );
           return;
         }
-        await hass.socket.fireEvent(`digital_alchemy_event`, { data, id });
+        await hass.socket.fireEvent(name("event"), {
+          data,
+          id,
+        });
       },
-      // ### setCache
+      // * setCache
       async setCache(id: TSynapseId, value: unknown): Promise<void> {
         await cache.set(CACHE_KEY(id), value);
       },
@@ -370,10 +237,6 @@ export type TRegistry<DATA extends unknown = unknown> = {
     callback: (options: DATA, id: TSynapseId) => TBlackHole,
   ): (options: DATA) => RESULT;
   getCache<T>(id: TSynapseId, defaultValue?: T): Promise<T>;
-  loadFromHass: <T extends object>(
-    id: TSynapseId,
-    callback: (argument: T) => void,
-  ) => void;
   list: () => TSynapseId[];
   send: (id: TSynapseId, data: object) => Promise<void>;
   setCache: (id: TSynapseId, value: unknown) => Promise<void>;

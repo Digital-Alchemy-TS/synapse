@@ -10,6 +10,4 @@ export function Configure({ lifecycle, config, internal }: TServiceParams) {
       );
     }
   });
-
-
 }

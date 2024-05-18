@@ -1,11 +1,12 @@
 import { TServiceParams } from "@digital-alchemy/core";
 
 export function EntityGenerator({ synapse, context, logger }: TServiceParams) {
-  synapse.sensor({
+  const locationSensor = synapse.sensor({
     context,
     defaultState: "home",
     name: "Location",
   });
+  // locationSensor.
 
   synapse.binary_sensor({
     context,

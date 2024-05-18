@@ -14,9 +14,12 @@ import { SensorDeviceClasses, SensorStateClass, TRegistry } from "..";
 type TSensor<STATE extends SensorValue, ATTRIBUTES extends object = object> = {
   context: TContext;
   defaultState?: STATE;
-  icon?: string;
   defaultAttributes?: ATTRIBUTES;
   name: string;
+} & SensorConfiguration;
+
+type SensorConfiguration = {
+  icon?: string;
   /**
    * The number of decimals which should be used in the sensor's state when it's displayed.
    */
@@ -41,30 +44,31 @@ type TSensor<STATE extends SensorValue, ATTRIBUTES extends object = object> = {
       }
     | {
         /**
-         * Type of state. If not `None`, the sensor is assumed to be numerical and will be displayed as a line-chart in the frontend instead of as discrete values.
+         * Type of state.
+         * If not `None`, the sensor is assumed to be numerical and will be displayed as a line-chart in the frontend instead of as discrete values.
          */
         state_class?: SensorStateClass;
       }
   );
-
-type SensorConfiguration = {
-  //
-};
 type SensorValue = string | number;
 type SwitchUpdateCallback<
   STATE extends SensorValue = SensorValue,
   ATTRIBUTES extends object = object,
-> = (options: { state?: STATE; attributes?: ATTRIBUTES }) => TBlackHole;
+> = (
+  new_state: { state?: STATE; attributes?: ATTRIBUTES },
+  old_state: { state?: STATE; attributes?: ATTRIBUTES },
+  remove: () => TBlackHole,
+) => TBlackHole;
 
 export type VirtualSensor<
   STATE extends SensorValue = SensorValue,
   ATTRIBUTES extends object = object,
   CONFIGURATION extends SensorConfiguration = SensorConfiguration,
 > = {
-  icon: string;
   attributes: ATTRIBUTES;
-  _configuration?: CONFIGURATION;
+  configuration?: CONFIGURATION;
   _rawAttributes?: ATTRIBUTES;
+  _rawConfiguration?: ATTRIBUTES;
   name: string;
   onUpdate: (callback: SwitchUpdateCallback<STATE, ATTRIBUTES>) => void;
   state: STATE;
@@ -72,47 +76,49 @@ export type VirtualSensor<
    * bumps the last reset time
    */
   reset: () => TBlackHole;
-} & SensorDeviceClasses;
+};
 
 export function Sensor({ context, synapse, logger }: TServiceParams) {
   const registry = synapse.registry.create<VirtualSensor>({
     context,
     details: entity => ({
       attributes: entity._rawAttributes,
-      device_class: entity.device_class,
+      configuration: entity._rawConfiguration,
       state: entity.state,
-      unit_of_measurement: entity.unit_of_measurement,
     }),
     domain: "sensor",
   });
 
-  // # Sensor creation function
+  // #MARK: create
   function create<
     STATE extends SensorValue = SensorValue,
     ATTRIBUTES extends object = object,
     CONFIGURATION extends SensorConfiguration = SensorConfiguration,
   >(entity: TSensor<STATE, ATTRIBUTES>) {
     const sensorOut = new Proxy({} as VirtualSensor<STATE, ATTRIBUTES>, {
-      // ### Getters
+      // #MARK: get
       get(_, property: keyof VirtualSensor<STATE, ATTRIBUTES>) {
+        // * state
         if (property === "state") {
           return loader.state;
         }
-        if (property === "unit_of_measurement") {
-          return entity.unit_of_measurement;
-        }
-        if (property === "device_class") {
-          return entity.device_class;
-        }
+        // * name
         if (property === "name") {
           return entity.name;
         }
+        // * onUpdate
         if (property === "onUpdate") {
           return loader.onUpdate();
         }
+        // * _rawConfiguration
+        if (property === "_rawConfiguration") {
+          return loader.configuration;
+        }
+        // * _rawAttributes
         if (property === "_rawAttributes") {
           return loader.attributes;
         }
+        // * reset
         if (property === "reset") {
           return function () {
             // what it means to "reset" is up to dev
@@ -120,6 +126,7 @@ export function Sensor({ context, synapse, logger }: TServiceParams) {
             logger.debug(`reset`);
           };
         }
+        // * attributes
         if (property === "attributes") {
           return new Proxy({} as ATTRIBUTES, {
             get: <KEY extends Extract<keyof ATTRIBUTES, string>>(
@@ -141,22 +148,44 @@ export function Sensor({ context, synapse, logger }: TServiceParams) {
             },
           });
         }
-        if (property === "icon") {
-          return entity.icon;
+        // * configuration
+        if (property === "configuration") {
+          return new Proxy({} as CONFIGURATION, {
+            get: <KEY extends Extract<keyof CONFIGURATION, string>>(
+              _: CONFIGURATION,
+              property: KEY,
+            ) => {
+              return loader.configuration[property];
+            },
+            set: <
+              KEY extends Extract<keyof CONFIGURATION, string>,
+              VALUE extends CONFIGURATION[KEY],
+            >(
+              _: CONFIGURATION,
+              property: KEY,
+              value: VALUE,
+            ) => {
+              loader.setConfiguration(property, value);
+              return true;
+            },
+          });
         }
         return undefined;
       },
+      // #MARK: ownKeys
       ownKeys: () => {
         return [
-          "state",
-          "unit_of_measurement",
-          "device_class",
+          "attributes",
+          "configuration",
+          "_rawAttributes",
+          "_rawConfiguration",
           "name",
           "onUpdate",
-          "attributes",
+          "state",
+          "reset",
         ];
       },
-      // ### Setters
+      // #MARK: set
       set(_, property: string, value: unknown) {
         if (property === "state") {
           loader.setState(value as STATE);
@@ -170,10 +199,10 @@ export function Sensor({ context, synapse, logger }: TServiceParams) {
       },
     });
 
-    // ## Validate a good id was passed, and it's the only place in code that's using it
+    // Validate a good id was passed, and it's the only place in code that's using it
     const id = registry.add(sensorOut);
 
-    const loader = synapse.storage.loader<STATE, ATTRIBUTES, CONFIGURATION>({
+    const loader = synapse.storage.wrapper<STATE, ATTRIBUTES, CONFIGURATION>({
       id,
       name: entity.name,
       registry: registry as TRegistry<unknown>,

@@ -131,7 +131,7 @@ export function SelectDomain({ context, synapse }: TServiceParams) {
     });
 
     const id = registry.add(numberOut);
-    const loader = synapse.storage.loader<STATE, ATTRIBUTES>({
+    const loader = synapse.storage.wrapper<STATE, ATTRIBUTES>({
       id,
       name: entity.name,
       registry: registry as TRegistry<unknown>,

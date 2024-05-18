@@ -1,23 +1,13 @@
 import {
-  BootstrapException,
   deepExtend,
   each,
   is,
   NOT_FOUND,
-  START,
   TBlackHole,
   TServiceParams,
 } from "@digital-alchemy/core";
-import { existsSync, mkdirSync, renameSync, statSync } from "fs";
-import { tmpdir } from "os";
-import { join } from "path";
-import { cwd } from "process";
 
-import {
-  ENTITY_SET_ATTRIBUTE,
-  STORAGE_BOOTSTRAP_PRIORITY,
-  TSynapseId,
-} from "..";
+import { TSynapseId } from "..";
 import { TRegistry } from ".";
 
 type StorageData<STATE, ATTRIBUTES, CONFIGURATION> = {
@@ -25,11 +15,6 @@ type StorageData<STATE, ATTRIBUTES, CONFIGURATION> = {
   configuration?: CONFIGURATION;
   state?: STATE;
 };
-type ValueLoader = <STATE, ATTRIBUTES, CONFIGURATION>(
-  id: string,
-  registry: TRegistry,
-) => Promise<StorageData<STATE, ATTRIBUTES, CONFIGURATION>>;
-
 type LoaderOptions<
   STATE,
   ATTRIBUTES extends object,
@@ -48,240 +33,191 @@ type TCallback<
 > = (
   new_state: StorageData<STATE, ATTRIBUTES, CONFIGURATION>,
   old_state: StorageData<STATE, ATTRIBUTES, CONFIGURATION>,
+  remove: () => TBlackHole,
 ) => TBlackHole;
 
 export function ValueStorage({
   logger,
-  synapse,
   lifecycle,
   internal,
-  context,
-  config,
+  hass,
 }: TServiceParams) {
-  // #MARK: file storage init
-  lifecycle.onPostConfig(() => {
-    if (config.synapse.STORAGE !== "file") {
-      return;
-    }
-    // APPLICATION_IDENTIFIER > app name
-    const APP_NAME = internal.boot.application.name;
+  // #MARK: wrapper
+  function wrapper<
+    STATE,
+    ATTRIBUTES extends object,
+    CONFIGURATION extends object,
+  >({
+    registry,
+    id,
+    name,
+    value,
+  }: LoaderOptions<STATE, ATTRIBUTES, CONFIGURATION>) {
+    const domain = registry.domain;
 
-    const localConfig = join(cwd(), APP_NAME);
-    const file = is.empty(config.synapse.STORAGE_FILE_LOCATION)
-      ? localConfig
-      : config.synapse.STORAGE_FILE_LOCATION;
-    if (!existsSync(file)) {
-      // not a file, not a directory
-      logger.warn(
-        { name: "onBootstrap", path: file },
-        `creating storage folder`,
-      );
-      mkdirSync(file, { recursive: true });
-      return;
-    }
-    const stat = statSync(file);
-    if (stat.isDirectory()) {
-      return;
-    }
-    // ! file folder conflicts
-    if (stat.isFile()) {
-      const destination = join(file, "config");
-      const tempFile = join(tmpdir(), `synapse-${APP_NAME}-${Date.now()}`);
-      logger.warn(
-        { tempFile },
-        "{%s} is a file, moving to {%s}",
-        file,
-        destination,
-      );
-
-      logger.trace("renameSync {%s} => {%s}", file, tempFile);
-      renameSync(file, tempFile);
-
-      logger.trace("mkdirSync {%s}", file);
-      mkdirSync(file);
-
-      logger.trace("renameSync {%s} => {%s}", file, tempFile);
-      renameSync(tempFile, destination);
-      return;
-    }
-    // ??? WAT
-    throw new BootstrapException(
-      context,
-      "BAD_STORAGE_FILE",
-      `${file} is not a valid file storage target`,
-    );
-  }, STORAGE_BOOTSTRAP_PRIORITY);
-
-  // #MARK: Loaders
-  async function CacheLoader(id: TSynapseId, registry: TRegistry) {
-    logger.trace({ id }, "CacheLoader");
-    return registry.getCache(id);
-  }
-  async function HassLoader(id: TSynapseId, registry: TRegistry) {
-    logger.trace({ id }, "HassLoader");
-
-    return new Promise(done => {
-      registry.loadFromHass(id, data => {
-        if (is.empty(data)) {
-          // wat
+    // #MARK: value load
+    lifecycle.onBootstrap(async () => {
+      await each(registry.list(), async (id: TSynapseId) => {
+        const cache =
+          await registry.getCache<ReturnType<typeof currentState>>(id);
+        if (!is.empty(cache)) {
+          entity.state = cache.state;
+          entity.attributes = cache.attributes;
+          entity.configuration = cache.configuration;
           return;
         }
-        logger.debug({ data, id }, `received value`);
-        done(data);
+
+        const config = hass.entity.registry.current.find(
+          i => i.unique_id === id,
+        );
+        if (!config) {
+          logger.warn("cannot find entity in hass registry");
+          return;
+        }
+        const reference = hass.entity.byId(config.entity_id);
+        entity.state = reference.state as STATE;
+        entity.attributes = { ...reference.attributes } as ATTRIBUTES;
+        logger.debug(
+          { attributes: entity.attributes, state: entity.state },
+          `loading from hass`,
+        );
       });
     });
+
+    // #MARK: store
+    async function store() {
+      await registry.setCache(id, currentState());
+    }
+
+    const currentState = () => ({
+      attributes: entity.attributes,
+      configuration: entity.configuration,
+      state: entity.state,
+    });
+
+    const callbacks = [] as TCallback<STATE, ATTRIBUTES, CONFIGURATION>[];
+
+    // #MARK: RunCallbacks
+    function runCallbacks(
+      old_value: StorageData<STATE, ATTRIBUTES, CONFIGURATION>,
+    ) {
+      setImmediate(async () => {
+        await store();
+        const current = currentState();
+        await registry.send(id, current);
+        await each(
+          callbacks,
+          async callback =>
+            await internal.safeExec(async () => {
+              const new_value = current;
+              await callback(new_value, old_value, function remove() {
+                const index = callbacks.indexOf(callback);
+                if (index !== NOT_FOUND) {
+                  callbacks.splice(callbacks.indexOf(callback));
+                }
+              });
+            }),
+        );
+      });
+    }
+
+    const entity = {
+      attributes: value.attributes,
+      configuration: value.configuration,
+
+      // #MARK: onUpdate
+      /**
+       * Does not trigger on configuration changes, only state / attributes
+       */
+      onUpdate() {
+        return (callback: TCallback<STATE, ATTRIBUTES, CONFIGURATION>) => {
+          callbacks.push(callback);
+          return function remove() {
+            const index = callbacks.indexOf(callback);
+            if (index !== NOT_FOUND) {
+              callbacks.splice(callbacks.indexOf(callback));
+            }
+          };
+        };
+      },
+
+      // #MARK: setAttribute
+      setAttribute<KEY extends keyof ATTRIBUTES, VALUE extends ATTRIBUTES[KEY]>(
+        key: KEY,
+        incoming: VALUE,
+      ) {
+        if (is.equal(entity.attributes[key], incoming)) {
+          return;
+        }
+        const current = deepExtend({}, currentState());
+        value.attributes[key] = incoming;
+        logger.trace(
+          { domain, key, name, value: incoming },
+          `update attribute (single)`,
+        );
+        runCallbacks(current);
+      },
+
+      // #MARK: setAttributes
+      setAttributes(newAttributes: ATTRIBUTES) {
+        if (is.equal(entity.attributes, newAttributes)) {
+          return;
+        }
+        entity.attributes = newAttributes;
+        logger.trace(
+          { id, name: registry.domain, newAttributes },
+          `update attributes (all)`,
+        );
+        runCallbacks({ attributes: entity.attributes });
+      },
+
+      // #MARK: setAttribute
+      setConfiguration<
+        KEY extends keyof CONFIGURATION,
+        VALUE extends CONFIGURATION[KEY],
+      >(key: KEY, incoming: VALUE) {
+        if (is.equal(entity.configuration[key], incoming)) {
+          return;
+        }
+        const current = deepExtend({}, currentState());
+        value.configuration[key] = incoming;
+        logger.trace(
+          { domain, key, name, value: incoming },
+          `update configuration (single)`,
+        );
+        runCallbacks(current);
+      },
+
+      // #MARK: setConfiguration
+      setConfigurations(newConfiguration: CONFIGURATION) {
+        if (is.equal(entity.configuration, newConfiguration)) {
+          return;
+        }
+        entity.configuration = newConfiguration;
+        logger.trace(
+          { id, name: registry.domain, newConfiguration },
+          `update configuration (all)`,
+        );
+        runCallbacks({ configuration: entity.configuration });
+      },
+
+      // #MARK: setState
+      setState(newState: STATE) {
+        if (entity.state === newState) {
+          return;
+        }
+        logger.trace({ id, name: registry.domain, newState }, `update state`);
+        entity.state = newState;
+        runCallbacks({ state: entity.state });
+      },
+
+      state: value.state,
+    };
+    return entity;
   }
 
-  // #MARK: return object
+  // #MARK: return
   return {
-    CacheLoader,
-    HassLoader,
-
-    loader<STATE, ATTRIBUTES extends object, CONFIGURATION extends object>({
-      registry,
-      id,
-      name,
-      value,
-    }: LoaderOptions<STATE, ATTRIBUTES, CONFIGURATION>) {
-      // #MARK: value init
-      const domain = registry.domain;
-      lifecycle.onBootstrap(async () => {
-        const loaders = synapse.storage.storage.load;
-        await each(registry.list(), async (id: TSynapseId) => {
-          return;
-          for (let i = START; i <= loaders.length; i++) {
-            const result = await loaders[i](id, registry);
-            if (result) {
-              break;
-            }
-          }
-          logger.debug(
-            { domain, name },
-            "could not determine current value, keeping default",
-          );
-        });
-      });
-      async function store() {
-        await registry.setCache(id, {
-          attributes: entity.attributes,
-          state: entity.state,
-        });
-      }
-
-      const callbacks = [] as TCallback<STATE, ATTRIBUTES, CONFIGURATION>[];
-
-      // #MARK: RunCallbacks
-      function RunCallbacks(
-        data: StorageData<STATE, ATTRIBUTES, CONFIGURATION>,
-      ) {
-        setImmediate(async () => {
-          await store();
-          const current = {
-            attributes: entity.attributes,
-            configuration: entity.configuration,
-            state: entity.state,
-          };
-          await registry.send(id, current);
-          await each(
-            callbacks,
-            async callback =>
-              await internal.safeExec(
-                async () => await callback(current, data),
-              ),
-          );
-        });
-      }
-
-      // #MARK: storage commands
-      const entity = {
-        attributes: value.attributes,
-        configuration: value.configuration,
-
-        onUpdate() {
-          return (callback: TCallback<STATE, ATTRIBUTES, CONFIGURATION>) => {
-            callbacks.push(callback);
-            return () => {
-              const index = callbacks.indexOf(callback);
-              if (index !== NOT_FOUND) {
-                callbacks.splice(callbacks.indexOf(callback));
-              }
-            };
-          };
-        },
-        // #MARK: setAttribute
-        setAttribute<
-          KEY extends keyof ATTRIBUTES,
-          VALUE extends ATTRIBUTES[KEY],
-        >(key: KEY, incoming: VALUE) {
-          if (is.equal(entity.attributes[key], incoming)) {
-            return;
-          }
-          const current = deepExtend(
-            {},
-            {
-              attributes: entity.attributes,
-              state: entity.state,
-            },
-          );
-          value.attributes[key] = incoming;
-          logger.trace(
-            { domain, key, name, value: incoming },
-            `update number attributes (single)`,
-          );
-          ENTITY_SET_ATTRIBUTE.inc({
-            domain: registry.domain,
-            name,
-          });
-          RunCallbacks(current);
-        },
-
-        // #MARK: setAttributes
-        setAttributes(newAttributes: ATTRIBUTES) {
-          if (is.equal(entity.attributes, newAttributes)) {
-            return;
-          }
-          entity.attributes = newAttributes;
-          logger.trace(
-            { id, name: registry.domain, newAttributes },
-            `update attributes (all)`,
-          );
-          RunCallbacks({ attributes: entity.attributes });
-        },
-
-        // #MARK: setConfiguration
-        setConfiguration(newConfiguration: CONFIGURATION) {
-          if (is.equal(entity.configuration, newConfiguration)) {
-            return;
-          }
-          entity.configuration = newConfiguration;
-          logger.trace(
-            { id, name: registry.domain, newConfiguration },
-            `update configuration (all)`,
-          );
-          RunCallbacks({ configuration: entity.configuration });
-        },
-
-        // #MARK: setState
-        setState(newState: STATE) {
-          if (entity.state === newState) {
-            return;
-          }
-          logger.trace(
-            { id, name: registry.domain, newState },
-            `update sensor state`,
-          );
-          entity.state = newState;
-          RunCallbacks({ state: entity.state });
-        },
-
-        state: value.state,
-      };
-      return entity;
-    },
-    // #MARK: access methods
-    storage: {
-      load: [CacheLoader, HassLoader] as ValueLoader[],
-      store: [] as unknown[],
-    },
+    wrapper,
   };
 }

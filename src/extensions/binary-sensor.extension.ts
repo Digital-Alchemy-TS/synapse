@@ -80,7 +80,7 @@ export function BinarySensor({ context, synapse, logger }: TServiceParams) {
     });
 
     const id = registry.add(out);
-    const loader = synapse.storage.loader<OnOff, ATTRIBUTES>({
+    const loader = synapse.storage.wrapper<OnOff, ATTRIBUTES>({
       id,
       name: entity.name,
       registry: registry as TRegistry<unknown>,

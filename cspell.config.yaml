@@ -6,9 +6,14 @@ words:
   - hass
   - gotify
   - desync
+  - mbar
   - datetime
+  - cbar
+  - kbit
+  - mbit
   - homeassistant
   - zeroconf
   - endregion
+  - gbit
 ignoreWords: []
 import: []
