@@ -1,11 +1,5 @@
-import {
-  deepExtend,
-  each,
-  is,
-  NOT_FOUND,
-  TBlackHole,
-  TServiceParams,
-} from "@digital-alchemy/core";
+import { each, is, TBlackHole, TServiceParams } from "@digital-alchemy/core";
+import { ENTITY_STATE, PICK_ENTITY } from "@digital-alchemy/hass";
 
 import { TSynapseId } from "..";
 import { TRegistry } from ".";
@@ -14,6 +8,7 @@ type StorageData<STATE, ATTRIBUTES, CONFIGURATION> = {
   attributes?: ATTRIBUTES;
   configuration?: CONFIGURATION;
   state?: STATE;
+  last_reported?: string;
 };
 type LoaderOptions<
   STATE,
@@ -26,27 +21,18 @@ type LoaderOptions<
   value: StorageData<STATE, ATTRIBUTES, CONFIGURATION>;
 };
 
-type TCallback<
-  STATE,
-  ATTRIBUTES extends object,
-  CONFIGURATION extends object,
-> = (
-  new_state: StorageData<STATE, ATTRIBUTES, CONFIGURATION>,
-  old_state: StorageData<STATE, ATTRIBUTES, CONFIGURATION>,
+type TCallback = (
+  new_state: NonNullable<ENTITY_STATE<PICK_ENTITY>>,
+  old_state: NonNullable<ENTITY_STATE<PICK_ENTITY>>,
   remove: () => TBlackHole,
 ) => TBlackHole;
 
-export function ValueStorage({
-  logger,
-  lifecycle,
-  internal,
-  hass,
-}: TServiceParams) {
+export function ValueStorage({ logger, lifecycle, hass }: TServiceParams) {
   // #MARK: wrapper
   function wrapper<
     STATE,
     ATTRIBUTES extends object,
-    CONFIGURATION extends object,
+    CONFIGURATION extends object = object,
   >({
     registry,
     id,
@@ -84,40 +70,19 @@ export function ValueStorage({
       });
     });
 
-    // #MARK: store
-    async function store() {
-      await registry.setCache(id, currentState());
-    }
-
     const currentState = () => ({
       attributes: entity.attributes,
       configuration: entity.configuration,
+      last_reported: new Date().toISOString(),
       state: entity.state,
     });
 
-    const callbacks = [] as TCallback<STATE, ATTRIBUTES, CONFIGURATION>[];
-
     // #MARK: RunCallbacks
-    function runCallbacks(
-      old_value: StorageData<STATE, ATTRIBUTES, CONFIGURATION>,
-    ) {
+    function runCallbacks() {
       setImmediate(async () => {
-        await store();
+        await registry.setCache(id, currentState());
         const current = currentState();
         await registry.send(id, current);
-        await each(
-          callbacks,
-          async callback =>
-            await internal.safeExec(async () => {
-              const new_value = current;
-              await callback(new_value, old_value, function remove() {
-                const index = callbacks.indexOf(callback);
-                if (index !== NOT_FOUND) {
-                  callbacks.splice(callbacks.indexOf(callback));
-                }
-              });
-            }),
-        );
       });
     }
 
@@ -130,13 +95,32 @@ export function ValueStorage({
        * Does not trigger on configuration changes, only state / attributes
        */
       onUpdate() {
-        return (callback: TCallback<STATE, ATTRIBUTES, CONFIGURATION>) => {
-          callbacks.push(callback);
-          return function remove() {
-            const index = callbacks.indexOf(callback);
-            if (index !== NOT_FOUND) {
-              callbacks.splice(callbacks.indexOf(callback));
+        return (callback: TCallback) => {
+          let remover: { remove: () => TBlackHole };
+          lifecycle.onReady(() => {
+            const registry = hass.entity.registry.current.find(
+              i => i.unique_id === id,
+            );
+            if (!registry) {
+              return;
             }
+            remover = hass.entity
+              .byId(registry.entity_id)
+              .onUpdate(
+                async (new_state, old_state, remove) =>
+                  await callback(new_state, old_state, remove),
+              );
+          });
+          return {
+            remove() {
+              if (remover) {
+                remover.remove();
+                remover = undefined;
+                return;
+              }
+              // too soon / already used
+              logger.error(`no remover function defined`);
+            },
           };
         };
       },
@@ -149,13 +133,12 @@ export function ValueStorage({
         if (is.equal(entity.attributes[key], incoming)) {
           return;
         }
-        const current = deepExtend({}, currentState());
         value.attributes[key] = incoming;
         logger.trace(
           { domain, key, name, value: incoming },
           `update attribute (single)`,
         );
-        runCallbacks(current);
+        runCallbacks();
       },
 
       // #MARK: setAttributes
@@ -168,7 +151,7 @@ export function ValueStorage({
           { id, name: registry.domain, newAttributes },
           `update attributes (all)`,
         );
-        runCallbacks({ attributes: entity.attributes });
+        runCallbacks();
       },
 
       // #MARK: setAttribute
@@ -179,13 +162,12 @@ export function ValueStorage({
         if (is.equal(entity.configuration[key], incoming)) {
           return;
         }
-        const current = deepExtend({}, currentState());
         value.configuration[key] = incoming;
         logger.trace(
           { domain, key, name, value: incoming },
           `update configuration (single)`,
         );
-        runCallbacks(current);
+        runCallbacks();
       },
 
       // #MARK: setConfiguration
@@ -198,7 +180,7 @@ export function ValueStorage({
           { id, name: registry.domain, newConfiguration },
           `update configuration (all)`,
         );
-        runCallbacks({ configuration: entity.configuration });
+        runCallbacks();
       },
 
       // #MARK: setState
@@ -208,7 +190,7 @@ export function ValueStorage({
         }
         logger.trace({ id, name: registry.domain, newState }, `update state`);
         entity.state = newState;
-        runCallbacks({ state: entity.state });
+        runCallbacks();
       },
 
       state: value.state,

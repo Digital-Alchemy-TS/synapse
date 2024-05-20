@@ -39,7 +39,7 @@ setImmediate(
         fastify: { PORT: 3000 },
         synapse: {
           ANNOUNCE_AT_CONNECT: true,
-          METADATA_NAME: "Synapse Mocks",
+          METADATA_TITLE: "Synapse Mocks",
         },
       },
     }),

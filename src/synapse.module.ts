@@ -58,8 +58,16 @@ export const LIB_SYNAPSE = CreateLibrary({
       ],
       type: "internal",
     } as InternalConfig<HassDeviceMetadata>,
-    METADATA_NAME: {
-      description: "Override value to report as integration entry name",
+
+    METADATA_HOST: {
+      description: ["Host name to announce as"],
+      type: "string",
+    },
+    METADATA_TITLE: {
+      description: [
+        "Title for the integration provided by this app",
+        "Defaults to app name",
+      ],
       type: "string",
     },
     METADATA_UNIQUE_ID: {

@@ -11,6 +11,8 @@ export const STORAGE_BOOTSTRAP_PRIORITY = 1;
 
 export type SynapseDescribeResponse = {
   hostname: string;
+  host: string;
+  title: string;
   app: string;
   meta: HassDeviceMetadata;
   unique_id: string;

@@ -39,7 +39,7 @@ export function BonjourExtension({
       name: internal.boot.application.name,
       port: config.fastify.PORT,
       txt: { UNIQUE_ID: config.synapse.METADATA_UNIQUE_ID },
-      type: "_da_synapse.tcp",
+      type: "_da_synapse._tcp.local.",
     });
   });
 

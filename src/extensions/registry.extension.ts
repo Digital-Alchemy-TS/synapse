@@ -55,13 +55,22 @@ export function Registry({
     const domains = Object.fromEntries(
       [...LOADERS.keys()].map(domain => {
         const data = LOADERS.get(domain)();
-        return [domain, data];
+        return [
+          domain,
+          data.map(i => {
+            const { configuration, ...item } = i as { configuration: object };
+            return {
+              ...configuration,
+              ...item,
+            };
+          }),
+        ];
       }),
     );
     const hash = generateHash(JSON.stringify(domains));
     return {
       boot: BOOT_TIME,
-      domains,
+      ...domains,
       hash,
     };
   }

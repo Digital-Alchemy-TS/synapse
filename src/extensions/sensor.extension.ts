@@ -1,6 +1,11 @@
 import { TBlackHole, TContext, TServiceParams } from "@digital-alchemy/core";
 
-import { SensorDeviceClasses, SensorStateClass, TRegistry } from "..";
+import {
+  SensorDeviceClasses,
+  SensorStateClass,
+  TEntityCategory,
+  TRegistry,
+} from "..";
 
 // type SensorTypes =
 //   | "none"
@@ -19,6 +24,16 @@ type TSensor<STATE extends SensorValue, ATTRIBUTES extends object = object> = {
 } & SensorConfiguration;
 
 type SensorConfiguration = {
+  /**
+   * Attempt to create the entity id using this string
+   *
+   * `sensor.{suggested id}`
+   */
+  suggested_object_id?: string;
+  /**
+   * Provide your own unique id for this entity
+   */
+  unique_id?: string;
   icon?: string;
   /**
    * The number of decimals which should be used in the sensor's state when it's displayed.
@@ -32,7 +47,8 @@ type SensorConfiguration = {
    * Note that the `datetime.datetime` returned by the `last_reset` property will be converted to an ISO 8601-formatted string when the entity's state attributes are updated. When changing `last_reset`, the `state` must be a valid number.
    */
   last_reset?: Date;
-} & SensorDeviceClasses &
+} & TEntityCategory &
+  SensorDeviceClasses &
   (
     | {
         /**
@@ -59,6 +75,16 @@ type SwitchUpdateCallback<
   old_state: { state?: STATE; attributes?: ATTRIBUTES },
   remove: () => TBlackHole,
 ) => TBlackHole;
+
+const CONFIGURATION_KEYS = [
+  "device_class",
+  "suggested_object_id",
+  "icon",
+  "last_reset",
+  "unique_id",
+  "suggested_display_precision",
+  "unit_of_measurement",
+] as (keyof SensorConfiguration)[];
 
 export type VirtualSensor<
   STATE extends SensorValue = SensorValue,
@@ -207,9 +233,11 @@ export function Sensor({ context, synapse, logger }: TServiceParams) {
       name: entity.name,
       registry: registry as TRegistry<unknown>,
       value: {
-        attributes: {} as ATTRIBUTES,
-        configuration: {} as CONFIGURATION,
-        state: "" as STATE,
+        attributes: (entity.defaultAttributes ?? {}) as ATTRIBUTES,
+        configuration: Object.fromEntries(
+          CONFIGURATION_KEYS.map(key => [key, entity[key]]),
+        ) as CONFIGURATION,
+        state: (entity.defaultState ?? "") as STATE,
       },
     });
     return sensorOut;

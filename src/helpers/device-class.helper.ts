@@ -505,3 +505,16 @@ export type SensorDeviceClasses =
   | DataSizeSensor
   | AtmosphericPressureSensor
   | DefaultSensor;
+
+export type TEntityCategory = {
+  /**
+   * An entity with a category will:
+   * - Not be exposed to cloud, Alexa, or Google Assistant components
+   * - Not be included in indirect service calls to devices or areas
+   *
+   * **Config**: An entity which allows changing the configuration of a device.
+   *
+   * **Diagnostic**: An entity exposing some configuration parameter, or diagnostics of a device.
+   */
+  entity_category?: "config" | "diagnostic";
+};
