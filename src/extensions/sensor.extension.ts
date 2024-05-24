@@ -1,4 +1,10 @@
 import { TBlackHole, TContext, TServiceParams } from "@digital-alchemy/core";
+import {
+  ENTITY_STATE,
+  PICK_ENTITY,
+  TAreaId,
+  TLabelId,
+} from "@digital-alchemy/hass";
 
 import {
   SensorDeviceClasses,
@@ -25,13 +31,25 @@ type TSensor<STATE extends SensorValue, ATTRIBUTES extends object = object> = {
 
 type SensorConfiguration = {
   /**
+   * Area to provide the entity in
+   */
+  area_id?: TAreaId;
+  /**
+   * Default labels to apply
+   */
+  labels?: TLabelId[];
+  /**
    * Attempt to create the entity id using this string
    *
    * `sensor.{suggested id}`
+   *
+   * Home assistant _may_ append numbers to the end in case of object_id conflicts where `unique_id` isn't the same.
    */
   suggested_object_id?: string;
   /**
    * Provide your own unique id for this entity
+   *
+   * This ID uniquely identifies the entity, through `entity_id` renames
    */
   unique_id?: string;
   icon?: string;
@@ -66,15 +84,8 @@ type SensorConfiguration = {
         state_class?: SensorStateClass;
       }
   );
+
 type SensorValue = string | number;
-type SwitchUpdateCallback<
-  STATE extends SensorValue = SensorValue,
-  ATTRIBUTES extends object = object,
-> = (
-  new_state: { state?: STATE; attributes?: ATTRIBUTES },
-  old_state: { state?: STATE; attributes?: ATTRIBUTES },
-  remove: () => TBlackHole,
-) => TBlackHole;
 
 const CONFIGURATION_KEYS = [
   "device_class",
@@ -83,21 +94,48 @@ const CONFIGURATION_KEYS = [
   "last_reset",
   "unique_id",
   "suggested_display_precision",
+  "labels",
+  "area_id",
   "unit_of_measurement",
 ] as (keyof SensorConfiguration)[];
+
+type UpdateCallback<ENTITY_ID extends PICK_ENTITY> = (
+  callback: (
+    new_state: NonNullable<ENTITY_STATE<ENTITY_ID>>,
+    old_state: NonNullable<ENTITY_STATE<ENTITY_ID>>,
+    remove: () => TBlackHole,
+  ) => TBlackHole,
+) => {
+  remove: () => void;
+};
 
 export type VirtualSensor<
   STATE extends SensorValue = SensorValue,
   ATTRIBUTES extends object = object,
   CONFIGURATION extends SensorConfiguration = SensorConfiguration,
+  ENTITY_ID extends PICK_ENTITY<"sensor"> = PICK_ENTITY<"sensor">,
 > = {
+  /**
+   * Do not define attributes that change frequently.
+   * Create new sensors instead
+   */
   attributes: ATTRIBUTES;
-  configuration?: CONFIGURATION;
-  _rawAttributes?: ATTRIBUTES;
-  _rawConfiguration?: ATTRIBUTES;
+  configuration: CONFIGURATION;
+  _rawAttributes: ATTRIBUTES;
+  _rawConfiguration: ATTRIBUTES;
   name: string;
-  onUpdate: (callback: SwitchUpdateCallback<STATE, ATTRIBUTES>) => void;
+  /**
+   * look up the entity id, and
+   */
+  onUpdate: UpdateCallback<ENTITY_ID>;
+  /**
+   * the current state
+   */
   state: STATE;
+  /**
+   * Used to uniquely identify this entity in home assistant
+   */
+  unique_id: string;
   /**
    * bumps the last reset time
    */
@@ -131,6 +169,10 @@ export function Sensor({ context, synapse, logger }: TServiceParams) {
         // * name
         if (property === "name") {
           return entity.name;
+        }
+        // * unique_id
+        if (property === "unique_id") {
+          return unique_id;
         }
         // * onUpdate
         if (property === "onUpdate") {
@@ -226,12 +268,12 @@ export function Sensor({ context, synapse, logger }: TServiceParams) {
     });
 
     // Validate a good id was passed, and it's the only place in code that's using it
-    const id = registry.add(sensorOut);
+    const unique_id = registry.add(sensorOut, entity);
 
     const loader = synapse.storage.wrapper<STATE, ATTRIBUTES, CONFIGURATION>({
-      id,
       name: entity.name,
       registry: registry as TRegistry<unknown>,
+      unique_id,
       value: {
         attributes: (entity.defaultAttributes ?? {}) as ATTRIBUTES,
         configuration: Object.fromEntries(

@@ -12,6 +12,7 @@ import {
   Button,
   Configure,
   Controller,
+  DeviceExtension,
   NumberDomain,
   Registry,
   Scene,
@@ -45,6 +46,14 @@ export const LIB_SYNAPSE = CreateLibrary({
       ],
       type: "boolean",
     },
+    EVENT_NAMESPACE: {
+      default: "digital_alchemy",
+      description: [
+        "You almost definitely do not want to change this",
+        "Must be matched on the python integration side",
+      ],
+      type: "string",
+    },
     HEARTBEAT_INTERVAL: {
       default: 5,
       description: "Seconds between heartbeats",
@@ -58,7 +67,6 @@ export const LIB_SYNAPSE = CreateLibrary({
       ],
       type: "internal",
     } as InternalConfig<HassDeviceMetadata>,
-
     METADATA_HOST: {
       description: ["Host name to announce as"],
       type: "string",
@@ -124,6 +132,11 @@ export const LIB_SYNAPSE = CreateLibrary({
      * fastify bindings
      */
     controller: Controller,
+
+    /**
+     *
+     */
+    device: DeviceExtension,
 
     /**
      * create `number` domain entities

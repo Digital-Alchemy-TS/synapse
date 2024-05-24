@@ -1,5 +1,3 @@
-import { TAreaId } from "@digital-alchemy/hass";
-
 export type OnOff = "on" | "off" | "unavailable";
 
 export interface ISynapseBrand {
@@ -14,7 +12,7 @@ export type SynapseDescribeResponse = {
   host: string;
   title: string;
   app: string;
-  meta: HassDeviceMetadata;
+  device: HassDeviceMetadata;
   unique_id: string;
   username: string;
 };
@@ -27,15 +25,15 @@ export type HassDeviceMetadata = {
   /**
    * The manufacturer of the device, will be overridden if `manufacturer` is set. Useful for example for an integration showing all devices on the network.
    */
-  default_manufacturer?: string;
+  manufacturer?: string;
   /**
    * The model of the device, will be overridden if `model` is set. Useful for example for an integration showing all devices on the network.
    */
-  default_model?: string;
+  model?: string;
   /**
    * Default name of this device, will be overridden if `name` is set. Useful for example for an integration showing all devices on the network.
    */
-  default_name?: string;
+  name?: string;
   /**
    * The hardware version of the device.
    */
@@ -46,8 +44,10 @@ export type HassDeviceMetadata = {
   serial_number?: string;
   /**
    * The suggested name for the area where the device is located.
+   *
+   * Use readable name, not area id ("Living Room" not "living_room")
    */
-  suggested_area?: TAreaId;
+  suggested_area?: string;
   /**
    * The firmware version of the device.
    */

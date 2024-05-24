@@ -35,10 +35,14 @@ setImmediate(
   async () =>
     await ENTITY_GENERATOR.bootstrap({
       configuration: {
-        boilerplate: { LOG_LEVEL: "debug" },
+        // boilerplate: { LOG_LEVEL: "debug" },
         fastify: { PORT: 3000 },
         synapse: {
           ANNOUNCE_AT_CONNECT: true,
+          METADATA: {
+            hw_version: "0.0.1",
+            suggested_area: "Living Room",
+          },
           METADATA_TITLE: "Synapse Mocks",
         },
       },

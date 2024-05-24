@@ -2,7 +2,6 @@ import {
   InternalError,
   is,
   SECOND,
-  TBlackHole,
   TContext,
   TServiceParams,
 } from "@digital-alchemy/core";
@@ -12,9 +11,11 @@ import { createHash } from "crypto";
 import { TSynapseId } from "..";
 
 type BaseEntity = {
+  attributes: object;
+  configuration: object;
   name: string;
-  icon?: string;
-  unique_id?: string;
+  state: unknown;
+  unique_id: string;
 };
 
 type SynapseSocketOptions<DATA extends object> = {
@@ -34,6 +35,18 @@ function generateHash(input: string) {
   return hash.digest("hex");
 }
 
+type Configurable = { configuration: object };
+
+function squishData<DATA extends Configurable>({
+  configuration,
+  ...data
+}: DATA) {
+  return {
+    ...configuration,
+    ...data,
+  };
+}
+
 export function Registry({
   lifecycle,
   logger,
@@ -49,22 +62,14 @@ export function Registry({
   const domains = new Map<ALL_DOMAINS, TDomain>();
   let initComplete = false;
   const getIdentifier = () => internal.boot.application.name;
-  const name = (a: string) => ["digital_alchemy", a, getIdentifier()].join("/");
+  const name = (a: string) =>
+    [config.synapse.EVENT_NAMESPACE, a, getIdentifier()].join("/");
 
   function buildEntityState() {
     const domains = Object.fromEntries(
       [...LOADERS.keys()].map(domain => {
         const data = LOADERS.get(domain)();
-        return [
-          domain,
-          data.map(i => {
-            const { configuration, ...item } = i as { configuration: object };
-            return {
-              ...configuration,
-              ...item,
-            };
-          }),
-        ];
+        return [domain, data.map(i => squishData(i as Configurable))];
       }),
     );
     const hash = generateHash(JSON.stringify(domains));
@@ -82,11 +87,11 @@ export function Registry({
   }
 
   // * Heartbeat
-  lifecycle.onPostConfig(async () => {
+  lifecycle.onPostConfig(async function onPostConfig() {
     if (!config.synapse.EMIT_HEARTBEAT) {
       return;
     }
-    logger.trace({ name: "onPostConfig" }, `starting heartbeat`);
+    logger.trace({ name: onPostConfig }, `starting heartbeat`);
     scheduler.interval({
       exec: async () => await hass.socket.fireEvent(name("heartbeat")),
       interval: config.synapse.HEARTBEAT_INTERVAL * SECOND,
@@ -117,7 +122,7 @@ export function Registry({
   hass.socket.onEvent({
     context,
     event: name("reload"),
-    exec: async () => {
+    async exec() {
       logger.info(`reload by app`);
       await SendEntityList();
     },
@@ -127,7 +132,7 @@ export function Registry({
   hass.socket.onEvent({
     context,
     event: "digital_alchemy/reload",
-    exec: async () => {
+    async exec() {
       logger.info(`reload global`);
       await SendEntityList();
     },
@@ -141,16 +146,15 @@ export function Registry({
   }: SynapseSocketOptions<DATA>): TRegistry<DATA> {
     logger.trace({ name: domain }, `init domain`);
     const registry = new Map<TSynapseId, DATA>();
-    const CACHE_KEY = (id: TSynapseId) => `${domain}_cache:${id}`;
+    const CACHE_KEY = (unique_id: TSynapseId) => `${domain}_cache:${unique_id}`;
 
     // * Export the data for hass
     LOADERS.set(domain, () => {
-      return [...registry.entries()].map(([id, item]) => {
+      return [...registry.entries()].map(([unique_id, item]) => {
         return {
           ...(details ? details(item) : {}),
-          icon: is.empty(item.icon) ? undefined : `mdi:${item.icon}`,
-          id,
           name: item.name,
+          unique_id,
         };
       });
     });
@@ -158,20 +162,20 @@ export function Registry({
     // * Registry interactions
     const out = {
       // * Add
-      add(data: DATA) {
-        const id = (
-          is.empty(data.unique_id)
+      add(data: DATA, entity: { unique_id?: string }) {
+        const unique_id = (
+          is.empty(entity.unique_id)
             ? generateHash(`${getIdentifier()}:${data.name}`)
-            : data.unique_id
+            : entity.unique_id
         ) as TSynapseId;
-        if (registry.has(id)) {
+        if (registry.has(unique_id)) {
           throw new InternalError(
             context,
             `ENTITY_COLLISION`,
             `${domain} registry already id`,
           );
         }
-        registry.set(id, data);
+        registry.set(unique_id, data);
         if (initComplete) {
           logger.warn(
             { context: context, domain, name: data.name },
@@ -179,12 +183,12 @@ export function Registry({
           );
         }
         logger.debug({ name: data.name }, `register {%s}`, domain);
-        return id;
+        return unique_id;
       },
 
       // * byId
-      byId(id: TSynapseId) {
-        return registry.get(id);
+      byId(unique_id: TSynapseId) {
+        return registry.get(unique_id);
       },
 
       /**
@@ -192,19 +196,9 @@ export function Registry({
        */
       domain,
 
-      generate<RESULT extends object>(
-        callback: (options: DATA, id: TSynapseId) => TBlackHole,
-      ) {
-        return function (options: DATA): RESULT {
-          const id = out.add(options);
-          callback(options, id);
-          return undefined;
-        };
-      },
-
       // * getCache
-      async getCache<T>(id: TSynapseId, defaultValue?: T): Promise<T> {
-        return await cache.get(CACHE_KEY(id), defaultValue);
+      async getCache<T>(unique_id: TSynapseId, defaultValue?: T): Promise<T> {
+        return await cache.get(CACHE_KEY(unique_id), defaultValue);
       },
 
       // * list
@@ -213,7 +207,7 @@ export function Registry({
       },
 
       // * send
-      async send(id: TSynapseId, data: object): Promise<void> {
+      async send(unique_id: TSynapseId): Promise<void> {
         if (hass.socket.connectionState !== "connected") {
           logger.debug(
             { name: "send" },
@@ -221,14 +215,18 @@ export function Registry({
           );
           return;
         }
-        await hass.socket.fireEvent(name("event"), {
+        const base = registry.get(unique_id);
+        const data = squishData({ ...base, unique_id });
+        // logger.warn({ base, data }, "sending");
+        await hass.socket.fireEvent(name("update"), {
           data,
-          id,
+          unique_id,
         });
       },
       // * setCache
-      async setCache(id: TSynapseId, value: unknown): Promise<void> {
-        await cache.set(CACHE_KEY(id), value);
+      async setCache(unique_id: TSynapseId, value: DATA): Promise<void> {
+        registry.set(unique_id, value);
+        await cache.set(CACHE_KEY(unique_id), value);
       },
     };
     domains.set(domain, out as unknown as TDomain);
@@ -239,14 +237,11 @@ export function Registry({
 }
 
 export type TRegistry<DATA extends unknown = unknown> = {
-  add(data: DATA): TSynapseId;
-  byId(id: TSynapseId): DATA;
+  add(data: DATA, entity: { unique_id?: string }): TSynapseId;
+  byId(unique_id: TSynapseId): DATA;
   domain: ALL_DOMAINS;
-  generate<RESULT extends object>(
-    callback: (options: DATA, id: TSynapseId) => TBlackHole,
-  ): (options: DATA) => RESULT;
-  getCache<T>(id: TSynapseId, defaultValue?: T): Promise<T>;
+  getCache<T>(unique_id: TSynapseId, defaultValue?: T): Promise<T>;
   list: () => TSynapseId[];
-  send: (id: TSynapseId, data: object) => Promise<void>;
-  setCache: (id: TSynapseId, value: unknown) => Promise<void>;
+  send: (unique_id: TSynapseId, data: object) => Promise<void>;
+  setCache: (unique_id: TSynapseId, value: DATA) => Promise<void>;
 };

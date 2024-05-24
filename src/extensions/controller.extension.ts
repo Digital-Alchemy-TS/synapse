@@ -15,9 +15,9 @@ export function Controller({
       logger.info(`describe app`);
       return {
         app: internal.boot.application.name,
+        device: synapse.device.getInfo(),
         host: config.synapse.METADATA_HOST,
         hostname: hostname(),
-        meta: config.synapse.METADATA,
         title: config.synapse.METADATA_TITLE,
         unique_id: config.synapse.METADATA_UNIQUE_ID,
         username: userInfo().username,

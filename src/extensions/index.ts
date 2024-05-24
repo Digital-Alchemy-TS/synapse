@@ -3,6 +3,7 @@ export * from "./bonjour.extension";
 export * from "./button.extension";
 export * from "./configure.extension";
 export * from "./controller.extension";
+export * from "./device.extension";
 export * from "./number.extension";
 export * from "./registry.extension";
 export * from "./scene.extension";

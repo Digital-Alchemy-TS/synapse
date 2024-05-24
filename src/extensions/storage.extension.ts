@@ -16,7 +16,7 @@ type LoaderOptions<
   CONFIGURATION extends object,
 > = {
   registry: TRegistry<unknown>;
-  id: TSynapseId;
+  unique_id: TSynapseId;
   name: string;
   value: StorageData<STATE, ATTRIBUTES, CONFIGURATION>;
 };
@@ -35,7 +35,7 @@ export function ValueStorage({ logger, lifecycle, hass }: TServiceParams) {
     CONFIGURATION extends object = object,
   >({
     registry,
-    id,
+    unique_id: unique_id,
     name,
     value,
   }: LoaderOptions<STATE, ATTRIBUTES, CONFIGURATION>) {
@@ -43,9 +43,9 @@ export function ValueStorage({ logger, lifecycle, hass }: TServiceParams) {
 
     // #MARK: value load
     lifecycle.onBootstrap(async () => {
-      await each(registry.list(), async (id: TSynapseId) => {
+      await each(registry.list(), async (unique_id: TSynapseId) => {
         const cache =
-          await registry.getCache<ReturnType<typeof currentState>>(id);
+          await registry.getCache<ReturnType<typeof currentState>>(unique_id);
         if (!is.empty(cache)) {
           entity.state = cache.state;
           entity.attributes = cache.attributes;
@@ -54,7 +54,7 @@ export function ValueStorage({ logger, lifecycle, hass }: TServiceParams) {
         }
 
         const config = hass.entity.registry.current.find(
-          i => i.unique_id === id,
+          i => i.unique_id === unique_id,
         );
         if (!config) {
           logger.warn("cannot find entity in hass registry");
@@ -80,9 +80,9 @@ export function ValueStorage({ logger, lifecycle, hass }: TServiceParams) {
     // #MARK: RunCallbacks
     function runCallbacks() {
       setImmediate(async () => {
-        await registry.setCache(id, currentState());
         const current = currentState();
-        await registry.send(id, current);
+        await registry.setCache(unique_id, current);
+        await registry.send(unique_id, current);
       });
     }
 
@@ -90,30 +90,36 @@ export function ValueStorage({ logger, lifecycle, hass }: TServiceParams) {
       attributes: value.attributes,
       configuration: value.configuration,
 
-      // #MARK: onUpdate
       /**
        * Does not trigger on configuration changes, only state / attributes
        */
+      // #MARK: onUpdate
       onUpdate() {
         return (callback: TCallback) => {
           let remover: { remove: () => TBlackHole };
           lifecycle.onReady(() => {
-            const registry = hass.entity.registry.current.find(
-              i => i.unique_id === id,
-            );
-            if (!registry) {
-              return;
-            }
             remover = hass.entity
-              .byId(registry.entity_id)
-              .onUpdate(
+              .byUniqueId(unique_id)
+              ?.onUpdate(
                 async (new_state, old_state, remove) =>
                   await callback(new_state, old_state, remove),
               );
+            if (remover) {
+              logger.warn(
+                {
+                  // hopefully this provides enough context?
+                  configuration: entity.configuration,
+                  name: "onUpdate",
+                  unique_id,
+                },
+                `update attachment failed, is entity loaded in home assistant?`,
+              );
+            }
           });
           return {
             remove() {
               if (remover) {
+                logger.trace(`removing entity update callback`);
                 remover.remove();
                 remover = undefined;
                 return;
@@ -148,7 +154,7 @@ export function ValueStorage({ logger, lifecycle, hass }: TServiceParams) {
         }
         entity.attributes = newAttributes;
         logger.trace(
-          { id, name: registry.domain, newAttributes },
+          { name: registry.domain, newAttributes, unique_id },
           `update attributes (all)`,
         );
         runCallbacks();
@@ -177,19 +183,23 @@ export function ValueStorage({ logger, lifecycle, hass }: TServiceParams) {
         }
         entity.configuration = newConfiguration;
         logger.trace(
-          { id, name: registry.domain, newConfiguration },
+          { name: registry.domain, newConfiguration, unique_id },
           `update configuration (all)`,
         );
         runCallbacks();
       },
 
       // #MARK: setState
-      setState(newState: STATE) {
-        if (entity.state === newState) {
+      setState(new_state: STATE) {
+        if (entity.state === new_state) {
           return;
         }
-        logger.trace({ id, name: registry.domain, newState }, `update state`);
-        entity.state = newState;
+        const old_state = entity.state;
+        logger.trace(
+          { name: registry.domain, new_state, old_state, unique_id },
+          `update state`,
+        );
+        entity.state = new_state;
         runCallbacks();
       },
 

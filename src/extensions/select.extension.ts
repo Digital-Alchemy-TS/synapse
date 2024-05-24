@@ -48,7 +48,6 @@ export function SelectDomain({ context, synapse }: TServiceParams) {
       state: entity.state,
       unit_of_measurement: entity.unit_of_measurement,
     }),
-    // @ts-expect-error need to add more examples to `hass` to populate types
     domain: "number",
   });
 
@@ -132,9 +131,9 @@ export function SelectDomain({ context, synapse }: TServiceParams) {
 
     const id = registry.add(numberOut);
     const loader = synapse.storage.wrapper<STATE, ATTRIBUTES>({
-      id,
       name: entity.name,
       registry: registry as TRegistry<unknown>,
+      unique_id: id,
       value: {
         attributes: (entity.defaultAttributes ?? {}) as ATTRIBUTES,
         state: entity.options[START] as STATE,
