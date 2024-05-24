@@ -60,7 +60,7 @@ export function Registry({
   const LOADERS = new Map<ALL_DOMAINS, () => object[]>();
   type TDomain = ReturnType<typeof create>;
   const domains = new Map<ALL_DOMAINS, TDomain>();
-  let initComplete = false;
+  const initComplete = false;
   const getIdentifier = () => internal.boot.application.name;
   const name = (a: string) =>
     [config.synapse.EVENT_NAMESPACE, a, getIdentifier()].join("/");
@@ -104,18 +104,6 @@ export function Registry({
       `notifying synapse extension of shutdown`,
     );
     await hass.socket.fireEvent(name("shutdown"));
-  });
-
-  // * Different opportunities to announce
-  // * At boot
-  hass.socket.onConnect(async () => {
-    initComplete = true;
-    await hass.socket.fireEvent(name("heartbeat"));
-    if (!config.synapse.ANNOUNCE_AT_CONNECT) {
-      return;
-    }
-    logger.debug({ name: "onConnect" }, `[socket connect] sending entity list`);
-    await SendEntityList();
   });
 
   // * Targeted at this app
@@ -217,7 +205,6 @@ export function Registry({
         }
         const base = registry.get(unique_id);
         const data = squishData({ ...base, unique_id });
-        // logger.warn({ base, data }, "sending");
         await hass.socket.fireEvent(name("update"), {
           data,
           unique_id,
@@ -233,7 +220,7 @@ export function Registry({
     return out;
   }
   create.registeredDomains = domains;
-  return { buildEntityState, create };
+  return { buildEntityState, create, eventName: name };
 }
 
 export type TRegistry<DATA extends unknown = unknown> = {

@@ -6,7 +6,7 @@ export function EntityGenerator({
   context,
   logger,
 }: TServiceParams) {
-  const magicSensor = synapse.sensor({
+  const sensor = synapse.sensor({
     area_id: "bedroom",
     context,
     defaultAttributes: {
@@ -15,23 +15,35 @@ export function EntityGenerator({
     defaultState: 10 as number,
     device_class: "speed",
     entity_category: "diagnostic",
-    labels: ["synapse", "test"],
     name: "Test the sensor",
     suggested_object_id: "magic_the_sensor",
     unit_of_measurement: "ft/s",
   });
+
+  const binary_sensor = synapse.binary_sensor({
+    context,
+    device_class: "window",
+    name: "blinkey",
+    suggested_object_id: "blinkey_the_binary_sensor",
+  });
+
   scheduler.interval({
     exec() {
-      magicSensor.state = Math.floor(Math.random() * 1000);
+      sensor.state = Math.floor(Math.random() * 1000);
+      binary_sensor.is_on = !binary_sensor.is_on;
     },
     interval: 10 * SECOND,
   });
 
-  // synapse.binary_sensor({
-  //   context,
-  //   defaultState: "off",
-  //   name: "Smoke detector",
-  // });
+  synapse.button({
+    context,
+    device_class: "identify",
+    exec() {
+      logger.info("button pressed");
+    },
+    name: "example button",
+    suggested_object_id: "button_the_example",
+  });
 
   // ["high", "medium", "low"].forEach(i =>
   //   synapse.scene({
@@ -42,5 +54,5 @@ export function EntityGenerator({
   //     name: `bedroom_${i}`,
   //   }),
   // );
-  return { magicSensor };
+  // return { binary_sensor, sensor };
 }

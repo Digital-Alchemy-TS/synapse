@@ -29,9 +29,7 @@
     "@digital-alchemy/fastify-extension": "^0.3.3",
     "@digital-alchemy/hass": "^0.3.28",
     "bonjour": "^3.5.0",
-    "dayjs": "^1.11.11",
-    "prom-client": "^15.1.2",
-    "ws": "^8.17.0"
+    "dayjs": "^1.11.11"
   },
   "devDependencies": {
     "@cspell/eslint-plugin": "^8.8.1",

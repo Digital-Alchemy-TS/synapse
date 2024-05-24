@@ -7,9 +7,11 @@ import {
 } from "@digital-alchemy/hass";
 
 import {
+  BASE_CONFIG_KEYS,
+  EntityConfigCommon,
+  SENSOR_DEVICE_CLASS_CONFIG_KEYS,
   SensorDeviceClasses,
   SensorStateClass,
-  TEntityCategory,
   TRegistry,
 } from "..";
 
@@ -29,45 +31,21 @@ type TSensor<STATE extends SensorValue, ATTRIBUTES extends object = object> = {
   name: string;
 } & SensorConfiguration;
 
-type SensorConfiguration = {
-  /**
-   * Area to provide the entity in
-   */
-  area_id?: TAreaId;
-  /**
-   * Default labels to apply
-   */
-  labels?: TLabelId[];
-  /**
-   * Attempt to create the entity id using this string
-   *
-   * `sensor.{suggested id}`
-   *
-   * Home assistant _may_ append numbers to the end in case of object_id conflicts where `unique_id` isn't the same.
-   */
-  suggested_object_id?: string;
-  /**
-   * Provide your own unique id for this entity
-   *
-   * This ID uniquely identifies the entity, through `entity_id` renames
-   */
-  unique_id?: string;
-  icon?: string;
-  /**
-   * The number of decimals which should be used in the sensor's state when it's displayed.
-   */
-  suggested_display_precision?: number;
-  /**
-   * The time when an accumulating sensor such as an electricity usage meter, gas meter, water meter etc. was initialized.
-   *
-   * If the time of initialization is unknown, set it to `None`.
-   *
-   * Note that the `datetime.datetime` returned by the `last_reset` property will be converted to an ISO 8601-formatted string when the entity's state attributes are updated. When changing `last_reset`, the `state` must be a valid number.
-   */
-  last_reset?: Date;
-} & TEntityCategory &
-  SensorDeviceClasses &
-  (
+type SensorConfiguration = EntityConfigCommon &
+  SensorDeviceClasses & {
+    /**
+     * The number of decimals which should be used in the sensor's state when it's displayed.
+     */
+    suggested_display_precision?: number;
+    /**
+     * The time when an accumulating sensor such as an electricity usage meter, gas meter, water meter etc. was initialized.
+     *
+     * If the time of initialization is unknown, set it to `None`.
+     *
+     * Note that the `datetime.datetime` returned by the `last_reset` property will be converted to an ISO 8601-formatted string when the entity's state attributes are updated. When changing `last_reset`, the `state` must be a valid number.
+     */
+    last_reset?: Date;
+  } & (
     | {
         /**
          * In case this sensor provides a textual state, this property can be used to provide a list of possible states.
@@ -88,14 +66,12 @@ type SensorConfiguration = {
 type SensorValue = string | number;
 
 const CONFIGURATION_KEYS = [
-  "device_class",
-  "suggested_object_id",
-  "icon",
+  ...BASE_CONFIG_KEYS,
+  ...SENSOR_DEVICE_CLASS_CONFIG_KEYS,
   "last_reset",
-  "unique_id",
+  "options",
+  "state_class",
   "suggested_display_precision",
-  "labels",
-  "area_id",
   "unit_of_measurement",
 ] as (keyof SensorConfiguration)[];
 

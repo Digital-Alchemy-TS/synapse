@@ -1,15 +1,10 @@
-import {
-  CreateLibrary,
-  InternalConfig,
-  StringConfig,
-} from "@digital-alchemy/core";
+import { CreateLibrary, InternalConfig } from "@digital-alchemy/core";
 import { LIB_FASTIFY } from "@digital-alchemy/fastify-extension";
 import { LIB_HASS } from "@digital-alchemy/hass";
 
 import {
   BinarySensor,
   BonjourExtension,
-  Button,
   Configure,
   Controller,
   DeviceExtension,
@@ -19,26 +14,12 @@ import {
   Sensor,
   Switch,
   ValueStorage,
+  VirtualButton,
 } from "./extensions";
 import { HassDeviceMetadata } from "./helpers";
 
-enum StorageTypes {
-  none = "none",
-  cache = "cache",
-  file = "file",
-  external = "external",
-}
-
 export const LIB_SYNAPSE = CreateLibrary({
   configuration: {
-    ANNOUNCE_AT_CONNECT: {
-      default: false,
-      description: [
-        "Emit the entity list update every time this application is booted",
-        "digital-alchemy.reload() service available for manual reload",
-      ],
-      type: "boolean",
-    },
     EMIT_HEARTBEAT: {
       default: true,
       description: [
@@ -90,17 +71,6 @@ export const LIB_SYNAPSE = CreateLibrary({
       default: true,
       type: "boolean",
     },
-    STORAGE: {
-      default: "cache",
-      description: "Persistence type",
-      enum: Object.values(StorageTypes),
-      type: "string",
-    } as StringConfig<`${StorageTypes}`>,
-    STORAGE_FILE_LOCATION: {
-      description:
-        "If using file storage, a base folder to store data at is required. Defaults to ~/.config/{app_name}/",
-      type: "string",
-    },
   },
   depends: [LIB_HASS, LIB_FASTIFY],
   name: "synapse",
@@ -121,7 +91,7 @@ export const LIB_SYNAPSE = CreateLibrary({
      *
      * run callback on activation
      */
-    button: Button,
+    button: VirtualButton,
 
     /**
      *
