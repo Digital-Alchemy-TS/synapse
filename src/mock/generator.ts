@@ -35,14 +35,29 @@ export function EntityGenerator({
     interval: 10 * SECOND,
   });
 
-  synapse.button({
+  const button = synapse.button({
     context,
     device_class: "identify",
-    exec() {
+    name: "example button",
+    press() {
       logger.info("button pressed");
     },
-    name: "example button",
     suggested_object_id: "button_the_example",
+  });
+  button.onPress(() => {
+    logger.info("button press callback");
+  });
+
+  const scene = synapse.scene({
+    activate() {
+      logger.info("scene activated");
+    },
+    context,
+    name: "Dynamic Scene",
+    suggested_object_id: "setting_the_stage",
+  });
+  scene.onActivate(() => {
+    logger.info("scene activated callback");
   });
 
   // ["high", "medium", "low"].forEach(i =>

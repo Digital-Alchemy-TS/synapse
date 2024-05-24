@@ -1,4 +1,9 @@
-import { TBlackHole, TContext, TServiceParams } from "@digital-alchemy/core";
+import {
+  is,
+  TBlackHole,
+  TContext,
+  TServiceParams,
+} from "@digital-alchemy/core";
 import {
   ButtonDeviceClass,
   ENTITY_STATE,
@@ -20,21 +25,21 @@ type TButton<ATTRIBUTES extends object = object> = {
 } & ButtonConfiguration;
 
 type ButtonConfiguration = EntityConfigCommon & {
-  exec: () => TBlackHole;
+  press?: (remove: () => void) => TBlackHole;
   device_class?: `${ButtonDeviceClass}`;
 };
 
 const CONFIGURATION_KEYS = [
   ...BASE_CONFIG_KEYS,
   "device_class",
-  // exec should not be included
+  // press should not be included
 ] as (keyof ButtonConfiguration)[];
 
 type UpdateCallback<ENTITY_ID extends PICK_ENTITY> = (
   callback: (
     new_state: NonNullable<ENTITY_STATE<ENTITY_ID>>,
     old_state: NonNullable<ENTITY_STATE<ENTITY_ID>>,
-    remove: () => TBlackHole,
+    remove: () => void,
   ) => TBlackHole,
 ) => {
   remove: () => void;
@@ -52,11 +57,12 @@ export type TVirtualButton<
    */
   attributes: ATTRIBUTES;
   configuration: CONFIGURATION;
+  onPress: (callback: (remove: () => void) => TBlackHole) => void;
   _rawAttributes: ATTRIBUTES;
   _rawConfiguration: ATTRIBUTES;
   name: string;
   /**
-   * look up the entity id, and
+   * look up the entity id, and proxy update events
    */
   onUpdate: UpdateCallback<ENTITY_ID>;
   /**
@@ -75,6 +81,7 @@ type HassButtonUpdateEvent = { data: { unique_id: TSynapseId } };
 
 export function VirtualButton({
   logger,
+  event,
   hass,
   context,
   synapse,
@@ -85,7 +92,7 @@ export function VirtualButton({
     details: entity => ({
       attributes: entity._rawAttributes,
       configuration: entity._rawConfiguration,
-      state: entity.state,
+      state: undefined,
     }),
     // @ts-expect-error it's fine
     domain: "button",
@@ -102,7 +109,7 @@ export function VirtualButton({
       get(_, property: keyof TVirtualButton<STATE, ATTRIBUTES>) {
         // * state
         if (property === "state") {
-          return loader.state;
+          return undefined;
         }
         // * name
         if (property === "name") {
@@ -115,6 +122,16 @@ export function VirtualButton({
         // * onUpdate
         if (property === "onUpdate") {
           return loader.onUpdate();
+        }
+        // * onPress
+        if (property === "onPress") {
+          return function (callback: (remove: () => void) => TBlackHole) {
+            const remove = () => event.removeListener(EVENT_ID, exec);
+            const exec = async () =>
+              await internal.safeExec(async () => callback(remove));
+            event.on(EVENT_ID, exec);
+            return { remove };
+          };
         }
         // * _rawConfiguration
         if (property === "_rawConfiguration") {
@@ -178,9 +195,8 @@ export function VirtualButton({
           "_rawAttributes",
           "_rawConfiguration",
           "name",
-          "is_on",
           "onUpdate",
-          "state",
+          "onPress",
         ];
       },
       // #MARK: set
@@ -195,6 +211,7 @@ export function VirtualButton({
 
     // Validate a good id was passed, and it's the only place in code that's using it
     const unique_id = registry.add(sensorOut, entity);
+    const EVENT_ID = `synapse/press/${unique_id}`;
 
     const loader = synapse.storage.wrapper<STATE, ATTRIBUTES, CONFIGURATION>({
       name: entity.name,
@@ -209,20 +226,25 @@ export function VirtualButton({
       },
     });
 
-    const event = synapse.registry.eventName("press");
     logger.error({ event }, `listening for event`);
 
     hass.socket.onEvent({
       context,
-      event,
+      event: synapse.registry.eventName("press"),
       async exec({ data: { unique_id: id } }: HassButtonUpdateEvent) {
         if (id !== unique_id) {
           return;
         }
         logger.trace({ context, name: entity.name }, `press`);
-        await internal.safeExec(async () => entity.exec());
+        event.emit(EVENT_ID);
       },
     });
+    if (is.function(entity.press)) {
+      const remove = () => event.removeListener(EVENT_ID, callback);
+      const callback = async () =>
+        await internal.safeExec(async () => entity.press(remove));
+      event.on(EVENT_ID, callback);
+    }
 
     return sensorOut;
   }

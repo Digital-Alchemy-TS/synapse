@@ -10,11 +10,11 @@ import {
   DeviceExtension,
   NumberDomain,
   Registry,
-  Scene,
   Sensor,
   Switch,
   ValueStorage,
   VirtualButton,
+  VirtualScene,
 } from "./extensions";
 import { HassDeviceMetadata } from "./helpers";
 
@@ -123,7 +123,7 @@ export const LIB_SYNAPSE = CreateLibrary({
      *
      * run callback on activation
      */
-    scene: Scene,
+    scene: VirtualScene,
 
     /**
      * create `sensor` domain entities

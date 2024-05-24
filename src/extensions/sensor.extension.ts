@@ -1,10 +1,5 @@
 import { TBlackHole, TContext, TServiceParams } from "@digital-alchemy/core";
-import {
-  ENTITY_STATE,
-  PICK_ENTITY,
-  TAreaId,
-  TLabelId,
-} from "@digital-alchemy/hass";
+import { ENTITY_STATE, PICK_ENTITY } from "@digital-alchemy/hass";
 
 import {
   BASE_CONFIG_KEYS,
@@ -231,14 +226,18 @@ export function Sensor({ context, synapse, logger }: TServiceParams) {
       },
       // #MARK: set
       set(_, property: string, value: unknown) {
+        // entity.state = ...
         if (property === "state") {
           loader.setState(value as STATE);
           return true;
         }
+        // entity.attributes = { ... }
         if (property === "attributes") {
           loader.setAttributes(value as ATTRIBUTES);
           return true;
         }
+        // not supported:
+        // entity.configuration = {...}
         return false;
       },
     });
