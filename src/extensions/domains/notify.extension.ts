@@ -2,26 +2,26 @@ import { is, TBlackHole, TServiceParams } from "@digital-alchemy/core";
 
 import { TRegistry, VIRTUAL_ENTITY_BASE_KEYS } from "../..";
 import {
-  ButtonConfiguration,
-  SynapseButtonParams,
-  SynapseVirtualButton,
-} from "../../helpers/domains";
+  NotifyConfiguration,
+  SynapseNotifyParams,
+  SynapseVirtualNotify,
+} from "../../helpers/domains/notify";
 
-export function VirtualButton({ context, synapse }: TServiceParams) {
-  const registry = synapse.registry.create<SynapseVirtualButton>({
+export function VirtualNotify({ context, synapse }: TServiceParams) {
+  const registry = synapse.registry.create<SynapseVirtualNotify>({
     context,
     // @ts-expect-error it's fine
-    domain: "button",
+    domain: "notify",
   });
 
   // #MARK: create
   return function <ATTRIBUTES extends object = object>(
-    entity: SynapseButtonParams,
+    entity: SynapseNotifyParams,
   ) {
     // - Define the proxy
-    const proxy = new Proxy({} as SynapseVirtualButton, {
+    const proxy = new Proxy({} as SynapseVirtualNotify, {
       // #MARK: get
-      get(_, property: keyof SynapseVirtualButton) {
+      get(_, property: keyof SynapseVirtualNotify) {
         // > common
         // * name
         if (property === "name") {
@@ -53,9 +53,9 @@ export function VirtualButton({ context, synapse }: TServiceParams) {
         }
         // > domain specific
         // * onPress
-        if (property === "onPress") {
+        if (property === "onSendMessage") {
           return (callback: (remove: () => void) => TBlackHole) =>
-            synapse.registry.removableListener(PRESS_EVENT, callback);
+            synapse.registry.removableListener(SEND_MESSAGE, callback);
         }
         return undefined;
       },
@@ -81,24 +81,23 @@ export function VirtualButton({ context, synapse }: TServiceParams) {
     const loader = synapse.storage.wrapper<
       never,
       ATTRIBUTES,
-      ButtonConfiguration
+      NotifyConfiguration
     >({
-      load_keys: ["device_class"],
       name: entity.name,
       registry: registry as TRegistry<unknown>,
       unique_id,
     });
 
     // - Attach bus events
-    const PRESS_EVENT = synapse.registry.busTransfer({
+    const SEND_MESSAGE = synapse.registry.busTransfer({
       context,
-      eventName: "press",
+      eventName: "send_message",
       unique_id,
     });
 
     // - Attach static listener
-    if (is.function(entity.press)) {
-      proxy.onPress(entity.press);
+    if (is.function(entity.send_message)) {
+      proxy.onSendMessage(entity.send_message);
     }
 
     // - Done

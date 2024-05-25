@@ -15,6 +15,7 @@ import {
   VirtualDate,
   VirtualDateTime,
   VirtualLock,
+  VirtualNotify,
   VirtualNumber,
   VirtualScene,
   VirtualSelect,
@@ -112,6 +113,7 @@ export const LIB_SYNAPSE = CreateLibrary({
     device: DeviceExtension,
 
     lock: VirtualLock,
+    notify: VirtualNotify,
     number: VirtualNumber,
 
     /**
