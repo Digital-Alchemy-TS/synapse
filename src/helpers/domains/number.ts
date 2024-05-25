@@ -1,21 +1,24 @@
-import { TContext } from "@digital-alchemy/core";
-import { PICK_ENTITY } from "@digital-alchemy/hass";
-
-import { BASE_CONFIG_KEYS, EntityConfigCommon } from "../common-config.helper";
-import { UpdateCallback } from "../event";
-import { TSynapseId } from "../utility.helper";
+import {
+  BaseEntityParams,
+  BaseVirtualEntity,
+  CreateRemovableCallback,
+  RemovableCallback,
+} from "../base-domain.helper";
+import { EntityConfigCommon } from "../common-config.helper";
 import { SensorDeviceClasses } from "./sensor";
 
-export type TNumber<
-  STATE extends NumberValue,
-  ATTRIBUTES extends object = object,
-> = {
-  context: TContext;
-  defaultState?: STATE;
-  defaultAttributes?: ATTRIBUTES;
-  name: string;
-} & NumberConfiguration;
+export type SynapseNumberParams = BaseEntityParams<number> &
+  NumberConfiguration & {
+    set_value: RemovableCallback<SetValueData>;
+    /**
+     * default: true
+     */
+    managed?: boolean;
+  };
+
+// supposed to be the same thing
 export type NumberDeviceClasses = SensorDeviceClasses;
+type SetValueData = { value: number };
 
 export type NumberConfiguration = EntityConfigCommon &
   NumberDeviceClasses & {
@@ -30,48 +33,8 @@ export type NumberConfiguration = EntityConfigCommon &
     step?: number;
   };
 
-export type NumberValue = number;
-
-export const NUMBER_CONFIGURATION_KEYS = [
-  ...BASE_CONFIG_KEYS,
-  "device_class",
-  "unit_of_measurement",
-  "mode",
-  "max_value",
-  "min_value",
-  "step",
-] as (keyof NumberConfiguration)[];
-
-export type HassNumberEvent = {
-  data: { unique_id: TSynapseId; value: number };
-};
-
-export type TVirtualNumber<
-  STATE extends NumberValue = NumberValue,
-  ATTRIBUTES extends object = object,
-  CONFIGURATION extends NumberConfiguration = NumberConfiguration,
-  // @ts-expect-error its fine
-  ENTITY_ID extends PICK_ENTITY<"number"> = PICK_ENTITY<"number">,
-> = {
-  /**
-   * Do not define attributes that change frequently.
-   * Create new sensors instead
-   */
-  attributes: ATTRIBUTES;
-  configuration: CONFIGURATION;
-  _rawAttributes: ATTRIBUTES;
-  _rawConfiguration: ATTRIBUTES;
-  name: string;
-  /**
-   * look up the entity id, and
-   */
-  onUpdate: UpdateCallback<ENTITY_ID>;
-  /**
-   * the current state
-   */
-  state: STATE;
-  /**
-   * Used to uniquely identify this entity in home assistant
-   */
-  unique_id: string;
-};
+export type SynapseVirtualNumber = BaseVirtualEntity<
+  number,
+  object,
+  NumberConfiguration
+> & { onSetValue: CreateRemovableCallback<SetValueData> };
