@@ -37,5 +37,6 @@ export const BASE_CONFIG_KEYS = [
   "suggested_object_id",
   "unique_id",
   "icon",
+  "state",
   "entity_category",
 ];

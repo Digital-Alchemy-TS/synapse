@@ -1,27 +1,30 @@
-import { is, TBlackHole, TServiceParams } from "@digital-alchemy/core";
+import { is, TServiceParams } from "@digital-alchemy/core";
 
-import { TRegistry, VIRTUAL_ENTITY_BASE_KEYS } from "..";
 import {
-  ButtonConfiguration,
-  SynapseButtonParams,
-  SynapseVirtualButton,
-} from "../helpers/domains";
+  RemovableCallback,
+  SceneConfiguration,
+  SynapseSceneParams,
+  SynapseVirtualScene,
+  TRegistry,
+  VIRTUAL_ENTITY_BASE_KEYS,
+} from "../..";
 
-export function VirtualButton({ context, synapse }: TServiceParams) {
-  const registry = synapse.registry.create<SynapseVirtualButton>({
+export function VirtualScene({ context, synapse }: TServiceParams) {
+  const registry = synapse.registry.create<SynapseVirtualScene>({
     context,
-    // @ts-expect-error it's fine
-    domain: "button",
+    domain: "scene",
   });
 
   // #MARK: create
-  return function <ATTRIBUTES extends object = object>(
-    entity: SynapseButtonParams,
-  ) {
+  return function <
+    STATE extends void = void,
+    ATTRIBUTES extends object = object,
+    CONFIGURATION extends SceneConfiguration = SceneConfiguration,
+  >(entity: SynapseSceneParams) {
     // - Define the proxy
-    const proxy = new Proxy({} as SynapseVirtualButton, {
+    const proxy = new Proxy({} as SynapseVirtualScene, {
       // #MARK: get
-      get(_, property: keyof SynapseVirtualButton) {
+      get(_, property: keyof SynapseVirtualScene) {
         // > common
         // * name
         if (property === "name") {
@@ -51,16 +54,20 @@ export function VirtualButton({ context, synapse }: TServiceParams) {
         if (property === "configuration") {
           return loader.configurationProxy();
         }
+        // * state
+        if (property === "state") {
+          return loader.state;
+        }
         // > domain specific
-        // * onPress
-        if (property === "onPress") {
-          return (callback: (remove: () => void) => TBlackHole) =>
-            synapse.registry.removableListener(PRESS_EVENT, callback);
+        // * onActivate
+        if (property === "onActivate") {
+          return (callback: RemovableCallback) =>
+            synapse.registry.removableListener(ACTIVATE, callback);
         }
         return undefined;
       },
 
-      ownKeys: () => [...VIRTUAL_ENTITY_BASE_KEYS, "onPress"],
+      ownKeys: () => [...VIRTUAL_ENTITY_BASE_KEYS, "onActivate"],
 
       // #MARK: set
       set(_, property: string, value: unknown) {
@@ -78,27 +85,22 @@ export function VirtualButton({ context, synapse }: TServiceParams) {
     const unique_id = registry.add(proxy, entity);
 
     // - Initialize value storage
-    const loader = synapse.storage.wrapper<
-      never,
-      ATTRIBUTES,
-      ButtonConfiguration
-    >({
-      load_keys: ["device_class"],
+    const loader = synapse.storage.wrapper<STATE, ATTRIBUTES, CONFIGURATION>({
       name: entity.name,
       registry: registry as TRegistry<unknown>,
       unique_id,
     });
 
     // - Attach bus events
-    const PRESS_EVENT = synapse.registry.busTransfer({
+    const ACTIVATE = synapse.registry.busTransfer({
       context,
-      eventName: "press",
+      eventName: "activate",
       unique_id,
     });
 
     // - Attach static listener
-    if (is.function(entity.press)) {
-      synapse.registry.removableListener(PRESS_EVENT, entity.press);
+    if (is.function(entity.onActivate)) {
+      proxy.onActivate(entity.onActivate);
     }
 
     // - Done

@@ -1,7 +1,7 @@
 import { TBlackHole, TContext } from "@digital-alchemy/core";
 import { PICK_ENTITY } from "@digital-alchemy/hass";
 
-import { BaseVirtualEntity } from "../base-domain.helper";
+import { BaseEntityParams, BaseVirtualEntity } from "../base-domain.helper";
 import { BASE_CONFIG_KEYS, EntityConfigCommon } from "../common-config.helper";
 import { UpdateCallback } from "../event";
 
@@ -298,15 +298,8 @@ export type SensorDeviceClasses =
   | AtmosphericPressureSensor
   | DefaultSensor;
 
-export type SynapseSensorParams<
-  STATE extends SensorValue,
-  ATTRIBUTES extends object = object,
-> = {
-  context: TContext;
-  defaultState?: STATE;
-  defaultAttributes?: ATTRIBUTES;
-  name: string;
-} & SensorConfiguration;
+export type SynapseSensorParams = BaseEntityParams<SensorValue> &
+  SensorConfiguration;
 
 export type SensorConfiguration = EntityConfigCommon &
   SensorDeviceClasses & {
@@ -347,6 +340,7 @@ export type SynapseVirtualSensor = BaseVirtualEntity<
   object,
   SensorConfiguration
 > & {
+  is_on: boolean;
   /**
    * bumps the last reset time
    */

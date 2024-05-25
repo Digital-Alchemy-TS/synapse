@@ -56,5 +56,15 @@ export const VIRTUAL_ENTITY_BASE_KEYS = [
   "_rawAttributes",
   "_rawConfiguration",
   "name",
+  "state",
   "onUpdate",
 ];
+
+export type RemovableCallback<DATA extends unknown = unknown> = (
+  data: DATA,
+  remove: () => void,
+) => TBlackHole;
+
+export type CreateRemovableCallback<DATA extends unknown = unknown> = (
+  callback: RemovableCallback<DATA>,
+) => { remove: () => void };

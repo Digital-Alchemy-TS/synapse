@@ -9,7 +9,7 @@ import {
 import { ALL_DOMAINS } from "@digital-alchemy/hass";
 import { createHash } from "crypto";
 
-import { BaseEntityParams, TSynapseId } from "..";
+import { BaseEntityParams, RemovableCallback, TSynapseId } from "..";
 
 type BaseEntity = {
   attributes: object;
@@ -272,7 +272,7 @@ export function Registry({
      */
     removableListener<DATA extends object>(
       eventName: string,
-      callback: (data: DATA, remove: () => void) => TBlackHole,
+      callback: RemovableCallback<DATA>,
     ) {
       const remove = () => event.removeListener(eventName, exec);
       const exec = async (data: DATA) =>

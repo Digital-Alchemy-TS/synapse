@@ -1,31 +1,32 @@
 import { TServiceParams } from "@digital-alchemy/core";
 
 import {
-  BinarySensorConfiguration,
-  BinarySensorValue,
-  SynapseBinarySensorParams,
-  SynapseVirtualBinarySensor,
+  SENSOR_DEVICE_CLASS_CONFIG_KEYS,
+  SensorConfiguration,
+  SensorValue,
+  SynapseSensorParams,
+  SynapseVirtualSensor,
   TRegistry,
   VIRTUAL_ENTITY_BASE_KEYS,
-} from "..";
+} from "../..";
 
-export function VirtualBinarySensor({ context, synapse }: TServiceParams) {
-  const registry = synapse.registry.create<SynapseVirtualBinarySensor>({
+export function VirtualSensor({ context, synapse, logger }: TServiceParams) {
+  const registry = synapse.registry.create<SynapseVirtualSensor>({
     context,
-    domain: "binary_sensor",
+    domain: "sensor",
   });
 
   return function <
-    STATE extends BinarySensorValue = BinarySensorValue,
+    STATE extends SensorValue = SensorValue,
     ATTRIBUTES extends object = object,
-  >(entity: SynapseBinarySensorParams) {
+  >(entity: SynapseSensorParams) {
     // - Provide additional defaults
-    entity.defaultState ??= "off";
+    entity.defaultState ??= "" as STATE;
 
     // - Define the proxy
-    const proxy = new Proxy({} as SynapseVirtualBinarySensor, {
+    const proxy = new Proxy({} as SynapseVirtualSensor, {
       // #MARK: get
-      get(_, property: keyof SynapseVirtualBinarySensor) {
+      get(_, property: keyof SynapseVirtualSensor) {
         // > common
         // * name
         if (property === "name") {
@@ -55,37 +56,38 @@ export function VirtualBinarySensor({ context, synapse }: TServiceParams) {
         if (property === "configuration") {
           return loader.configurationProxy();
         }
-        // > domain specific
         // * state
         if (property === "state") {
           return loader.state;
         }
-        // * is_on
-        if (property === "is_on") {
-          return loader.state === "on";
+        // > domain specific
+        // * reset
+        if (property === "reset") {
+          return function () {
+            logger.debug(
+              { context: entity.context, name: entity.name },
+              `reset`,
+            );
+            // what it means to "reset" is up to dev
+            entity.last_reset = new Date();
+          };
         }
         return undefined;
       },
 
-      ownKeys: () => [...VIRTUAL_ENTITY_BASE_KEYS, "is_on", "state"],
+      ownKeys: () => [...VIRTUAL_ENTITY_BASE_KEYS, "reset"],
 
       // #MARK: set
       set(_, property: string, value: unknown) {
+        // > common
         // * attributes
         if (property === "attributes") {
           loader.setAttributes(value as ATTRIBUTES);
           return true;
         }
-        // > domain specific
         // * state
         if (property === "state") {
           loader.setState(value as STATE);
-          return true;
-        }
-        // * is_on
-        if (property === "is_on") {
-          const new_state = ((value as boolean) ? "on" : "off") as STATE;
-          loader.setState(new_state);
           return true;
         }
         return false;
@@ -99,10 +101,16 @@ export function VirtualBinarySensor({ context, synapse }: TServiceParams) {
     const loader = synapse.storage.wrapper<
       STATE,
       ATTRIBUTES,
-      BinarySensorConfiguration
+      SensorConfiguration
     >({
-      config_defaults: { entity_category: "diagnostic" },
-      load_keys: ["device_class"],
+      load_keys: [
+        ...SENSOR_DEVICE_CLASS_CONFIG_KEYS,
+        "last_reset",
+        "options",
+        "state_class",
+        "suggested_display_precision",
+        "unit_of_measurement",
+      ] as (keyof SensorConfiguration)[],
       name: entity.name,
       registry: registry as TRegistry<unknown>,
       unique_id,
