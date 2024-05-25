@@ -1,7 +1,7 @@
 import { each, is, TBlackHole, TServiceParams } from "@digital-alchemy/core";
 import { ENTITY_STATE, PICK_ENTITY } from "@digital-alchemy/hass";
 
-import { TSynapseId } from "..";
+import { BASE_CONFIG_KEYS, BaseEntityParams, TSynapseId } from "..";
 import { TRegistry } from ".";
 
 type StorageData<STATE, ATTRIBUTES, CONFIGURATION> = {
@@ -18,7 +18,8 @@ type LoaderOptions<
   registry: TRegistry<unknown>;
   unique_id: TSynapseId;
   name: string;
-  value: StorageData<STATE, ATTRIBUTES, CONFIGURATION>;
+  load_keys?: (keyof CONFIGURATION)[];
+  config_defaults?: Partial<CONFIGURATION>;
 };
 
 type TCallback = (
@@ -35,9 +36,10 @@ export function ValueStorage({ logger, lifecycle, hass }: TServiceParams) {
     CONFIGURATION extends object = object,
   >({
     registry,
-    unique_id: unique_id,
+    unique_id,
     name,
-    value,
+    load_keys,
+    config_defaults,
   }: LoaderOptions<STATE, ATTRIBUTES, CONFIGURATION>) {
     const domain = registry.domain;
 
@@ -86,9 +88,69 @@ export function ValueStorage({ logger, lifecycle, hass }: TServiceParams) {
       });
     }
 
+    const value = registry.rawConfigById(unique_id) as BaseEntityParams<
+      STATE,
+      ATTRIBUTES
+    >;
+    value.defaultAttributes ??= {} as ATTRIBUTES;
+    const valueConfig = { ...value, ...config_defaults };
+    const keys = [
+      ...BASE_CONFIG_KEYS,
+      ...load_keys,
+    ] as (keyof typeof valueConfig)[];
+
+    const defaultConfiguration = Object.fromEntries(
+      keys.map(i => [i, valueConfig[i]]),
+    ) as CONFIGURATION;
+
     const entity = {
-      attributes: value.attributes,
-      configuration: value.configuration,
+      attributes: value.defaultAttributes,
+
+      attributesProxy() {
+        return new Proxy({} as ATTRIBUTES, {
+          get: <KEY extends Extract<keyof ATTRIBUTES, string>>(
+            _: ATTRIBUTES,
+            property: KEY,
+          ) => {
+            return entity.attributes[property];
+          },
+          set: <
+            KEY extends Extract<keyof ATTRIBUTES, string>,
+            VALUE extends ATTRIBUTES[KEY],
+          >(
+            _: ATTRIBUTES,
+            property: KEY,
+            value: VALUE,
+          ) => {
+            entity.setAttribute(property, value);
+            return true;
+          },
+        });
+      },
+
+      configuration: defaultConfiguration,
+
+      configurationProxy() {
+        return new Proxy({} as CONFIGURATION, {
+          get: <KEY extends Extract<keyof CONFIGURATION, string>>(
+            _: CONFIGURATION,
+            property: KEY,
+          ) => {
+            return entity.configuration[property];
+          },
+          set: <
+            KEY extends Extract<keyof CONFIGURATION, string>,
+            VALUE extends CONFIGURATION[KEY],
+          >(
+            _: CONFIGURATION,
+            property: KEY,
+            value: VALUE,
+          ) => {
+            entity.setConfiguration(property, value);
+            return true;
+          },
+        });
+      },
 
       /**
        * Does not trigger on configuration changes, only state / attributes
@@ -139,7 +201,7 @@ export function ValueStorage({ logger, lifecycle, hass }: TServiceParams) {
         if (is.equal(entity.attributes[key], incoming)) {
           return;
         }
-        value.attributes[key] = incoming;
+        entity.attributes[key] = incoming;
         logger.trace(
           { domain, key, name, value: incoming },
           `update attribute (single)`,
@@ -168,7 +230,7 @@ export function ValueStorage({ logger, lifecycle, hass }: TServiceParams) {
         if (is.equal(entity.configuration[key], incoming)) {
           return;
         }
-        value.configuration[key] = incoming;
+        entity.configuration[key] = incoming;
         logger.trace(
           { domain, key, name, value: incoming },
           `update configuration (single)`,
@@ -203,7 +265,7 @@ export function ValueStorage({ logger, lifecycle, hass }: TServiceParams) {
         runCallbacks();
       },
 
-      state: value.state,
+      state: value.defaultState,
     };
     return entity;
   }

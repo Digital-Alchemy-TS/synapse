@@ -33,7 +33,7 @@ export function EntityGenerator({
       sensor.state = Math.floor(Math.random() * 1000);
       binary_sensor.is_on = !binary_sensor.is_on;
     },
-    interval: 10 * SECOND,
+    interval: SECOND,
   });
 
   const button = synapse.button({
@@ -78,5 +78,13 @@ export function EntityGenerator({
     is_locked: false,
     name: "Example lock",
     suggested_object_id: "example_the_lock",
+  });
+
+  synapse.number({
+    context,
+    max_value: 420,
+    min_value: 69,
+    name: "Example number",
+    suggested_object_id: "example_the_number",
   });
 }

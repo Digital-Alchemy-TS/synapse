@@ -7,13 +7,13 @@ import {
   Configure,
   Controller,
   DeviceExtension,
-  NumberDomain,
   Registry,
   ValueStorage,
   VirtualAlarmControlPanel,
   VirtualBinarySensor,
   VirtualButton,
   VirtualLock,
+  VirtualNumber,
   VirtualScene,
   VirtualSensor,
   VirtualSwitch,
@@ -109,7 +109,7 @@ export const LIB_SYNAPSE = CreateLibrary({
     /**
      * create `number` domain entities
      */
-    number: NumberDomain,
+    number: VirtualNumber,
 
     /**
      * internal tools for managing entities

@@ -1,89 +1,65 @@
-import { TBlackHole, TContext, TServiceParams } from "@digital-alchemy/core";
+import { NONE, TServiceParams } from "@digital-alchemy/core";
 
-import { SensorDeviceClasses, TRegistry } from "..";
+import {
+  HassNumberEvent,
+  NUMBER_CONFIGURATION_KEYS,
+  NumberConfiguration,
+  TNumber,
+  TVirtualNumber,
+} from "../helpers/domains/number";
+import { TRegistry } from "./registry.extension";
 
-type TNumber<STATE extends NumberValue, ATTRIBUTES extends object = object> = {
-  context: TContext;
-  defaultState?: STATE;
-  icon?: string;
-  defaultAttributes?: Omit<ATTRIBUTES, keyof BaseNumberAttributes>;
-  name: string;
-} & SensorDeviceClasses &
-  BaseNumberAttributes;
-
-type NumberValue = string | number;
-type NumberUpdateCallback<
-  STATE extends NumberValue = NumberValue,
-  ATTRIBUTES extends object = object,
-> = (options: { state?: STATE; attributes?: ATTRIBUTES }) => TBlackHole;
-
-export type VirtualNumber<
-  STATE extends NumberValue = NumberValue,
-  ATTRIBUTES extends object = object,
-> = {
-  icon: string;
-  attributes: ATTRIBUTES;
-  _rawAttributes?: ATTRIBUTES;
-  onUpdate: (callback: NumberUpdateCallback<STATE, ATTRIBUTES>) => void;
-  state: STATE;
-} & SensorDeviceClasses &
-  BaseNumberAttributes;
-
-type BaseNumberAttributes = {
-  min?: number;
-  name: string;
-  max?: number;
-  step?: number;
-};
-
-export function NumberDomain({ context, synapse }: TServiceParams) {
-  const registry = synapse.registry.create<VirtualNumber>({
+export function VirtualNumber({
+  context,
+  synapse,
+  hass,
+  logger,
+}: TServiceParams) {
+  const registry = synapse.registry.create<TVirtualNumber>({
     context,
     details: entity => ({
       attributes: entity._rawAttributes,
-      device_class: entity.device_class,
+      configuration: entity._rawConfiguration,
       state: entity.state,
-      unit_of_measurement: entity.unit_of_measurement,
     }),
-    // @ts-expect-error need to add more examples to `hass` to populate types
+    // @ts-expect-error it's fine
     domain: "number",
   });
 
-  // # Sensor creation function
+  // #MARK: create
   function create<
-    STATE extends NumberValue = NumberValue,
-    ATTRIBUTES extends BaseNumberAttributes = BaseNumberAttributes,
+    STATE extends number = number,
+    ATTRIBUTES extends object = object,
+    CONFIGURATION extends NumberConfiguration = NumberConfiguration,
   >(entity: TNumber<STATE, ATTRIBUTES>) {
-    const numberOut = new Proxy({} as VirtualNumber<STATE, ATTRIBUTES>, {
-      // ### Getters
-      get(_, property: keyof VirtualNumber<STATE, ATTRIBUTES>) {
+    const entityOut = new Proxy({} as TVirtualNumber<STATE, ATTRIBUTES>, {
+      // #MARK: get
+      get(_, property: keyof TVirtualNumber<STATE, ATTRIBUTES>) {
+        // * state
         if (property === "state") {
           return loader.state;
         }
-        if (property === "unit_of_measurement") {
-          return entity.unit_of_measurement;
-        }
-        if (property === "device_class") {
-          return entity.device_class;
-        }
+        // * name
         if (property === "name") {
           return entity.name;
         }
-        if (property === "max") {
-          return entity.max;
+        // * unique_id
+        if (property === "unique_id") {
+          return unique_id;
         }
-        if (property === "min") {
-          return entity.min;
-        }
-        if (property === "step") {
-          return entity.step;
-        }
+        // * onUpdate
         if (property === "onUpdate") {
           return loader.onUpdate();
         }
+        // * _rawConfiguration
+        if (property === "_rawConfiguration") {
+          return loader.configuration;
+        }
+        // * _rawAttributes
         if (property === "_rawAttributes") {
           return loader.attributes;
         }
+        // * attributes
         if (property === "attributes") {
           return new Proxy({} as ATTRIBUTES, {
             get: <KEY extends Extract<keyof ATTRIBUTES, string>>(
@@ -105,21 +81,43 @@ export function NumberDomain({ context, synapse }: TServiceParams) {
             },
           });
         }
-        if (property === "icon") {
-          return entity.icon;
+        // * configuration
+        if (property === "configuration") {
+          return new Proxy({} as CONFIGURATION, {
+            get: <KEY extends Extract<keyof CONFIGURATION, string>>(
+              _: CONFIGURATION,
+              property: KEY,
+            ) => {
+              return loader.configuration[property];
+            },
+            set: <
+              KEY extends Extract<keyof CONFIGURATION, string>,
+              VALUE extends CONFIGURATION[KEY],
+            >(
+              _: CONFIGURATION,
+              property: KEY,
+              value: VALUE,
+            ) => {
+              loader.setConfiguration(property, value);
+              return true;
+            },
+          });
         }
         return undefined;
       },
+      // #MARK: ownKeys
       ownKeys: () => {
         return [
-          "state",
-          "unit_of_measurement",
-          "device_class",
+          "attributes",
+          "configuration",
+          "_rawAttributes",
+          "_rawConfiguration",
           "name",
           "onUpdate",
-          "attributes",
+          "state",
         ];
       },
+      // #MARK: set
       set(_, property: string, value: unknown) {
         if (property === "state") {
           loader.setState(value as STATE);
@@ -133,17 +131,42 @@ export function NumberDomain({ context, synapse }: TServiceParams) {
       },
     });
 
-    const id = registry.add(numberOut);
-    const loader = synapse.storage.wrapper<STATE, ATTRIBUTES>({
-      name: entity.name,
-      registry: registry as TRegistry<unknown>,
-      unique_id: id,
-      value: {
-        attributes: {} as ATTRIBUTES,
-        state: "" as STATE,
+    const unique_id = registry.add(entityOut, entity);
+
+    hass.socket.onEvent({
+      context,
+      event: synapse.registry.eventName("set_native_value"),
+      exec({ data: { unique_id: id, value } }: HassNumberEvent) {
+        if (id !== unique_id) {
+          return;
+        }
+        logger.trace({ context, unique_id }, "set_native_value");
+        loader.setState(value as STATE);
       },
     });
-    return numberOut;
+
+    const defaults = {
+      max_value: 100,
+      min_value: 0,
+      mode: "auto",
+      step: 1,
+      ...entity,
+    };
+
+    const loader = synapse.storage.wrapper<STATE, ATTRIBUTES, CONFIGURATION>({
+      name: entity.name,
+      registry: registry as TRegistry<unknown>,
+      unique_id,
+      value: {
+        attributes: (entity.defaultAttributes ?? {}) as ATTRIBUTES,
+        configuration: Object.fromEntries(
+          NUMBER_CONFIGURATION_KEYS.map(key => [key, defaults[key]]),
+        ) as unknown as CONFIGURATION,
+        state: (entity.defaultState ?? entity.min_value ?? NONE) as STATE,
+      },
+    });
+    return entityOut;
   }
+
   return create;
 }

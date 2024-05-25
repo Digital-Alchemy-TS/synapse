@@ -35,9 +35,16 @@ export type NumberValue = number;
 export const NUMBER_CONFIGURATION_KEYS = [
   ...BASE_CONFIG_KEYS,
   "device_class",
+  "unit_of_measurement",
+  "mode",
+  "max_value",
+  "min_value",
+  "step",
 ] as (keyof NumberConfiguration)[];
 
-export type HassNumberEvent = { data: { unique_id: TSynapseId } };
+export type HassNumberEvent = {
+  data: { unique_id: TSynapseId; value: number };
+};
 
 export type TVirtualNumber<
   STATE extends NumberValue = NumberValue,

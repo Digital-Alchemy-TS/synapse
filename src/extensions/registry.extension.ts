@@ -8,10 +8,12 @@ import {
 import { ALL_DOMAINS } from "@digital-alchemy/hass";
 import { createHash } from "crypto";
 
-import { TSynapseId } from "..";
+import { BaseEntityParams, TSynapseId } from "..";
 
 type BaseEntity = {
   attributes: object;
+  _rawAttributes: object;
+  _rawConfiguration: object;
   configuration: object;
   name: string;
   state: unknown;
@@ -58,6 +60,10 @@ export function Registry({
   scheduler,
 }: TServiceParams) {
   const LOADERS = new Map<ALL_DOMAINS, () => object[]>();
+  const CONFIG_FROM_UNIQUE_ID = new Map<
+    TSynapseId,
+    BaseEntityParams<unknown>
+  >();
   type TDomain = ReturnType<typeof create>;
   const domains = new Map<ALL_DOMAINS, TDomain>();
   const initComplete = false;
@@ -130,7 +136,11 @@ export function Registry({
   function create<DATA extends BaseEntity>({
     domain,
     context,
-    details,
+    details = entity => ({
+      attributes: entity._rawAttributes,
+      configuration: entity._rawConfiguration,
+      state: entity.state,
+    }),
   }: SynapseSocketOptions<DATA>): TRegistry<DATA> {
     logger.trace({ name: domain }, `init domain`);
     const registry = new Map<TSynapseId, DATA>();
@@ -140,7 +150,7 @@ export function Registry({
     LOADERS.set(domain, () => {
       return [...registry.entries()].map(([unique_id, item]) => {
         return {
-          ...(details ? details(item) : {}),
+          ...details(item),
           name: item.name,
           unique_id,
         };
@@ -150,7 +160,7 @@ export function Registry({
     // * Registry interactions
     const out = {
       // * Add
-      add(data: DATA, entity: { unique_id?: string }) {
+      add(data: DATA, entity: BaseEntityParams<unknown>) {
         const unique_id = (
           is.empty(entity.unique_id)
             ? generateHash(`${getIdentifier()}:${data.name}`)
@@ -164,6 +174,7 @@ export function Registry({
           );
         }
         registry.set(unique_id, data);
+        CONFIG_FROM_UNIQUE_ID.set(unique_id, entity);
         if (initComplete) {
           logger.warn(
             { context: context, domain, name: data.name },
@@ -194,6 +205,10 @@ export function Registry({
         return [...registry.keys()];
       },
 
+      rawConfigById(unique_id: TSynapseId) {
+        return CONFIG_FROM_UNIQUE_ID.get(unique_id);
+      },
+
       // * send
       async send(unique_id: TSynapseId): Promise<void> {
         if (hass.socket.connectionState !== "connected") {
@@ -212,8 +227,12 @@ export function Registry({
       },
       // * setCache
       async setCache(unique_id: TSynapseId, value: DATA): Promise<void> {
-        registry.set(unique_id, value);
-        await cache.set(CACHE_KEY(unique_id), value);
+        const update = {
+          ...registry.get(unique_id),
+          ...value,
+        };
+        registry.set(unique_id, update);
+        await cache.set(CACHE_KEY(unique_id), update);
       },
     };
     domains.set(domain, out as unknown as TDomain);
@@ -227,6 +246,7 @@ export type TRegistry<DATA extends unknown = unknown> = {
   add(data: DATA, entity: { unique_id?: string }): TSynapseId;
   byId(unique_id: TSynapseId): DATA;
   domain: ALL_DOMAINS;
+  rawConfigById(unique_id: TSynapseId): BaseEntityParams<unknown>;
   getCache<T>(unique_id: TSynapseId, defaultValue?: T): Promise<T>;
   list: () => TSynapseId[];
   send: (unique_id: TSynapseId, data: object) => Promise<void>;
