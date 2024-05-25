@@ -1,11 +1,12 @@
 import { is, TServiceParams } from "@digital-alchemy/core";
 
-import { RemovableCallback, VIRTUAL_ENTITY_BASE_KEYS } from "../../helpers";
 import {
   FanConfiguration,
+  RemovableCallback,
   SynapseFanParams,
   SynapseVirtualFan,
-} from "../../helpers/domains/fan";
+  VIRTUAL_ENTITY_BASE_KEYS,
+} from "../../helpers";
 import { TRegistry } from "../registry.extension";
 
 export function VirtualFan({ context, synapse }: TServiceParams) {

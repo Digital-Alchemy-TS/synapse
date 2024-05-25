@@ -1,11 +1,12 @@
 import { is, TServiceParams } from "@digital-alchemy/core";
 
-import { RemovableCallback, VIRTUAL_ENTITY_BASE_KEYS } from "../../helpers";
 import {
+  RemovableCallback,
   SynapseTimeParams,
   SynapseVirtualTime,
   TimeConfiguration,
-} from "../../helpers/domains/time";
+  VIRTUAL_ENTITY_BASE_KEYS,
+} from "../../helpers";
 import { TRegistry } from "../registry.extension";
 
 export function VirtualTime({ context, synapse }: TServiceParams) {

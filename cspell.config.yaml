@@ -16,6 +16,7 @@ words:
   - homeassistant
   - zeroconf
   - endregion
+  - hvac
   - gbit
 ignoreWords: []
 import: []

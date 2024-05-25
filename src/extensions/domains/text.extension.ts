@@ -1,11 +1,12 @@
 import { is, TServiceParams } from "@digital-alchemy/core";
 
-import { RemovableCallback, VIRTUAL_ENTITY_BASE_KEYS } from "../../helpers";
 import {
+  RemovableCallback,
   SynapseTextParams,
   SynapseVirtualText,
   TextConfiguration,
-} from "../../helpers/domains/text";
+  VIRTUAL_ENTITY_BASE_KEYS,
+} from "../../helpers";
 import { TRegistry } from "../registry.extension";
 
 export function VirtualText({ context, synapse }: TServiceParams) {

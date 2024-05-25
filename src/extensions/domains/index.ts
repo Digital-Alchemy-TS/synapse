@@ -1,6 +1,7 @@
 export * from "./alarm-control-panel.extension";
 export * from "./binary-sensor.extension";
 export * from "./button.extension";
+export * from "./climate.extension";
 export * from "./cover.extension";
 export * from "./date.extension";
 export * from "./datetime.extension";

@@ -1,11 +1,12 @@
 import { is, TBlackHole, TServiceParams } from "@digital-alchemy/core";
 
-import { TRegistry, VIRTUAL_ENTITY_BASE_KEYS } from "../..";
 import {
   NotifyConfiguration,
   SynapseNotifyParams,
   SynapseVirtualNotify,
-} from "../../helpers/domains/notify";
+  TRegistry,
+  VIRTUAL_ENTITY_BASE_KEYS,
+} from "../..";
 
 export function VirtualNotify({ context, synapse }: TServiceParams) {
   const registry = synapse.registry.create<SynapseVirtualNotify>({

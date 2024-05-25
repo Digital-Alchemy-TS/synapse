@@ -1,11 +1,12 @@
 import { is, TServiceParams } from "@digital-alchemy/core";
 
-import { RemovableCallback, VIRTUAL_ENTITY_BASE_KEYS } from "../../helpers";
 import {
   NumberConfiguration,
+  RemovableCallback,
   SynapseNumberParams,
   SynapseVirtualNumber,
-} from "../../helpers/domains/number";
+  VIRTUAL_ENTITY_BASE_KEYS,
+} from "../../helpers";
 import { TRegistry } from "../registry.extension";
 
 export function VirtualNumber({ context, synapse }: TServiceParams) {

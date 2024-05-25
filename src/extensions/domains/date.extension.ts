@@ -1,11 +1,12 @@
 import { is, TServiceParams } from "@digital-alchemy/core";
 
-import { RemovableCallback, VIRTUAL_ENTITY_BASE_KEYS } from "../../helpers";
 import {
   DateConfiguration,
+  RemovableCallback,
   SynapseDateParams,
   SynapseVirtualDate,
-} from "../../helpers/domains/date";
+  VIRTUAL_ENTITY_BASE_KEYS,
+} from "../../helpers";
 import { TRegistry } from "../registry.extension";
 
 export function VirtualDate({ context, synapse }: TServiceParams) {

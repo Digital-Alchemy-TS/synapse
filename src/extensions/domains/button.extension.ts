@@ -5,7 +5,7 @@ import {
   ButtonConfiguration,
   SynapseButtonParams,
   SynapseVirtualButton,
-} from "../../helpers/domains";
+} from "../..";
 
 export function VirtualButton({ context, synapse }: TServiceParams) {
   const registry = synapse.registry.create<SynapseVirtualButton>({

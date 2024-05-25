@@ -1,11 +1,12 @@
 import { is, TServiceParams } from "@digital-alchemy/core";
 
-import { RemovableCallback, VIRTUAL_ENTITY_BASE_KEYS } from "../../helpers";
 import {
   CoverConfiguration,
+  RemovableCallback,
   SynapseCoverParams,
   SynapseVirtualCover,
-} from "../../helpers/domains/cover";
+  VIRTUAL_ENTITY_BASE_KEYS,
+} from "../../helpers";
 import { TRegistry } from "../registry.extension";
 
 export function VirtualCover({ context, synapse }: TServiceParams) {
