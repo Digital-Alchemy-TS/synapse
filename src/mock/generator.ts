@@ -61,11 +61,16 @@ export function EntityGenerator({
     logger.info("scene activated callback");
   });
 
-  const switchEntity = synapse.switch({
+  synapse.switch({
     context,
     device_class: "outlet",
     name: "Example switch",
     suggested_object_id: "example_the_special_switch",
+  });
+
+  const acp = synapse.alarm_control_panel({
+    context,
+    name: "Example alarm panel",
   });
 
   // ["high", "medium", "low"].forEach(i =>

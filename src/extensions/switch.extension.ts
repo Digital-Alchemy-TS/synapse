@@ -210,6 +210,7 @@ export function VirtualSwitch({
         if (id !== unique_id) {
           return;
         }
+        logger.trace({ context, unique_id }, "toggle");
         loader.setState((entityOut.state === "on" ? "off" : "on") as STATE);
       },
     });
@@ -218,6 +219,7 @@ export function VirtualSwitch({
       context,
       event: synapse.registry.eventName("turn_on"),
       exec({ data: { unique_id: id } }: HassSwitchEvent) {
+        logger.trace({ context, unique_id }, "turn_on");
         if (id !== unique_id) {
           return;
         }
@@ -232,6 +234,7 @@ export function VirtualSwitch({
         if (id !== unique_id) {
           return;
         }
+        logger.trace({ context, unique_id }, "turn_off");
         loader.setState("off" as STATE);
       },
     });

@@ -1,3 +1,4 @@
+export * from "./alarm-control-panel.extension";
 export * from "./binary-sensor.extension";
 export * from "./bonjour.extension";
 export * from "./button.extension";

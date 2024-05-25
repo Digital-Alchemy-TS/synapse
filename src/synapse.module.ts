@@ -11,6 +11,7 @@ import {
   Registry,
   Sensor,
   ValueStorage,
+  VirtualAlarmControlPanel,
   VirtualBinarySensor,
   VirtualButton,
   VirtualScene,
@@ -76,9 +77,8 @@ export const LIB_SYNAPSE = CreateLibrary({
   name: "synapse",
   priorityInit: ["registry", "storage"],
   services: {
-    /**
-     * create `binary_sensor` domain entities
-     */
+    alarm_control_panel: VirtualAlarmControlPanel,
+
     binary_sensor: VirtualBinarySensor,
 
     /**
@@ -86,11 +86,6 @@ export const LIB_SYNAPSE = CreateLibrary({
      */
     bonjour: BonjourExtension,
 
-    /**
-     * create `button` domain entities
-     *
-     * run callback on activation
-     */
     button: VirtualButton,
 
     /**
