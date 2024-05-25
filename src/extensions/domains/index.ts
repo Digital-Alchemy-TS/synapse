@@ -4,6 +4,7 @@ export * from "./button.extension";
 export * from "./cover.extension";
 export * from "./date.extension";
 export * from "./datetime.extension";
+export * from "./fan.extension";
 export * from "./lock.extension";
 export * from "./notify.extension";
 export * from "./number.extension";
