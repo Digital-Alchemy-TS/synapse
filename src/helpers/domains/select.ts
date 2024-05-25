@@ -5,7 +5,6 @@ import {
   RemovableCallback,
 } from "../base-domain.helper";
 import { EntityConfigCommon } from "../common-config.helper";
-import { SensorDeviceClasses } from "./sensor";
 
 export type SynapseSelectParams = BaseEntityParams<string> &
   SelectConfiguration & {
@@ -16,15 +15,12 @@ export type SynapseSelectParams = BaseEntityParams<string> &
     managed?: boolean;
   };
 
-// supposed to be the same thing
-export type SelectDeviceClasses = SensorDeviceClasses;
 type SetValueData = { value: string };
 
-export type SelectConfiguration = EntityConfigCommon &
-  SelectDeviceClasses & {
-    current_option?: string;
-    options?: string[];
-  };
+export type SelectConfiguration = EntityConfigCommon & {
+  current_option?: string;
+  options?: string[];
+};
 
 export type SynapseVirtualSelect = BaseVirtualEntity<
   string,

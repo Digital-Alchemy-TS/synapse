@@ -18,6 +18,7 @@ import {
   VirtualSelect,
   VirtualSensor,
   VirtualSwitch,
+  VirtualText,
 } from "./extensions";
 import { HassDeviceMetadata } from "./helpers";
 
@@ -122,6 +123,7 @@ export const LIB_SYNAPSE = CreateLibrary({
     storage: ValueStorage,
 
     switch: VirtualSwitch,
+    text: VirtualText,
   },
 });
 

@@ -7,3 +7,4 @@ export * from "./scene.extension";
 export * from "./select.extension";
 export * from "./sensor.extension";
 export * from "./switch.extension";
+export * from "./text.extension";
