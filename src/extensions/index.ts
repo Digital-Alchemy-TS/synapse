@@ -1,4 +1,3 @@
-export * from "./alarm-control-panel.extension";
 export * from "./bonjour.extension";
 export * from "./configure.extension";
 export * from "./controller.extension";

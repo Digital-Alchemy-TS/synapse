@@ -15,6 +15,7 @@ import {
   VirtualLock,
   VirtualNumber,
   VirtualScene,
+  VirtualSelect,
   VirtualSensor,
   VirtualSwitch,
 } from "./extensions";
@@ -79,7 +80,6 @@ export const LIB_SYNAPSE = CreateLibrary({
   priorityInit: ["registry", "storage"],
   services: {
     alarm_control_panel: VirtualAlarmControlPanel,
-
     binary_sensor: VirtualBinarySensor,
 
     /**
@@ -90,7 +90,7 @@ export const LIB_SYNAPSE = CreateLibrary({
     button: VirtualButton,
 
     /**
-     *
+     * internal
      */
     configure: Configure,
 
@@ -100,15 +100,11 @@ export const LIB_SYNAPSE = CreateLibrary({
     controller: Controller,
 
     /**
-     *
+     * Internal tools to create the device that registers with entities
      */
     device: DeviceExtension,
 
     lock: VirtualLock,
-
-    /**
-     * create `number` domain entities
-     */
     number: VirtualNumber,
 
     /**
@@ -116,16 +112,8 @@ export const LIB_SYNAPSE = CreateLibrary({
      */
     registry: Registry,
 
-    /**
-     * create `scene` domain entities
-     *
-     * run callback on activation
-     */
     scene: VirtualScene,
-
-    /**
-     * create `sensor` domain entities
-     */
+    select: VirtualSelect,
     sensor: VirtualSensor,
 
     /**
@@ -133,9 +121,6 @@ export const LIB_SYNAPSE = CreateLibrary({
      */
     storage: ValueStorage,
 
-    /**
-     * create `switch` domain entities
-     */
     switch: VirtualSwitch,
   },
 });

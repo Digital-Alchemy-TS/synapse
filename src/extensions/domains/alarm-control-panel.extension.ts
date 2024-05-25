@@ -8,7 +8,7 @@ import {
   TAlarmControlPanel,
   TRegistry,
   TVirtualAlarmControlPanel,
-} from "..";
+} from "../..";
 
 export function VirtualAlarmControlPanel({
   context,
