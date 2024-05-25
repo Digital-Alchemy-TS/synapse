@@ -12,6 +12,8 @@ import {
   VirtualAlarmControlPanel,
   VirtualBinarySensor,
   VirtualButton,
+  VirtualDate,
+  VirtualDateTime,
   VirtualLock,
   VirtualNumber,
   VirtualScene,
@@ -19,6 +21,7 @@ import {
   VirtualSensor,
   VirtualSwitch,
   VirtualText,
+  VirtualTime,
 } from "./extensions";
 import { HassDeviceMetadata } from "./helpers";
 
@@ -100,6 +103,9 @@ export const LIB_SYNAPSE = CreateLibrary({
      */
     controller: Controller,
 
+    date: VirtualDate,
+    datetime: VirtualDateTime,
+
     /**
      * Internal tools to create the device that registers with entities
      */
@@ -124,6 +130,7 @@ export const LIB_SYNAPSE = CreateLibrary({
 
     switch: VirtualSwitch,
     text: VirtualText,
+    time: VirtualTime,
   },
 });
 

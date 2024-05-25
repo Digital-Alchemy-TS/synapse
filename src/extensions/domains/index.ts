@@ -1,6 +1,8 @@
 export * from "./alarm-control-panel.extension";
 export * from "./binary-sensor.extension";
 export * from "./button.extension";
+export * from "./date.extension";
+export * from "./datetime.extension";
 export * from "./lock.extension";
 export * from "./number.extension";
 export * from "./scene.extension";
@@ -8,3 +10,4 @@ export * from "./select.extension";
 export * from "./sensor.extension";
 export * from "./switch.extension";
 export * from "./text.extension";
+export * from "./time.extension";
