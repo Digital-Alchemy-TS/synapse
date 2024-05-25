@@ -9,12 +9,12 @@ import {
   DeviceExtension,
   NumberDomain,
   Registry,
-  Sensor,
   ValueStorage,
   VirtualAlarmControlPanel,
   VirtualBinarySensor,
   VirtualButton,
   VirtualScene,
+  VirtualSensor,
   VirtualSwitch,
 } from "./extensions";
 import { HassDeviceMetadata } from "./helpers";
@@ -123,7 +123,7 @@ export const LIB_SYNAPSE = CreateLibrary({
     /**
      * create `sensor` domain entities
      */
-    sensor: Sensor,
+    sensor: VirtualSensor,
 
     /**
      * Logic for sour

@@ -1,61 +1,18 @@
-import { TBlackHole, TContext, TServiceParams } from "@digital-alchemy/core";
-import { ENTITY_STATE, PICK_ENTITY } from "@digital-alchemy/hass";
+import { TBlackHole, TServiceParams } from "@digital-alchemy/core";
+import { PICK_ENTITY } from "@digital-alchemy/hass";
 
 import {
-  BASE_CONFIG_KEYS,
-  EntityConfigCommon,
+  ALARM_CONTROL_PANEL_CONFIGURATION_KEYS,
+  AlarmControlPanelConfiguration,
+  AlarmControlPanelValue,
+  HassAlarmControlPanelEvent,
+  RemoveReturn,
+  TAlarmControlPanel,
   TRegistry,
-  TSynapseId,
+  UpdateCallback,
 } from "..";
 
-type TAlarmControlPanel<
-  STATE extends AlarmControlPanelValue,
-  ATTRIBUTES extends object = object,
-> = {
-  context: TContext;
-  defaultState?: STATE;
-  defaultAttributes?: ATTRIBUTES;
-  name: string;
-} & AlarmControlPanelConfiguration;
-
-type AlarmControlPanelConfiguration = EntityConfigCommon & {
-  code_arm_required?: boolean;
-  code_format?: "text" | "number";
-  supported_features?: number;
-  changed_by?: string;
-};
-
-type AlarmControlPanelValue =
-  | "disarmed"
-  | "armed_home"
-  | "armed_away"
-  | "armed_night"
-  | "armed_vacation"
-  | "armed_custom_bypass"
-  | "pending"
-  | "arming"
-  | "disarming"
-  | "triggered";
-
-const CONFIGURATION_KEYS = [
-  ...BASE_CONFIG_KEYS,
-  "device_class",
-] as (keyof AlarmControlPanelConfiguration)[];
-
-type UpdateCallback<ENTITY_ID extends PICK_ENTITY> = (
-  callback: (
-    new_state: NonNullable<ENTITY_STATE<ENTITY_ID>>,
-    old_state: NonNullable<ENTITY_STATE<ENTITY_ID>>,
-    remove: () => TBlackHole,
-  ) => TBlackHole,
-) => RemoveReturn;
-type HassAlarmControlPanelEvent = {
-  data: { unique_id: TSynapseId; code: string };
-};
-
-type RemoveReturn = { remove: () => void };
-
-export type VirtualAlarmControlPanel<
+export type TVirtualAlarmControlPanel<
   STATE extends AlarmControlPanelValue = AlarmControlPanelValue,
   ATTRIBUTES extends object = object,
   CONFIGURATION extends
@@ -122,7 +79,7 @@ export function VirtualAlarmControlPanel({
   event,
   logger,
 }: TServiceParams) {
-  const registry = synapse.registry.create<VirtualAlarmControlPanel>({
+  const registry = synapse.registry.create<TVirtualAlarmControlPanel>({
     context,
     details: entity => ({
       attributes: entity._rawAttributes,
@@ -149,10 +106,10 @@ export function VirtualAlarmControlPanel({
         return { remove };
       };
     const entityOut = new Proxy(
-      {} as VirtualAlarmControlPanel<STATE, ATTRIBUTES>,
+      {} as TVirtualAlarmControlPanel<STATE, ATTRIBUTES>,
       {
         // #MARK: get
-        get(_, property: keyof VirtualAlarmControlPanel<STATE, ATTRIBUTES>) {
+        get(_, property: keyof TVirtualAlarmControlPanel<STATE, ATTRIBUTES>) {
           // * state
           if (property === "state") {
             return loader.state;
@@ -317,7 +274,7 @@ export function VirtualAlarmControlPanel({
       value: {
         attributes: (entity.defaultAttributes ?? {}) as ATTRIBUTES,
         configuration: Object.fromEntries(
-          CONFIGURATION_KEYS.map(key => [key, entity[key]]),
+          ALARM_CONTROL_PANEL_CONFIGURATION_KEYS.map(key => [key, entity[key]]),
         ) as unknown as CONFIGURATION,
         state: (entity.defaultState ?? "off") as STATE,
       },

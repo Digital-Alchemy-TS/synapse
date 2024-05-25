@@ -1,45 +1,49 @@
-import { is, TBlackHole, TServiceParams } from "@digital-alchemy/core";
+import { TServiceParams } from "@digital-alchemy/core";
 
-import { TRegistry } from "..";
 import {
-  BUTTON_CONFIGURATION_KEYS,
-  ButtonConfiguration,
-  HassButtonUpdateEvent,
-  TButton,
-  TVirtualButton,
-} from "../helpers/domains";
+  HassLockEvent,
+  LOCK_CONFIGURATION_KEYS,
+  LockConfiguration,
+  LockValue,
+  TLock,
+  TRegistry,
+  TVirtualLock,
+} from "..";
 
-export function VirtualButton({
-  logger,
-  event,
-  hass,
+export function VirtualLock({
   context,
   synapse,
-  internal,
+  hass,
+  event,
+  logger,
 }: TServiceParams) {
-  const registry = synapse.registry.create<TVirtualButton>({
+  const registry = synapse.registry.create<TVirtualLock>({
     context,
     details: entity => ({
       attributes: entity._rawAttributes,
       configuration: entity._rawConfiguration,
-      state: undefined,
+      state: entity.state,
     }),
-    // @ts-expect-error it's fine
-    domain: "button",
+    // @ts-expect-error its fine
+    domain: "lock",
   });
 
   // #MARK: create
   function create<
-    STATE extends void = void,
+    STATE extends LockValue = LockValue,
     ATTRIBUTES extends object = object,
-    CONFIGURATION extends ButtonConfiguration = ButtonConfiguration,
-  >(entity: TButton<ATTRIBUTES>) {
-    const entityOut = new Proxy({} as TVirtualButton<STATE, ATTRIBUTES>, {
+    CONFIGURATION extends LockConfiguration = LockConfiguration,
+  >(entity: TLock<STATE, ATTRIBUTES>) {
+    const entityOut = new Proxy({} as TVirtualLock<STATE, ATTRIBUTES>, {
       // #MARK: get
-      get(_, property: keyof TVirtualButton<STATE, ATTRIBUTES>) {
+      get(_, property: keyof TVirtualLock<STATE, ATTRIBUTES>) {
         // * state
         if (property === "state") {
-          return undefined;
+          return loader.state;
+        }
+        // * is_on
+        if (property === "is_locked") {
+          return loader.state === "locked";
         }
         // * name
         if (property === "name") {
@@ -52,16 +56,6 @@ export function VirtualButton({
         // * onUpdate
         if (property === "onUpdate") {
           return loader.onUpdate();
-        }
-        // * onPress
-        if (property === "onPress") {
-          return function (callback: (remove: () => void) => TBlackHole) {
-            const remove = () => event.removeListener(EVENT_ID, exec);
-            const exec = async () =>
-              await internal.safeExec(async () => callback(remove));
-            event.on(EVENT_ID, exec);
-            return { remove };
-          };
         }
         // * _rawConfiguration
         if (property === "_rawConfiguration") {
@@ -125,12 +119,22 @@ export function VirtualButton({
           "_rawAttributes",
           "_rawConfiguration",
           "name",
+          "is_locked",
           "onUpdate",
-          "onPress",
+          "state",
         ];
       },
       // #MARK: set
       set(_, property: string, value: unknown) {
+        if (property === "state") {
+          loader.setState(value as STATE);
+          return true;
+        }
+        if (property === "is_on") {
+          const new_state = ((value as boolean) ? "on" : "off") as STATE;
+          loader.setState(new_state);
+          return true;
+        }
         if (property === "attributes") {
           loader.setAttributes(value as ATTRIBUTES);
           return true;
@@ -139,9 +143,22 @@ export function VirtualButton({
       },
     });
 
-    // Validate a good id was passed, and it's the only place in code that's using it
     const unique_id = registry.add(entityOut, entity);
-    const EVENT_ID = `synapse/press/${unique_id}`;
+    const EVENT = (event: string) => `lock/${unique_id}/${event}`;
+
+    ["lock", "unlock", "open"].forEach(name => {
+      hass.socket.onEvent({
+        context,
+        event: synapse.registry.eventName(name),
+        exec({ data: { unique_id: id } }: HassLockEvent) {
+          if (id !== unique_id) {
+            return;
+          }
+          logger.trace({ context, unique_id }, name);
+          event.emit(EVENT(name));
+        },
+      });
+    });
 
     const loader = synapse.storage.wrapper<STATE, ATTRIBUTES, CONFIGURATION>({
       name: entity.name,
@@ -150,32 +167,11 @@ export function VirtualButton({
       value: {
         attributes: (entity.defaultAttributes ?? {}) as ATTRIBUTES,
         configuration: Object.fromEntries(
-          BUTTON_CONFIGURATION_KEYS.map(key => [key, entity[key]]),
+          LOCK_CONFIGURATION_KEYS.map(key => [key, entity[key]]),
         ) as unknown as CONFIGURATION,
-        state: undefined,
+        state: (entity.defaultState ?? "off") as STATE,
       },
     });
-
-    logger.error({ event }, `listening for event`);
-
-    hass.socket.onEvent({
-      context,
-      event: synapse.registry.eventName("press"),
-      async exec({ data: { unique_id: id } }: HassButtonUpdateEvent) {
-        if (id !== unique_id) {
-          return;
-        }
-        logger.trace({ context, name: entity.name }, `press`);
-        event.emit(EVENT_ID);
-      },
-    });
-    if (is.function(entity.press)) {
-      const remove = () => event.removeListener(EVENT_ID, callback);
-      const callback = async () =>
-        await internal.safeExec(async () => entity.press(remove));
-      event.on(EVENT_ID, callback);
-    }
-
     return entityOut;
   }
 

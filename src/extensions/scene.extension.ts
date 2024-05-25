@@ -1,79 +1,13 @@
-import {
-  is,
-  TBlackHole,
-  TContext,
-  TServiceParams,
-} from "@digital-alchemy/core";
-import { ENTITY_STATE, PICK_ENTITY } from "@digital-alchemy/hass";
+import { is, TBlackHole, TServiceParams } from "@digital-alchemy/core";
 
 import {
-  BASE_CONFIG_KEYS,
-  EntityConfigCommon,
+  HassSceneUpdateEvent,
+  SCENE_CONFIGURATION_KEYS,
+  SceneConfiguration,
   TRegistry,
-  TSynapseId,
+  TScene,
+  TVirtualScene,
 } from "..";
-
-type TScene<ATTRIBUTES extends object = object> = {
-  context: TContext;
-  // defaultState?: STATE;
-  defaultAttributes?: ATTRIBUTES;
-  name: string;
-} & SceneConfiguration;
-
-type SceneConfiguration = EntityConfigCommon & {
-  activate: (remove: () => void) => TBlackHole;
-};
-
-const CONFIGURATION_KEYS = [
-  ...BASE_CONFIG_KEYS,
-  // activate should not be included
-] as (keyof SceneConfiguration)[];
-
-type UpdateCallback<ENTITY_ID extends PICK_ENTITY> = (
-  callback: (
-    new_state: NonNullable<ENTITY_STATE<ENTITY_ID>>,
-    old_state: NonNullable<ENTITY_STATE<ENTITY_ID>>,
-    remove: () => TBlackHole,
-  ) => TBlackHole,
-) => {
-  remove: () => void;
-};
-
-export type TVirtualScene<
-  STATE extends void = void,
-  ATTRIBUTES extends object = object,
-  CONFIGURATION extends SceneConfiguration = SceneConfiguration,
-  ENTITY_ID extends PICK_ENTITY<"sensor"> = PICK_ENTITY<"sensor">,
-> = {
-  /**
-   * Do not define attributes that change frequently.
-   * Create new sensors instead
-   */
-  attributes: ATTRIBUTES;
-  configuration: CONFIGURATION;
-  _rawAttributes: ATTRIBUTES;
-  onActivate: (callback: (remove: () => void) => TBlackHole) => {
-    remove: () => void;
-  };
-  _rawConfiguration: ATTRIBUTES;
-  name: string;
-  /**
-   * look up the entity id, and
-   */
-  onUpdate: UpdateCallback<ENTITY_ID>;
-  /**
-   * NOT USED WITH SCENES
-   *
-   * Virtual scenes are stateless
-   */
-  state: STATE;
-  /**
-   * Used to uniquely identify this entity in home assistant
-   */
-  unique_id: string;
-};
-
-type HassSceneUpdateEvent = { data: { unique_id: TSynapseId } };
 
 export function VirtualScene({
   logger,
@@ -214,7 +148,7 @@ export function VirtualScene({
       value: {
         attributes: (entity.defaultAttributes ?? {}) as ATTRIBUTES,
         configuration: Object.fromEntries(
-          CONFIGURATION_KEYS.map(key => [key, entity[key]]),
+          SCENE_CONFIGURATION_KEYS.map(key => [key, entity[key]]),
         ) as unknown as CONFIGURATION,
         state: undefined,
       },

@@ -1,3 +1,9 @@
+import { TBlackHole, TContext } from "@digital-alchemy/core";
+import { PICK_ENTITY } from "@digital-alchemy/hass";
+
+import { BASE_CONFIG_KEYS, EntityConfigCommon } from "../common-config.helper";
+import { UpdateCallback } from "../event";
+
 type DurationSensor = {
   device_class: "duration";
   unit_of_measurement: "h" | "min" | "s" | "d";
@@ -290,3 +296,90 @@ export type SensorDeviceClasses =
   | DataSizeSensor
   | AtmosphericPressureSensor
   | DefaultSensor;
+
+export type TSensor<
+  STATE extends SensorValue,
+  ATTRIBUTES extends object = object,
+> = {
+  context: TContext;
+  defaultState?: STATE;
+  defaultAttributes?: ATTRIBUTES;
+  name: string;
+} & SensorConfiguration;
+
+export type SensorConfiguration = EntityConfigCommon &
+  SensorDeviceClasses & {
+    /**
+     * The number of decimals which should be used in the sensor's state when it's displayed.
+     */
+    suggested_display_precision?: number;
+    /**
+     * The time when an accumulating sensor such as an electricity usage meter, gas meter, water meter etc. was initialized.
+     *
+     * If the time of initialization is unknown, set it to `None`.
+     *
+     * Note that the `datetime.datetime` returned by the `last_reset` property will be converted to an ISO 8601-formatted string when the entity's state attributes are updated. When changing `last_reset`, the `state` must be a valid number.
+     */
+    last_reset?: Date;
+  } & (
+    | {
+        /**
+         * In case this sensor provides a textual state, this property can be used to provide a list of possible states.
+         * Requires the enum device class to be set.
+         * Cannot be combined with `state_class` or `native_unit_of_measurement`.
+         */
+        options?: string[];
+      }
+    | {
+        /**
+         * Type of state.
+         * If not `None`, the sensor is assumed to be numerical and will be displayed as a line-chart in the frontend instead of as discrete values.
+         */
+        state_class?: SensorStateClass;
+      }
+  );
+
+export type SensorValue = string | number;
+
+export const SENSOR_CONFIGURATION_KEYS = [
+  ...BASE_CONFIG_KEYS,
+  ...SENSOR_DEVICE_CLASS_CONFIG_KEYS,
+  "last_reset",
+  "options",
+  "state_class",
+  "suggested_display_precision",
+  "unit_of_measurement",
+] as (keyof SensorConfiguration)[];
+
+export type TVirtualSensor<
+  STATE extends SensorValue = SensorValue,
+  ATTRIBUTES extends object = object,
+  CONFIGURATION extends SensorConfiguration = SensorConfiguration,
+  ENTITY_ID extends PICK_ENTITY<"sensor"> = PICK_ENTITY<"sensor">,
+> = {
+  /**
+   * Do not define attributes that change frequently.
+   * Create new sensors instead
+   */
+  attributes: ATTRIBUTES;
+  configuration: CONFIGURATION;
+  _rawAttributes: ATTRIBUTES;
+  _rawConfiguration: ATTRIBUTES;
+  name: string;
+  /**
+   * look up the entity id, and
+   */
+  onUpdate: UpdateCallback<ENTITY_ID>;
+  /**
+   * the current state
+   */
+  state: STATE;
+  /**
+   * Used to uniquely identify this entity in home assistant
+   */
+  unique_id: string;
+  /**
+   * bumps the last reset time
+   */
+  reset: () => TBlackHole;
+};
