@@ -4,6 +4,7 @@ export function EntityGenerator({
   scheduler,
   synapse,
   context,
+  hass,
   logger,
 }: TServiceParams) {
   const sensor = synapse.sensor({
@@ -58,6 +59,13 @@ export function EntityGenerator({
   });
   scene.onActivate(() => {
     logger.info("scene activated callback");
+  });
+
+  const switchEntity = synapse.switch({
+    context,
+    device_class: "outlet",
+    name: "Example switch",
+    suggested_object_id: "example_the_special_switch",
   });
 
   // ["high", "medium", "low"].forEach(i =>

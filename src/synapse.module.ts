@@ -3,7 +3,6 @@ import { LIB_FASTIFY } from "@digital-alchemy/fastify-extension";
 import { LIB_HASS } from "@digital-alchemy/hass";
 
 import {
-  BinarySensor,
   BonjourExtension,
   Configure,
   Controller,
@@ -11,10 +10,11 @@ import {
   NumberDomain,
   Registry,
   Sensor,
-  Switch,
   ValueStorage,
+  VirtualBinarySensor,
   VirtualButton,
   VirtualScene,
+  VirtualSwitch,
 } from "./extensions";
 import { HassDeviceMetadata } from "./helpers";
 
@@ -79,7 +79,7 @@ export const LIB_SYNAPSE = CreateLibrary({
     /**
      * create `binary_sensor` domain entities
      */
-    binary_sensor: BinarySensor,
+    binary_sensor: VirtualBinarySensor,
 
     /**
      * Zeroconf discovery
@@ -138,7 +138,7 @@ export const LIB_SYNAPSE = CreateLibrary({
     /**
      * create `switch` domain entities
      */
-    switch: Switch,
+    switch: VirtualSwitch,
   },
 });
 

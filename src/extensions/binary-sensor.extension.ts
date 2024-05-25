@@ -68,7 +68,7 @@ export type VirtualBinarySensor<
   unique_id: string;
 };
 
-export function BinarySensor({ context, synapse }: TServiceParams) {
+export function VirtualBinarySensor({ context, synapse }: TServiceParams) {
   const registry = synapse.registry.create<VirtualBinarySensor>({
     context,
     details: entity => ({
@@ -85,7 +85,7 @@ export function BinarySensor({ context, synapse }: TServiceParams) {
     ATTRIBUTES extends object = object,
     CONFIGURATION extends BinarySensorConfiguration = BinarySensorConfiguration,
   >(entity: TBinarySensor<STATE, ATTRIBUTES>) {
-    const sensorOut = new Proxy({} as VirtualBinarySensor<STATE, ATTRIBUTES>, {
+    const entityOut = new Proxy({} as VirtualBinarySensor<STATE, ATTRIBUTES>, {
       // #MARK: get
       get(_, property: keyof VirtualBinarySensor<STATE, ATTRIBUTES>) {
         // * state
@@ -195,7 +195,7 @@ export function BinarySensor({ context, synapse }: TServiceParams) {
     });
 
     // Validate a good id was passed, and it's the only place in code that's using it
-    const unique_id = registry.add(sensorOut, entity);
+    const unique_id = registry.add(entityOut, entity);
     const defaultData = {
       ...entity,
       entity_category: "diagnostic",
@@ -213,7 +213,7 @@ export function BinarySensor({ context, synapse }: TServiceParams) {
         state: (entity.defaultState ?? "off") as STATE,
       },
     });
-    return sensorOut;
+    return entityOut;
   }
 
   return create;

@@ -99,7 +99,7 @@ export function VirtualScene({
     ATTRIBUTES extends object = object,
     CONFIGURATION extends SceneConfiguration = SceneConfiguration,
   >(entity: TScene<ATTRIBUTES>) {
-    const sensorOut = new Proxy({} as TVirtualScene<STATE, ATTRIBUTES>, {
+    const entityOut = new Proxy({} as TVirtualScene<STATE, ATTRIBUTES>, {
       // #MARK: get
       get(_, property: keyof TVirtualScene<STATE, ATTRIBUTES>) {
         // * state
@@ -204,7 +204,7 @@ export function VirtualScene({
     });
 
     // Validate a good id was passed, and it's the only place in code that's using it
-    const unique_id = registry.add(sensorOut, entity);
+    const unique_id = registry.add(entityOut, entity);
     const EVENT_ID = `synapse/activate/${unique_id}`;
 
     const loader = synapse.storage.wrapper<STATE, ATTRIBUTES, CONFIGURATION>({
@@ -238,7 +238,7 @@ export function VirtualScene({
       event.on(EVENT_ID, callback);
     }
 
-    return sensorOut;
+    return entityOut;
   }
 
   return create;

@@ -130,7 +130,7 @@ export function Sensor({ context, synapse, logger }: TServiceParams) {
     ATTRIBUTES extends object = object,
     CONFIGURATION extends SensorConfiguration = SensorConfiguration,
   >(entity: TSensor<STATE, ATTRIBUTES>) {
-    const sensorOut = new Proxy({} as VirtualSensor<STATE, ATTRIBUTES>, {
+    const entityOut = new Proxy({} as VirtualSensor<STATE, ATTRIBUTES>, {
       // #MARK: get
       get(_, property: keyof VirtualSensor<STATE, ATTRIBUTES>) {
         // * state
@@ -243,7 +243,7 @@ export function Sensor({ context, synapse, logger }: TServiceParams) {
     });
 
     // Validate a good id was passed, and it's the only place in code that's using it
-    const unique_id = registry.add(sensorOut, entity);
+    const unique_id = registry.add(entityOut, entity);
 
     const loader = synapse.storage.wrapper<STATE, ATTRIBUTES, CONFIGURATION>({
       name: entity.name,
@@ -257,7 +257,7 @@ export function Sensor({ context, synapse, logger }: TServiceParams) {
         state: (entity.defaultState ?? "") as STATE,
       },
     });
-    return sensorOut;
+    return entityOut;
   }
 
   return create;

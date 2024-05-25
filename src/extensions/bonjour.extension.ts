@@ -25,9 +25,9 @@ export function BonjourExtension({
     }
   });
 
-  lifecycle.onReady(() => {
-    logger.info("WAT");
-  });
+  // lifecycle.onReady(() => {
+  //   logger.info("WAT");
+  // });
 
   lifecycle.onPostConfig(() => {
     if (!config.synapse.PUBLISH_BONJOUR) {

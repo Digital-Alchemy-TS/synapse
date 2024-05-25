@@ -104,7 +104,7 @@ export function VirtualButton({
     ATTRIBUTES extends object = object,
     CONFIGURATION extends ButtonConfiguration = ButtonConfiguration,
   >(entity: TButton<ATTRIBUTES>) {
-    const sensorOut = new Proxy({} as TVirtualButton<STATE, ATTRIBUTES>, {
+    const entityOut = new Proxy({} as TVirtualButton<STATE, ATTRIBUTES>, {
       // #MARK: get
       get(_, property: keyof TVirtualButton<STATE, ATTRIBUTES>) {
         // * state
@@ -210,7 +210,7 @@ export function VirtualButton({
     });
 
     // Validate a good id was passed, and it's the only place in code that's using it
-    const unique_id = registry.add(sensorOut, entity);
+    const unique_id = registry.add(entityOut, entity);
     const EVENT_ID = `synapse/press/${unique_id}`;
 
     const loader = synapse.storage.wrapper<STATE, ATTRIBUTES, CONFIGURATION>({
@@ -246,7 +246,7 @@ export function VirtualButton({
       event.on(EVENT_ID, callback);
     }
 
-    return sensorOut;
+    return entityOut;
   }
 
   return create;

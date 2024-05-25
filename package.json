@@ -27,7 +27,7 @@
   "dependencies": {
     "@digital-alchemy/core": "^0.3.16",
     "@digital-alchemy/fastify-extension": "^0.3.3",
-    "@digital-alchemy/hass": "^0.3.28",
+    "@digital-alchemy/hass": "^0.3.29",
     "bonjour": "^3.5.0",
     "dayjs": "^1.11.11"
   },
