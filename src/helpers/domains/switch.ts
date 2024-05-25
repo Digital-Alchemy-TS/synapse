@@ -7,13 +7,14 @@ import {
 } from "../base-domain.helper";
 import { EntityConfigCommon } from "../common-config.helper";
 
-export type SynapseSwitchParams = BaseEntityParams<SwitchValue> & {
-  /**
-   * By default switches will manage their own state in response to events.
-   * Set to to false to disable auto management of state.
-   */
-  managed?: boolean;
-};
+export type SynapseSwitchParams = BaseEntityParams<SwitchValue> &
+  SwitchConfiguration & {
+    /**
+     * By default switches will manage their own state in response to events.
+     * Set to to false to disable auto management of state.
+     */
+    managed?: boolean;
+  };
 
 export type SwitchConfiguration = EntityConfigCommon & {
   device_class?: `${SwitchDeviceClass}`;

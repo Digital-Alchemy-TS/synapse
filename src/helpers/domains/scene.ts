@@ -9,7 +9,7 @@ import { EntityConfigCommon } from "../common-config.helper";
 export type SynapseSceneParams = BaseEntityParams<never> & SceneConfiguration;
 
 export type SceneConfiguration = EntityConfigCommon & {
-  onActivate: RemovableCallback;
+  activate: RemovableCallback;
 };
 
 export type SynapseVirtualScene = BaseVirtualEntity<

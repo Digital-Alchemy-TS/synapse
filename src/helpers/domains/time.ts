@@ -9,7 +9,7 @@ import { SensorDeviceClasses } from "./sensor";
 
 export type SynapseTimeParams = BaseEntityParams<string> &
   TimeConfiguration & {
-    set_value: RemovableCallback<SetValueData>;
+    set_value?: RemovableCallback<SetValueData>;
     /**
      * default: true
      */

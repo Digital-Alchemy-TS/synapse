@@ -12,6 +12,7 @@ import {
   VirtualAlarmControlPanel,
   VirtualBinarySensor,
   VirtualButton,
+  VirtualCover,
   VirtualDate,
   VirtualDateTime,
   VirtualLock,
@@ -25,6 +26,24 @@ import {
   VirtualTime,
 } from "./extensions";
 import { HassDeviceMetadata } from "./helpers";
+
+const DOMAINS = {
+  alarm_control_panel: VirtualAlarmControlPanel,
+  binary_sensor: VirtualBinarySensor,
+  button: VirtualButton,
+  cover: VirtualCover,
+  date: VirtualDate,
+  datetime: VirtualDateTime,
+  lock: VirtualLock,
+  notify: VirtualNotify,
+  number: VirtualNumber,
+  scene: VirtualScene,
+  select: VirtualSelect,
+  sensor: VirtualSensor,
+  switch: VirtualSwitch,
+  text: VirtualText,
+  time: VirtualTime,
+};
 
 export const LIB_SYNAPSE = CreateLibrary({
   configuration: {
@@ -84,15 +103,10 @@ export const LIB_SYNAPSE = CreateLibrary({
   name: "synapse",
   priorityInit: ["registry", "storage"],
   services: {
-    alarm_control_panel: VirtualAlarmControlPanel,
-    binary_sensor: VirtualBinarySensor,
-
     /**
      * Zeroconf discovery
      */
     bonjour: BonjourExtension,
-
-    button: VirtualButton,
 
     /**
      * internal
@@ -104,35 +118,21 @@ export const LIB_SYNAPSE = CreateLibrary({
      */
     controller: Controller,
 
-    date: VirtualDate,
-    datetime: VirtualDateTime,
-
     /**
      * Internal tools to create the device that registers with entities
      */
     device: DeviceExtension,
-
-    lock: VirtualLock,
-    notify: VirtualNotify,
-    number: VirtualNumber,
 
     /**
      * internal tools for managing entities
      */
     registry: Registry,
 
-    scene: VirtualScene,
-    select: VirtualSelect,
-    sensor: VirtualSensor,
-
     /**
      * Logic for sour
      */
     storage: ValueStorage,
-
-    switch: VirtualSwitch,
-    text: VirtualText,
-    time: VirtualTime,
+    ...DOMAINS,
   },
 });
 

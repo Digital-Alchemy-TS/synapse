@@ -10,13 +10,13 @@ import { SensorDeviceClasses } from "./sensor";
 export type SynapseAlarmControlPanelParams =
   BaseEntityParams<AlarmControlPanelStates> &
     AlarmControlPanelConfiguration & {
-      arm_custom_bypass: RemovableCallback<SetValueData>;
-      trigger: RemovableCallback<SetValueData>;
-      arm_vacation: RemovableCallback<SetValueData>;
-      arm_night: RemovableCallback<SetValueData>;
-      arm_away: RemovableCallback<SetValueData>;
-      arm_home: RemovableCallback<SetValueData>;
-      disarm: RemovableCallback<SetValueData>;
+      arm_custom_bypass?: RemovableCallback<SetValueData>;
+      trigger?: RemovableCallback<SetValueData>;
+      arm_vacation?: RemovableCallback<SetValueData>;
+      arm_night?: RemovableCallback<SetValueData>;
+      arm_away?: RemovableCallback<SetValueData>;
+      arm_home?: RemovableCallback<SetValueData>;
+      disarm?: RemovableCallback<SetValueData>;
     };
 
 // supposed to be the same thing

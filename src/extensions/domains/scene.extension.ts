@@ -99,8 +99,8 @@ export function VirtualScene({ context, synapse }: TServiceParams) {
     });
 
     // - Attach static listener
-    if (is.function(entity.onActivate)) {
-      proxy.onActivate(entity.onActivate);
+    if (is.function(entity.activate)) {
+      proxy.onActivate(entity.activate);
     }
 
     // - Done
