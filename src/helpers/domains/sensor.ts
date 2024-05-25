@@ -1,6 +1,7 @@
 import { TBlackHole, TContext } from "@digital-alchemy/core";
 import { PICK_ENTITY } from "@digital-alchemy/hass";
 
+import { BaseVirtualEntity } from "../base-domain.helper";
 import { BASE_CONFIG_KEYS, EntityConfigCommon } from "../common-config.helper";
 import { UpdateCallback } from "../event";
 
@@ -297,7 +298,7 @@ export type SensorDeviceClasses =
   | AtmosphericPressureSensor
   | DefaultSensor;
 
-export type TSensor<
+export type SynapseSensorParams<
   STATE extends SensorValue,
   ATTRIBUTES extends object = object,
 > = {
@@ -341,43 +342,11 @@ export type SensorConfiguration = EntityConfigCommon &
 
 export type SensorValue = string | number;
 
-export const SENSOR_CONFIGURATION_KEYS = [
-  ...BASE_CONFIG_KEYS,
-  ...SENSOR_DEVICE_CLASS_CONFIG_KEYS,
-  "last_reset",
-  "options",
-  "state_class",
-  "suggested_display_precision",
-  "unit_of_measurement",
-] as (keyof SensorConfiguration)[];
-
-export type TVirtualSensor<
-  STATE extends SensorValue = SensorValue,
-  ATTRIBUTES extends object = object,
-  CONFIGURATION extends SensorConfiguration = SensorConfiguration,
-  ENTITY_ID extends PICK_ENTITY<"sensor"> = PICK_ENTITY<"sensor">,
-> = {
-  /**
-   * Do not define attributes that change frequently.
-   * Create new sensors instead
-   */
-  attributes: ATTRIBUTES;
-  configuration: CONFIGURATION;
-  _rawAttributes: ATTRIBUTES;
-  _rawConfiguration: ATTRIBUTES;
-  name: string;
-  /**
-   * look up the entity id, and
-   */
-  onUpdate: UpdateCallback<ENTITY_ID>;
-  /**
-   * the current state
-   */
-  state: STATE;
-  /**
-   * Used to uniquely identify this entity in home assistant
-   */
-  unique_id: string;
+export type SynapseVirtualSensor = BaseVirtualEntity<
+  SensorValue,
+  object,
+  SensorConfiguration
+> & {
   /**
    * bumps the last reset time
    */

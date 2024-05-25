@@ -4,17 +4,7 @@ import { ENTITY_STATE, PICK_ENTITY } from "@digital-alchemy/hass";
 import { BASE_CONFIG_KEYS, BaseEntityParams, TSynapseId } from "..";
 import { TRegistry } from ".";
 
-type StorageData<STATE, ATTRIBUTES, CONFIGURATION> = {
-  attributes?: ATTRIBUTES;
-  configuration?: CONFIGURATION;
-  state?: STATE;
-  last_reported?: string;
-};
-type LoaderOptions<
-  STATE,
-  ATTRIBUTES extends object,
-  CONFIGURATION extends object,
-> = {
+type LoaderOptions<CONFIGURATION extends object> = {
   registry: TRegistry<unknown>;
   unique_id: TSynapseId;
   name: string;
@@ -40,7 +30,7 @@ export function ValueStorage({ logger, lifecycle, hass }: TServiceParams) {
     name,
     load_keys,
     config_defaults,
-  }: LoaderOptions<STATE, ATTRIBUTES, CONFIGURATION>) {
+  }: LoaderOptions<CONFIGURATION>) {
     const domain = registry.domain;
 
     // #MARK: value load

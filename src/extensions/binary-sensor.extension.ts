@@ -12,11 +12,6 @@ import {
 export function VirtualBinarySensor({ context, synapse }: TServiceParams) {
   const registry = synapse.registry.create<SynapseVirtualBinarySensor>({
     context,
-    details: entity => ({
-      attributes: entity._rawAttributes,
-      configuration: entity._rawConfiguration,
-      state: entity.state,
-    }),
     domain: "binary_sensor",
   });
 
@@ -31,14 +26,7 @@ export function VirtualBinarySensor({ context, synapse }: TServiceParams) {
     const proxy = new Proxy({} as SynapseVirtualBinarySensor, {
       // #MARK: get
       get(_, property: keyof SynapseVirtualBinarySensor) {
-        // * state
-        if (property === "state") {
-          return loader.state;
-        }
-        // * is_on
-        if (property === "is_on") {
-          return loader.state === "on";
-        }
+        // > common
         // * name
         if (property === "name") {
           return entity.name;
@@ -67,6 +55,15 @@ export function VirtualBinarySensor({ context, synapse }: TServiceParams) {
         if (property === "configuration") {
           return loader.configurationProxy();
         }
+        // > domain specific
+        // * state
+        if (property === "state") {
+          return loader.state;
+        }
+        // * is_on
+        if (property === "is_on") {
+          return loader.state === "on";
+        }
         return undefined;
       },
 
@@ -74,6 +71,12 @@ export function VirtualBinarySensor({ context, synapse }: TServiceParams) {
 
       // #MARK: set
       set(_, property: string, value: unknown) {
+        // * attributes
+        if (property === "attributes") {
+          loader.setAttributes(value as ATTRIBUTES);
+          return true;
+        }
+        // > domain specific
         // * state
         if (property === "state") {
           loader.setState(value as STATE);
@@ -83,11 +86,6 @@ export function VirtualBinarySensor({ context, synapse }: TServiceParams) {
         if (property === "is_on") {
           const new_state = ((value as boolean) ? "on" : "off") as STATE;
           loader.setState(new_state);
-          return true;
-        }
-        // * attributes
-        if (property === "attributes") {
-          loader.setAttributes(value as ATTRIBUTES);
           return true;
         }
         return false;

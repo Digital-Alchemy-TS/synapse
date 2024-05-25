@@ -2,6 +2,7 @@ import {
   InternalError,
   is,
   SECOND,
+  TBlackHole,
   TContext,
   TServiceParams,
 } from "@digital-alchemy/core";
@@ -57,6 +58,7 @@ export function Registry({
   config,
   internal,
   context,
+  event,
   scheduler,
 }: TServiceParams) {
   const LOADERS = new Map<ALL_DOMAINS, () => object[]>();
@@ -238,9 +240,60 @@ export function Registry({
     domains.set(domain, out as unknown as TDomain);
     return out;
   }
+
   create.registeredDomains = domains;
-  return { buildEntityState, create, eventName: name };
+
+  return {
+    buildEntityState,
+
+    /**
+     * Listen for specific socket events, and transfer to internal event bus
+     */
+    busTransfer({ context, eventName, unique_id }: BusTransferOptions) {
+      const target = `synapse/${eventName}/${unique_id}`;
+      const source = name(eventName);
+      hass.socket.onEvent({
+        context,
+        event: source,
+        exec({ data }: BaseEvent) {
+          if (data.unique_id !== unique_id) {
+            return;
+          }
+          event.emit(target, data);
+        },
+      });
+      logger.debug({ source, target }, `setting up bus transfer`);
+      return target;
+    },
+    create,
+    eventName: name,
+    /**
+     * Generate an event listener that is easy to remove by developer
+     */
+    removableListener<DATA extends object>(
+      eventName: string,
+      callback: (data: DATA, remove: () => void) => TBlackHole,
+    ) {
+      const remove = () => event.removeListener(eventName, exec);
+      const exec = async (data: DATA) =>
+        await internal.safeExec(async () => await callback(data, remove));
+      event.on(eventName, exec);
+      return { remove };
+    },
+  };
 }
+
+type BusTransferOptions = {
+  context: TContext;
+  eventName: string;
+  unique_id: TSynapseId;
+};
+
+type BaseEvent = {
+  data: {
+    unique_id: TSynapseId;
+  };
+};
 
 export type TRegistry<DATA extends unknown = unknown> = {
   add(data: DATA, entity: { unique_id?: string }): TSynapseId;

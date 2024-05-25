@@ -1,46 +1,28 @@
 import { is, TBlackHole, TServiceParams } from "@digital-alchemy/core";
 
-import { TRegistry } from "..";
+import { TRegistry, VIRTUAL_ENTITY_BASE_KEYS } from "..";
 import {
-  BUTTON_CONFIGURATION_KEYS,
   ButtonConfiguration,
-  HassButtonUpdateEvent,
-  TButton,
-  TVirtualButton,
+  SynapseButtonParams,
+  SynapseVirtualButton,
 } from "../helpers/domains";
 
-export function VirtualButton({
-  logger,
-  event,
-  hass,
-  context,
-  synapse,
-  internal,
-}: TServiceParams) {
-  const registry = synapse.registry.create<TVirtualButton>({
+export function VirtualButton({ context, synapse }: TServiceParams) {
+  const registry = synapse.registry.create<SynapseVirtualButton>({
     context,
-    details: entity => ({
-      attributes: entity._rawAttributes,
-      configuration: entity._rawConfiguration,
-      state: undefined,
-    }),
     // @ts-expect-error it's fine
     domain: "button",
   });
 
   // #MARK: create
-  function create<
-    STATE extends void = void,
-    ATTRIBUTES extends object = object,
-    CONFIGURATION extends ButtonConfiguration = ButtonConfiguration,
-  >(entity: TButton<ATTRIBUTES>) {
-    const entityOut = new Proxy({} as TVirtualButton<STATE, ATTRIBUTES>, {
+  return function <ATTRIBUTES extends object = object>(
+    entity: SynapseButtonParams,
+  ) {
+    // - Define the proxy
+    const proxy = new Proxy({} as SynapseVirtualButton, {
       // #MARK: get
-      get(_, property: keyof TVirtualButton<STATE, ATTRIBUTES>) {
-        // * state
-        if (property === "state") {
-          return undefined;
-        }
+      get(_, property: keyof SynapseVirtualButton) {
+        // > common
         // * name
         if (property === "name") {
           return entity.name;
@@ -53,16 +35,6 @@ export function VirtualButton({
         if (property === "onUpdate") {
           return loader.onUpdate();
         }
-        // * onPress
-        if (property === "onPress") {
-          return function (callback: (remove: () => void) => TBlackHole) {
-            const remove = () => event.removeListener(EVENT_ID, exec);
-            const exec = async () =>
-              await internal.safeExec(async () => callback(remove));
-            event.on(EVENT_ID, exec);
-            return { remove };
-          };
-        }
         // * _rawConfiguration
         if (property === "_rawConfiguration") {
           return loader.configuration;
@@ -73,64 +45,27 @@ export function VirtualButton({
         }
         // * attributes
         if (property === "attributes") {
-          return new Proxy({} as ATTRIBUTES, {
-            get: <KEY extends Extract<keyof ATTRIBUTES, string>>(
-              _: ATTRIBUTES,
-              property: KEY,
-            ) => {
-              return loader.attributes[property];
-            },
-            set: <
-              KEY extends Extract<keyof ATTRIBUTES, string>,
-              VALUE extends ATTRIBUTES[KEY],
-            >(
-              _: ATTRIBUTES,
-              property: KEY,
-              value: VALUE,
-            ) => {
-              loader.setAttribute(property, value);
-              return true;
-            },
-          });
+          return loader.attributesProxy();
         }
         // * configuration
         if (property === "configuration") {
-          return new Proxy({} as CONFIGURATION, {
-            get: <KEY extends Extract<keyof CONFIGURATION, string>>(
-              _: CONFIGURATION,
-              property: KEY,
-            ) => {
-              return loader.configuration[property];
-            },
-            set: <
-              KEY extends Extract<keyof CONFIGURATION, string>,
-              VALUE extends CONFIGURATION[KEY],
-            >(
-              _: CONFIGURATION,
-              property: KEY,
-              value: VALUE,
-            ) => {
-              loader.setConfiguration(property, value);
-              return true;
-            },
-          });
+          return loader.configurationProxy();
+        }
+        // > domain specific
+        // * onPress
+        if (property === "onPress") {
+          return (callback: (remove: () => void) => TBlackHole) =>
+            synapse.registry.removableListener(PRESS_EVENT, callback);
         }
         return undefined;
       },
-      // #MARK: ownKeys
-      ownKeys: () => {
-        return [
-          "attributes",
-          "configuration",
-          "_rawAttributes",
-          "_rawConfiguration",
-          "name",
-          "onUpdate",
-          "onPress",
-        ];
-      },
+
+      ownKeys: () => [...VIRTUAL_ENTITY_BASE_KEYS, "onPress"],
+
       // #MARK: set
       set(_, property: string, value: unknown) {
+        // > common
+        // * attributes
         if (property === "attributes") {
           loader.setAttributes(value as ATTRIBUTES);
           return true;
@@ -139,45 +74,34 @@ export function VirtualButton({
       },
     });
 
-    // Validate a good id was passed, and it's the only place in code that's using it
-    const unique_id = registry.add(entityOut, entity);
-    const EVENT_ID = `synapse/press/${unique_id}`;
+    // - Add to registry
+    const unique_id = registry.add(proxy, entity);
 
-    const loader = synapse.storage.wrapper<STATE, ATTRIBUTES, CONFIGURATION>({
+    // - Initialize value storage
+    const loader = synapse.storage.wrapper<
+      never,
+      ATTRIBUTES,
+      ButtonConfiguration
+    >({
+      load_keys: ["device_class"],
       name: entity.name,
       registry: registry as TRegistry<unknown>,
       unique_id,
-      value: {
-        attributes: (entity.defaultAttributes ?? {}) as ATTRIBUTES,
-        configuration: Object.fromEntries(
-          BUTTON_CONFIGURATION_KEYS.map(key => [key, entity[key]]),
-        ) as unknown as CONFIGURATION,
-        state: undefined,
-      },
     });
 
-    logger.error({ event }, `listening for event`);
-
-    hass.socket.onEvent({
+    // - Attach bus events
+    const PRESS_EVENT = synapse.registry.busTransfer({
       context,
-      event: synapse.registry.eventName("press"),
-      async exec({ data: { unique_id: id } }: HassButtonUpdateEvent) {
-        if (id !== unique_id) {
-          return;
-        }
-        logger.trace({ context, name: entity.name }, `press`);
-        event.emit(EVENT_ID);
-      },
+      eventName: "press",
+      unique_id,
     });
+
+    // - Attach static listener
     if (is.function(entity.press)) {
-      const remove = () => event.removeListener(EVENT_ID, callback);
-      const callback = async () =>
-        await internal.safeExec(async () => entity.press(remove));
-      event.on(EVENT_ID, callback);
+      synapse.registry.removableListener(PRESS_EVENT, entity.press);
     }
 
-    return entityOut;
-  }
-
-  return create;
+    // - Done
+    return proxy;
+  };
 }

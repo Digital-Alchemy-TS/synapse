@@ -1,38 +1,33 @@
 import { TServiceParams } from "@digital-alchemy/core";
 
 import {
-  SENSOR_CONFIGURATION_KEYS,
+  SENSOR_DEVICE_CLASS_CONFIG_KEYS,
   SensorConfiguration,
   SensorValue,
+  SynapseSensorParams,
+  SynapseVirtualSensor,
   TRegistry,
-  TSensor,
-  TVirtualSensor,
+  VIRTUAL_ENTITY_BASE_KEYS,
 } from "..";
 
 export function VirtualSensor({ context, synapse, logger }: TServiceParams) {
-  const registry = synapse.registry.create<TVirtualSensor>({
+  const registry = synapse.registry.create<SynapseVirtualSensor>({
     context,
-    details: entity => ({
-      attributes: entity._rawAttributes,
-      configuration: entity._rawConfiguration,
-      state: entity.state,
-    }),
     domain: "sensor",
   });
 
-  // #MARK: create
-  function create<
+  return function <
     STATE extends SensorValue = SensorValue,
     ATTRIBUTES extends object = object,
-    CONFIGURATION extends SensorConfiguration = SensorConfiguration,
-  >(entity: TSensor<STATE, ATTRIBUTES>) {
-    const entityOut = new Proxy({} as TVirtualSensor<STATE, ATTRIBUTES>, {
+  >(entity: SynapseSensorParams<STATE, ATTRIBUTES>) {
+    // - Provide additional defaults
+    entity.defaultState ??= "" as STATE;
+
+    // - Define the proxy
+    const proxy = new Proxy({} as SynapseVirtualSensor, {
       // #MARK: get
-      get(_, property: keyof TVirtualSensor<STATE, ATTRIBUTES>) {
-        // * state
-        if (property === "state") {
-          return loader.state;
-        }
+      get(_, property: keyof SynapseVirtualSensor) {
+        // > common
         // * name
         if (property === "name") {
           return entity.name;
@@ -53,108 +48,76 @@ export function VirtualSensor({ context, synapse, logger }: TServiceParams) {
         if (property === "_rawAttributes") {
           return loader.attributes;
         }
-        // * reset
-        if (property === "reset") {
-          return function () {
-            // what it means to "reset" is up to dev
-            entity.last_reset = new Date();
-            logger.debug(`reset`);
-          };
-        }
         // * attributes
         if (property === "attributes") {
-          return new Proxy({} as ATTRIBUTES, {
-            get: <KEY extends Extract<keyof ATTRIBUTES, string>>(
-              _: ATTRIBUTES,
-              property: KEY,
-            ) => {
-              return loader.attributes[property];
-            },
-            set: <
-              KEY extends Extract<keyof ATTRIBUTES, string>,
-              VALUE extends ATTRIBUTES[KEY],
-            >(
-              _: ATTRIBUTES,
-              property: KEY,
-              value: VALUE,
-            ) => {
-              loader.setAttribute(property, value);
-              return true;
-            },
-          });
+          return loader.attributesProxy();
         }
         // * configuration
         if (property === "configuration") {
-          return new Proxy({} as CONFIGURATION, {
-            get: <KEY extends Extract<keyof CONFIGURATION, string>>(
-              _: CONFIGURATION,
-              property: KEY,
-            ) => {
-              return loader.configuration[property];
-            },
-            set: <
-              KEY extends Extract<keyof CONFIGURATION, string>,
-              VALUE extends CONFIGURATION[KEY],
-            >(
-              _: CONFIGURATION,
-              property: KEY,
-              value: VALUE,
-            ) => {
-              loader.setConfiguration(property, value);
-              return true;
-            },
-          });
+          return loader.configurationProxy();
+        }
+        // > domain specific
+        // * state
+        if (property === "state") {
+          return loader.state;
+        }
+        // * reset
+        if (property === "reset") {
+          return function () {
+            logger.debug(
+              { context: entity.context, name: entity.name },
+              `reset`,
+            );
+            // what it means to "reset" is up to dev
+            entity.last_reset = new Date();
+          };
         }
         return undefined;
       },
-      // #MARK: ownKeys
-      ownKeys: () => {
-        return [
-          "attributes",
-          "configuration",
-          "_rawAttributes",
-          "_rawConfiguration",
-          "name",
-          "onUpdate",
-          "state",
-          "reset",
-        ];
-      },
+
+      ownKeys: () => [...VIRTUAL_ENTITY_BASE_KEYS, "reset", "state"],
+
       // #MARK: set
       set(_, property: string, value: unknown) {
-        // entity.state = ...
-        if (property === "state") {
-          loader.setState(value as STATE);
-          return true;
-        }
-        // entity.attributes = { ... }
+        // > common
+        // * attributes
         if (property === "attributes") {
           loader.setAttributes(value as ATTRIBUTES);
           return true;
         }
-        // not supported:
-        // entity.configuration = {...}
+        // > domain specific
+        // * state
+        if (property === "state") {
+          loader.setState(value as STATE);
+          return true;
+        }
         return false;
       },
     });
 
-    // Validate a good id was passed, and it's the only place in code that's using it
-    const unique_id = registry.add(entityOut, entity);
+    // - Add to registry
+    const unique_id = registry.add(proxy, entity);
 
-    const loader = synapse.storage.wrapper<STATE, ATTRIBUTES, CONFIGURATION>({
+    // - Initialize value storage
+    const loader = synapse.storage.wrapper<
+      STATE,
+      ATTRIBUTES,
+      SensorConfiguration
+    >({
+      load_keys: [
+        ...SENSOR_DEVICE_CLASS_CONFIG_KEYS,
+        "last_reset",
+        "options",
+        "state_class",
+        "suggested_display_precision",
+        "unit_of_measurement",
+      ] as (keyof SensorConfiguration)[],
       name: entity.name,
       registry: registry as TRegistry<unknown>,
       unique_id,
-      value: {
-        attributes: (entity.defaultAttributes ?? {}) as ATTRIBUTES,
-        configuration: Object.fromEntries(
-          SENSOR_CONFIGURATION_KEYS.map(key => [key, entity[key]]),
-        ) as CONFIGURATION,
-        state: (entity.defaultState ?? "") as STATE,
-      },
     });
-    return entityOut;
-  }
 
-  return create;
+    // - Done
+    return proxy;
+  };
 }
