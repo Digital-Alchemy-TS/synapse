@@ -12,7 +12,7 @@ export function VirtualDate({ context, synapse }: TServiceParams) {
   const registry = synapse.registry.create<SynapseVirtualDate>({
     context,
     // @ts-expect-error it's fine
-    domain: "select",
+    domain: "date",
   });
 
   // #MARK: create
