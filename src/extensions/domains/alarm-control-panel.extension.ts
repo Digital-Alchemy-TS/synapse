@@ -1,225 +1,201 @@
-import { TBlackHole, TServiceParams } from "@digital-alchemy/core";
+import { is, TServiceParams } from "@digital-alchemy/core";
 
 import {
-  ALARM_CONTROL_PANEL_CONFIGURATION_KEYS,
   AlarmControlPanelConfiguration,
-  AlarmControlPanelValue,
-  HassAlarmControlPanelEvent,
-  TAlarmControlPanel,
-  TRegistry,
-  TVirtualAlarmControlPanel,
-} from "../..";
+  RemovableCallback,
+  SynapseAlarmControlPanelParams,
+  SynapseVirtualAlarmControlPanel,
+  VIRTUAL_ENTITY_BASE_KEYS,
+} from "../../helpers";
+import { TRegistry } from "../registry.extension";
 
-export function VirtualAlarmControlPanel({
-  context,
-  synapse,
-  internal,
-  hass,
-  event,
-  logger,
-}: TServiceParams) {
-  const registry = synapse.registry.create<TVirtualAlarmControlPanel>({
+export function VirtualAlarmControlPanel({ context, synapse }: TServiceParams) {
+  const registry = synapse.registry.create<SynapseVirtualAlarmControlPanel>({
     context,
-    details: entity => ({
-      attributes: entity._rawAttributes,
-      configuration: entity._rawConfiguration,
-      state: entity.state,
-    }),
     // @ts-expect-error it's fine
     domain: "alarm_control_panel",
   });
 
   // #MARK: create
-  function create<
-    STATE extends AlarmControlPanelValue = AlarmControlPanelValue,
+  return function <
+    STATE extends string = string,
     ATTRIBUTES extends object = object,
-    CONFIGURATION extends
-      AlarmControlPanelConfiguration = AlarmControlPanelConfiguration,
-  >(entity: TAlarmControlPanel<STATE, ATTRIBUTES>) {
-    const eventBuilder = (name: string) =>
-      function (callback: (code: string, remove: () => void) => TBlackHole) {
-        const remove = () => event.removeListener(EVENT(name), exec);
-        const exec = async (code: string) =>
-          internal.safeExec(async () => await callback(code, remove));
-        event.on(EVENT(name), exec);
-        return { remove };
-      };
-    const entityOut = new Proxy(
-      {} as TVirtualAlarmControlPanel<STATE, ATTRIBUTES>,
-      {
-        // #MARK: get
-        get(_, property: keyof TVirtualAlarmControlPanel<STATE, ATTRIBUTES>) {
-          // * state
-          if (property === "state") {
-            return loader.state;
-          }
-          // * name
-          if (property === "name") {
-            return entity.name;
-          }
-          // * unique_id
-          if (property === "unique_id") {
-            return unique_id;
-          }
-          // * onAlarmDisarm
-          if (property === "onAlarmDisarm") {
-            return eventBuilder("alarm_disarm");
-          }
-          // * onAlarmArmHome
-          if (property === "onAlarmArmHome") {
-            return eventBuilder("alarm_arm_home");
-          }
-          // * onAlarmArmAway
-          if (property === "onAlarmArmAway") {
-            return eventBuilder("alarm_arm_away");
-          }
-          // * onAlarmNight
-          if (property === "onAlarmNight") {
-            return eventBuilder("alarm_arm_night");
-          }
-          // * onAlarmArmVacation
-          if (property === "onAlarmArmVacation") {
-            return eventBuilder("alarm_arm_vacation");
-          }
-          // * onAlarmTrigger
-          if (property === "onAlarmTrigger") {
-            return eventBuilder("alarm_trigger");
-          }
-          // * onAlarmCustomBypass
-          if (property === "onAlarmCustomBypass") {
-            return eventBuilder("alarm_custom_bypass");
-          }
-          // * onUpdate
-          if (property === "onUpdate") {
-            return loader.onUpdate();
-          }
-          // * _rawConfiguration
-          if (property === "_rawConfiguration") {
-            return loader.configuration;
-          }
-          // * _rawAttributes
-          if (property === "_rawAttributes") {
-            return loader.attributes;
-          }
-          // * attributes
-          if (property === "attributes") {
-            return new Proxy({} as ATTRIBUTES, {
-              get: <KEY extends Extract<keyof ATTRIBUTES, string>>(
-                _: ATTRIBUTES,
-                property: KEY,
-              ) => {
-                return loader.attributes[property];
-              },
-              set: <
-                KEY extends Extract<keyof ATTRIBUTES, string>,
-                VALUE extends ATTRIBUTES[KEY],
-              >(
-                _: ATTRIBUTES,
-                property: KEY,
-                value: VALUE,
-              ) => {
-                loader.setAttribute(property, value);
-                return true;
-              },
-            });
-          }
-          // * configuration
-          if (property === "configuration") {
-            return new Proxy({} as CONFIGURATION, {
-              get: <KEY extends Extract<keyof CONFIGURATION, string>>(
-                _: CONFIGURATION,
-                property: KEY,
-              ) => {
-                return loader.configuration[property];
-              },
-              set: <
-                KEY extends Extract<keyof CONFIGURATION, string>,
-                VALUE extends CONFIGURATION[KEY],
-              >(
-                _: CONFIGURATION,
-                property: KEY,
-                value: VALUE,
-              ) => {
-                loader.setConfiguration(property, value);
-                return true;
-              },
-            });
-          }
-          return undefined;
-        },
-        // #MARK: ownKeys
-        ownKeys: () => {
-          return [
-            "attributes",
-            "configuration",
-            "_rawAttributes",
-            "_rawConfiguration",
-            "name",
-            "is_on",
-            "onUpdate",
-            "state",
-          ];
-        },
-        // #MARK: set
-        set(_, property: string, value: unknown) {
-          if (property === "state") {
-            loader.setState(value as STATE);
-            return true;
-          }
-          if (property === "is_on") {
-            const new_state = ((value as boolean) ? "on" : "off") as STATE;
-            loader.setState(new_state);
-            return true;
-          }
-          if (property === "attributes") {
-            loader.setAttributes(value as ATTRIBUTES);
-            return true;
-          }
-          return false;
-        },
+  >(entity: SynapseAlarmControlPanelParams) {
+    const proxy = new Proxy({} as SynapseVirtualAlarmControlPanel, {
+      // #MARK: get
+      get(_, property: keyof SynapseVirtualAlarmControlPanel) {
+        // > common
+        // * name
+        if (property === "name") {
+          return entity.name;
+        }
+        // * unique_id
+        if (property === "unique_id") {
+          return unique_id;
+        }
+        // * onUpdate
+        if (property === "onUpdate") {
+          return loader.onUpdate();
+        }
+        // * _rawConfiguration
+        if (property === "_rawConfiguration") {
+          return loader.configuration;
+        }
+        // * _rawAttributes
+        if (property === "_rawAttributes") {
+          return loader.attributes;
+        }
+        // * attributes
+        if (property === "attributes") {
+          return loader.attributesProxy();
+        }
+        // * configuration
+        if (property === "configuration") {
+          return loader.configurationProxy();
+        }
+        // * state
+        if (property === "state") {
+          return loader.state;
+        }
+        // > domain specific
+        // * onArmCustomBypass
+        if (property === "onArmCustomBypass") {
+          return (callback: RemovableCallback) =>
+            synapse.registry.removableListener(ARM_CUSTOM_BYPASS, callback);
+        }
+        // * onTrigger
+        if (property === "onTrigger") {
+          return (callback: RemovableCallback) =>
+            synapse.registry.removableListener(TRIGGER, callback);
+        }
+        // * onArmVacation
+        if (property === "onArmVacation") {
+          return (callback: RemovableCallback) =>
+            synapse.registry.removableListener(ARM_VACATION, callback);
+        }
+        // * onArmNight
+        if (property === "onArmNight") {
+          return (callback: RemovableCallback) =>
+            synapse.registry.removableListener(ARM_NIGHT, callback);
+        }
+        // * onArmAway
+        if (property === "onArmAway") {
+          return (callback: RemovableCallback) =>
+            synapse.registry.removableListener(ARM_AWAY, callback);
+        }
+        // * onArmHome
+        if (property === "onArmHome") {
+          return (callback: RemovableCallback) =>
+            synapse.registry.removableListener(ARM_HOME, callback);
+        }
+        // * onDisarm
+        if (property === "onDisarm") {
+          return (callback: RemovableCallback) =>
+            synapse.registry.removableListener(DISARM, callback);
+        }
+        return undefined;
       },
-    );
 
-    const unique_id = registry.add(entityOut, entity);
-    const EVENT = (event: string) =>
-      `alarm_control_panel/${unique_id}/${event}`;
+      ownKeys: () => [...VIRTUAL_ENTITY_BASE_KEYS, "onSetValue"],
 
-    [
-      "alarm_disarm",
-      "alarm_arm_away",
-      "alarm_arm_night",
-      "alarm_arm_home",
-      "alarm_arm_vacation",
-      "alarm_arm_custom_bypass",
-      "alarm_trigger",
-    ].forEach(name => {
-      hass.socket.onEvent({
-        context,
-        event: synapse.registry.eventName(name),
-        exec({ data: { unique_id: id, code } }: HassAlarmControlPanelEvent) {
-          if (id !== unique_id) {
-            return;
-          }
-          logger.trace({ context, unique_id }, name);
-          event.emit(EVENT(name), code);
-        },
-      });
+      // #MARK: set
+      set(_, property: string, value: unknown) {
+        // > common
+        // * state
+        if (property === "state") {
+          loader.setState(value as STATE);
+          return true;
+        }
+        // * attributes
+        if (property === "attributes") {
+          loader.setAttributes(value as ATTRIBUTES);
+          return true;
+        }
+        return false;
+      },
     });
 
-    const loader = synapse.storage.wrapper<STATE, ATTRIBUTES, CONFIGURATION>({
+    // - Add to registry
+    const unique_id = registry.add(proxy, entity);
+
+    // - Initialize value storage
+    const loader = synapse.storage.wrapper<
+      STATE,
+      ATTRIBUTES,
+      AlarmControlPanelConfiguration
+    >({
+      load_keys: [
+        "code_arm_required",
+        "code_format",
+        "changed_by",
+        "supported_features",
+      ],
       name: entity.name,
       registry: registry as TRegistry<unknown>,
       unique_id,
-      value: {
-        attributes: (entity.defaultAttributes ?? {}) as ATTRIBUTES,
-        configuration: Object.fromEntries(
-          ALARM_CONTROL_PANEL_CONFIGURATION_KEYS.map(key => [key, entity[key]]),
-        ) as unknown as CONFIGURATION,
-        state: (entity.defaultState ?? "off") as STATE,
-      },
     });
-    return entityOut;
-  }
 
-  return create;
+    // - Attach bus events
+    const ARM_CUSTOM_BYPASS = synapse.registry.busTransfer({
+      context,
+      eventName: "alarm_arm_custom_bypass",
+      unique_id,
+    });
+    const TRIGGER = synapse.registry.busTransfer({
+      context,
+      eventName: "alarm_trigger",
+      unique_id,
+    });
+    const ARM_VACATION = synapse.registry.busTransfer({
+      context,
+      eventName: "alarm_arm_vacation",
+      unique_id,
+    });
+    const ARM_NIGHT = synapse.registry.busTransfer({
+      context,
+      eventName: "alarm_arm_night",
+      unique_id,
+    });
+    const ARM_AWAY = synapse.registry.busTransfer({
+      context,
+      eventName: "alarm_arm_away",
+      unique_id,
+    });
+    const ARM_HOME = synapse.registry.busTransfer({
+      context,
+      eventName: "alarm_arm_home",
+      unique_id,
+    });
+    const DISARM = synapse.registry.busTransfer({
+      context,
+      eventName: "alarm_disarm",
+      unique_id,
+    });
+
+    // - Attach static listener
+    if (is.function(entity.arm_custom_bypass)) {
+      proxy.onArmCustomBypass(entity.arm_custom_bypass);
+    }
+    if (is.function(entity.trigger)) {
+      proxy.onTrigger(entity.trigger);
+    }
+    if (is.function(entity.arm_vacation)) {
+      proxy.onArmVacation(entity.arm_vacation);
+    }
+    if (is.function(entity.arm_night)) {
+      proxy.onArmNight(entity.arm_night);
+    }
+    if (is.function(entity.arm_away)) {
+      proxy.onArmAway(entity.arm_away);
+    }
+    if (is.function(entity.arm_home)) {
+      proxy.onArmHome(entity.arm_home);
+    }
+    if (is.function(entity.disarm)) {
+      proxy.onDisarm(entity.disarm);
+    }
+
+    // - Done
+    return proxy;
+  };
 }
