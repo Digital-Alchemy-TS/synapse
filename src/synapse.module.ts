@@ -13,6 +13,7 @@ import {
   VirtualAlarmControlPanel,
   VirtualBinarySensor,
   VirtualButton,
+  VirtualLock,
   VirtualScene,
   VirtualSensor,
   VirtualSwitch,
@@ -102,6 +103,8 @@ export const LIB_SYNAPSE = CreateLibrary({
      *
      */
     device: DeviceExtension,
+
+    lock: VirtualLock,
 
     /**
      * create `number` domain entities

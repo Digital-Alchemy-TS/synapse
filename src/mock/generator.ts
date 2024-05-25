@@ -68,19 +68,15 @@ export function EntityGenerator({
     suggested_object_id: "example_the_special_switch",
   });
 
-  const acp = synapse.alarm_control_panel({
+  synapse.alarm_control_panel({
     context,
     name: "Example alarm panel",
   });
 
-  // ["high", "medium", "low"].forEach(i =>
-  //   synapse.scene({
-  //     context,
-  //     exec() {
-  //       logger.info(`activate bedroom ${i}`);
-  //     },
-  //     name: `bedroom_${i}`,
-  //   }),
-  // );
-  // return { binary_sensor, sensor };
+  synapse.lock({
+    context,
+    is_locked: false,
+    name: "Example lock",
+    suggested_object_id: "example_the_lock",
+  });
 }
