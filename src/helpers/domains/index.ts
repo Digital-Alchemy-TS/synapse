@@ -1,7 +1,7 @@
 export * from "./alarm-control-panel";
 export * from "./binary-sensor";
 export * from "./button";
-// export * from "./camera";
+export * from "./camera";
 export * from "./climate";
 export * from "./cover";
 export * from "./date";

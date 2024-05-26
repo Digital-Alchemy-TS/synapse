@@ -1,44 +1,41 @@
-import { TContext } from "@digital-alchemy/core";
+import {
+  BaseEntityParams,
+  BaseVirtualEntity,
+  CreateRemovableCallback,
+  RemovableCallback,
+} from "../base-domain.helper";
+import { EntityConfigCommon } from "../common-config.helper";
 
-import { BASE_CONFIG_KEYS, EntityConfigCommon } from "../common-config.helper";
-import { TSynapseId } from "../utility.helper";
+export type SynapseCameraParams = BaseEntityParams<CameraStates> &
+  CameraConfiguration & {
+    turn_on?: RemovableCallback;
+    turn_off?: RemovableCallback;
+    enable_motion_detection?: RemovableCallback;
+    disable_motion_detection?: RemovableCallback;
+  };
 
-export type TAlarmControlPanel<
-  STATE extends AlarmControlPanelValue,
-  ATTRIBUTES extends object = object,
-> = {
-  context: TContext;
-  defaultState?: STATE;
-  defaultAttributes?: ATTRIBUTES;
-  name: string;
-} & AlarmControlPanelConfiguration;
+type CameraStates = "on" | "off";
 
-export type AlarmControlPanelConfiguration = EntityConfigCommon & {
-  code_arm_required?: boolean;
-  code_format?: "text" | "number";
+export type CameraConfiguration = EntityConfigCommon & {
+  brand?: string;
+  frame_interval?: number;
+  frontend_stream_type?: string;
+  is_on?: boolean;
+  is_recording?: boolean;
+  is_streaming?: boolean;
+  model?: string;
+  motion_detection_enabled?: boolean;
+  use_stream_for_stills?: boolean;
   supported_features?: number;
-  changed_by?: string;
 };
 
-export type AlarmControlPanelValue =
-  | "disarmed"
-  | "armed_home"
-  | "armed_away"
-  | "armed_night"
-  | "armed_vacation"
-  | "armed_custom_bypass"
-  | "pending"
-  | "arming"
-  | "disarming"
-  | "triggered";
-
-export const ALARM_CONTROL_PANEL_CONFIGURATION_KEYS = [
-  ...BASE_CONFIG_KEYS,
-  "device_class",
-] as (keyof AlarmControlPanelConfiguration)[];
-
-export type HassAlarmControlPanelEvent = {
-  data: { unique_id: TSynapseId; code: string };
+export type SynapseVirtualCamera = BaseVirtualEntity<
+  CameraStates,
+  object,
+  CameraConfiguration
+> & {
+  onTurnOn?: CreateRemovableCallback;
+  onTurnOff?: CreateRemovableCallback;
+  onEnableMotionDetection?: CreateRemovableCallback;
+  onDisableMotionDetection?: CreateRemovableCallback;
 };
-
-export type RemoveReturn = { remove: () => void };
