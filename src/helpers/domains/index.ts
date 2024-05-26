@@ -11,7 +11,7 @@ export * from "./humidifier";
 export * from "./image";
 export * from "./index";
 export * from "./lawn-mower";
-// export * from "./light";
+export * from "./light";
 export * from "./lock";
 export * from "./media-player";
 export * from "./notify";

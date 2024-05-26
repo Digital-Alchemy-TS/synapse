@@ -17,6 +17,8 @@ words:
   - mbar
   - mbit
   - sonarjs
+  - rgbw
+  - rgbww
   - tvshow
   - utcnow
   - zeroconf

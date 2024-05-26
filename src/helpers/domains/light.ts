@@ -1,44 +1,43 @@
-import { TContext } from "@digital-alchemy/core";
+import {
+  BaseEntityParams,
+  BaseVirtualEntity,
+  CreateRemovableCallback,
+  RemovableCallback,
+} from "../base-domain.helper";
+import { EntityConfigCommon } from "../common-config.helper";
 
-import { BASE_CONFIG_KEYS, EntityConfigCommon } from "../common-config.helper";
-import { TSynapseId } from "../utility.helper";
+export type SynapseLightParams = BaseEntityParams<LightStates> &
+  LightConfiguration & {
+    turn_on?: RemovableCallback;
+    turn_off?: RemovableCallback;
+  };
 
-export type TAlarmControlPanel<
-  STATE extends AlarmControlPanelValue,
-  ATTRIBUTES extends object = object,
-> = {
-  context: TContext;
-  defaultState?: STATE;
-  defaultAttributes?: ATTRIBUTES;
-  name: string;
-} & AlarmControlPanelConfiguration;
+// supposed to be the same thing
+type LightStates = "opening" | "open" | "closing" | "closed";
 
-export type AlarmControlPanelConfiguration = EntityConfigCommon & {
-  code_arm_required?: boolean;
-  code_format?: "text" | "number";
+export type LightConfiguration = EntityConfigCommon & {
+  brightness?: number;
+  color_mode?: string;
+  color_temp_kelvin?: number;
+  effect?: string;
+  effect_list?: string[];
+  hs_color?: [number, number];
+  is_on?: boolean;
+  max_color_temp_kelvin?: number;
+  min_color_temp_kelvin?: number;
+  rgb_color?: [r: number, g: number, b: number];
+  rgbw_color?: [r: number, g: number, b: number, w: number];
+  rgbww_color?: [r: number, g: number, b: number, w: number, w: number];
+  supported_color_modes?: string[];
   supported_features?: number;
-  changed_by?: string;
+  xy_color?: [number, number];
 };
 
-export type AlarmControlPanelValue =
-  | "disarmed"
-  | "armed_home"
-  | "armed_away"
-  | "armed_night"
-  | "armed_vacation"
-  | "armed_custom_bypass"
-  | "pending"
-  | "arming"
-  | "disarming"
-  | "triggered";
-
-export const ALARM_CONTROL_PANEL_CONFIGURATION_KEYS = [
-  ...BASE_CONFIG_KEYS,
-  "device_class",
-] as (keyof AlarmControlPanelConfiguration)[];
-
-export type HassAlarmControlPanelEvent = {
-  data: { unique_id: TSynapseId; code: string };
+export type SynapseVirtualLight = BaseVirtualEntity<
+  LightStates,
+  object,
+  LightConfiguration
+> & {
+  onTurnOn?: CreateRemovableCallback;
+  onTurnOff?: CreateRemovableCallback;
 };
-
-export type RemoveReturn = { remove: () => void };
