@@ -1,44 +1,50 @@
-import { TContext } from "@digital-alchemy/core";
+import {
+  BaseEntityParams,
+  BaseVirtualEntity,
+  CreateRemovableCallback,
+  RemovableCallback,
+} from "../base-domain.helper";
+import { EntityConfigCommon } from "../common-config.helper";
 
-import { BASE_CONFIG_KEYS, EntityConfigCommon } from "../common-config.helper";
-import { TSynapseId } from "../utility.helper";
+export type SynapseVacuumParams = BaseEntityParams<VacuumStates> &
+  VacuumConfiguration & {
+    clean_spot: RemovableCallback;
+    locate: RemovableCallback;
+    pause: RemovableCallback;
+    return_to_base: RemovableCallback;
+    send_command: RemovableCallback;
+    set_fan_speed: RemovableCallback;
+    start: RemovableCallback;
+    stop: RemovableCallback;
+  };
 
-export type TAlarmControlPanel<
-  STATE extends AlarmControlPanelValue,
-  ATTRIBUTES extends object = object,
-> = {
-  context: TContext;
-  defaultState?: STATE;
-  defaultAttributes?: ATTRIBUTES;
-  name: string;
-} & AlarmControlPanelConfiguration;
+// supposed to be the same thing
+type VacuumStates =
+  | "cleaning"
+  | "docked"
+  | "idle"
+  | "paused"
+  | "returning"
+  | "error";
 
-export type AlarmControlPanelConfiguration = EntityConfigCommon & {
-  code_arm_required?: boolean;
-  code_format?: "text" | "number";
+export type VacuumConfiguration = EntityConfigCommon & {
+  battery_level?: number;
+  fan_speed?: string;
+  fan_speed_list?: string[];
   supported_features?: number;
-  changed_by?: string;
 };
 
-export type AlarmControlPanelValue =
-  | "disarmed"
-  | "armed_home"
-  | "armed_away"
-  | "armed_night"
-  | "armed_vacation"
-  | "armed_custom_bypass"
-  | "pending"
-  | "arming"
-  | "disarming"
-  | "triggered";
-
-export const ALARM_CONTROL_PANEL_CONFIGURATION_KEYS = [
-  ...BASE_CONFIG_KEYS,
-  "device_class",
-] as (keyof AlarmControlPanelConfiguration)[];
-
-export type HassAlarmControlPanelEvent = {
-  data: { unique_id: TSynapseId; code: string };
+export type SynapseVirtualVacuum = BaseVirtualEntity<
+  VacuumStates,
+  object,
+  VacuumConfiguration
+> & {
+  onCleanSpot: CreateRemovableCallback;
+  onLocate: CreateRemovableCallback;
+  onPause: CreateRemovableCallback;
+  onReturnToBase: CreateRemovableCallback;
+  onSend_command: CreateRemovableCallback;
+  onSetFanSpeed: CreateRemovableCallback;
+  onStart: CreateRemovableCallback;
+  onStop: CreateRemovableCallback;
 };
-
-export type RemoveReturn = { remove: () => void };

@@ -18,3 +18,4 @@ export * from "./switch.extension";
 export * from "./text.extension";
 export * from "./time.extension";
 export * from "./update.extension";
+export * from "./vacuum.extension";

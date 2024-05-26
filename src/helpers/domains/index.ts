@@ -26,6 +26,6 @@ export * from "./text";
 export * from "./time";
 // export * from "./todo-list";
 export * from "./update";
-// export * from "./vacuum";
+export * from "./vacuum";
 // export * from "./valve";
 // export * from "./water-heater";
