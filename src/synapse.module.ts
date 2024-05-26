@@ -30,6 +30,7 @@ import {
   VirtualTime,
   VirtualUpdate,
   VirtualVacuum,
+  VirtualWaterHeater,
 } from "./extensions";
 import { HassDeviceMetadata } from "./helpers";
 
@@ -55,6 +56,7 @@ const DOMAINS = {
   time: VirtualTime,
   update: VirtualUpdate,
   vacuum: VirtualVacuum,
+  water_heater: VirtualWaterHeater,
 };
 
 export const LIB_SYNAPSE = CreateLibrary({

@@ -28,4 +28,4 @@ export * from "./time";
 export * from "./update";
 export * from "./vacuum";
 // export * from "./valve";
-// export * from "./water-heater";
+export * from "./water-heater";
