@@ -1,44 +1,41 @@
-import { TContext } from "@digital-alchemy/core";
+import { ValveDeviceClass } from "@digital-alchemy/hass";
 
-import { BASE_CONFIG_KEYS, EntityConfigCommon } from "../common-config.helper";
-import { TSynapseId } from "../utility.helper";
+import {
+  BaseEntityParams,
+  BaseVirtualEntity,
+  CreateRemovableCallback,
+  RemovableCallback,
+} from "../base-domain.helper";
+import { EntityConfigCommon } from "../common-config.helper";
 
-export type TAlarmControlPanel<
-  STATE extends AlarmControlPanelValue,
-  ATTRIBUTES extends object = object,
-> = {
-  context: TContext;
-  defaultState?: STATE;
-  defaultAttributes?: ATTRIBUTES;
-  name: string;
-} & AlarmControlPanelConfiguration;
+export type SynapseValveParams = BaseEntityParams<ValveStates> &
+  ValveConfiguration & {
+    open_valve?: RemovableCallback;
+    close_valve?: RemovableCallback;
+    set_valve_position?: RemovableCallback;
+    stop_valve?: RemovableCallback;
+  };
 
-export type AlarmControlPanelConfiguration = EntityConfigCommon & {
-  code_arm_required?: boolean;
-  code_format?: "text" | "number";
+// supposed to be the same thing
+type ValveStates = "opening" | "open" | "closing" | "closed";
+
+export type ValveConfiguration = EntityConfigCommon & {
+  current_valve_position?: number;
+  is_closed?: boolean;
+  is_opening?: boolean;
+  reports_position: boolean;
+  device_class?: `${ValveDeviceClass}`;
+  is_closing?: boolean;
   supported_features?: number;
-  changed_by?: string;
 };
 
-export type AlarmControlPanelValue =
-  | "disarmed"
-  | "armed_home"
-  | "armed_away"
-  | "armed_night"
-  | "armed_vacation"
-  | "armed_custom_bypass"
-  | "pending"
-  | "arming"
-  | "disarming"
-  | "triggered";
-
-export const ALARM_CONTROL_PANEL_CONFIGURATION_KEYS = [
-  ...BASE_CONFIG_KEYS,
-  "device_class",
-] as (keyof AlarmControlPanelConfiguration)[];
-
-export type HassAlarmControlPanelEvent = {
-  data: { unique_id: TSynapseId; code: string };
+export type SynapseVirtualValve = BaseVirtualEntity<
+  ValveStates,
+  object,
+  ValveConfiguration
+> & {
+  onOpenValve?: CreateRemovableCallback;
+  onCloseValve?: CreateRemovableCallback;
+  onSetValvePosition?: CreateRemovableCallback;
+  onStopValve?: CreateRemovableCallback;
 };
-
-export type RemoveReturn = { remove: () => void };
