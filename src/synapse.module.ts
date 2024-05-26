@@ -26,6 +26,7 @@ import {
   VirtualSwitch,
   VirtualText,
   VirtualTime,
+  VirtualUpdate,
 } from "./extensions";
 import { HassDeviceMetadata } from "./helpers";
 
@@ -47,6 +48,7 @@ const DOMAINS = {
   switch: VirtualSwitch,
   text: VirtualText,
   time: VirtualTime,
+  update: VirtualUpdate,
 };
 
 export const LIB_SYNAPSE = CreateLibrary({

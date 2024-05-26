@@ -1,57 +1,57 @@
-import { TContext } from "@digital-alchemy/core";
-import { PICK_ENTITY } from "@digital-alchemy/hass";
-import { Dayjs } from "dayjs";
+import {
+  BaseEntityParams,
+  BaseVirtualEntity,
+  CreateRemovableCallback,
+  RemovableCallback,
+} from "../base-domain.helper";
+import { EntityConfigCommon } from "../common-config.helper";
 
-import { BASE_CONFIG_KEYS, EntityConfigCommon } from "../common-config.helper";
-import { UpdateCallback } from "../event";
-import { TSynapseId } from "../utility.helper";
+export type SynapseUpdateParams = BaseEntityParams<never> &
+  UpdateConfiguration & {
+    install?: RemovableCallback<{ backup?: boolean; version?: string }>;
+  };
 
-export type TTime<
-  STATE extends TimeValue,
-  ATTRIBUTES extends object = object,
-> = {
-  context: TContext;
-  defaultState?: STATE;
-  defaultAttributes?: ATTRIBUTES;
-  name: string;
-} & TimeConfiguration;
-
-export type TimeConfiguration = EntityConfigCommon;
-
-export type TimeValue = Dayjs;
-
-export const TIME_CONFIGURATION_KEYS = [
-  ...BASE_CONFIG_KEYS,
-] as (keyof TimeConfiguration)[];
-
-export type HassTimeEvent = { data: { unique_id: TSynapseId } };
-
-export type TVirtualTime<
-  STATE extends TimeValue = TimeValue,
-  ATTRIBUTES extends object = object,
-  CONFIGURATION extends TimeConfiguration = TimeConfiguration,
-  // @ts-expect-error its fine
-  ENTITY_ID extends PICK_ENTITY<"time"> = PICK_ENTITY<"time">,
-> = {
+export type UpdateConfiguration = EntityConfigCommon & {
   /**
-   * Do not define attributes that change frequently.
-   * Create new sensors instead
+   * The device or service that the entity represents has auto update logic.
+   * When this is set to `true` you can not skip updates.
    */
-  attributes: ATTRIBUTES;
-  configuration: CONFIGURATION;
-  _rawAttributes: ATTRIBUTES;
-  _rawConfiguration: ATTRIBUTES;
-  name: string;
+  auto_update?: boolean;
+  device_class?: "firmware";
   /**
-   * look up the entity id, and
+   * Update installation progress.
+   * Can either return a boolean (True if in progress, False if not) or an integer to indicate the progress from 0 to 100%.
    */
-  onUpdate: UpdateCallback<ENTITY_ID>;
+  in_progress?: boolean | number;
   /**
-   * the current state
+   * The currently installed and used version of the software.
    */
-  state: STATE;
+  installed_version?: string;
   /**
-   * Used to uniquely identify this entity in home assistant
+   * The latest version of the software available.
    */
-  unique_id: string;
+  latest_version?: string;
+  release_notes?: string;
+  /**
+   * Summary of the release notes or changelog.
+   * This is not suitable for long changelogs but merely suitable for a short excerpt update description of max 255 characters.
+   */
+  release_summary?: string;
+  /**
+   * URL to the full release notes of the latest version available.
+   */
+  release_url?: string;
+  supported_features?: number;
+  /**
+   * Title of the software. This helps to differentiate between the device or entity name versus the title of the software installed.
+   */
+  title?: string;
+};
+
+export type SynapseVirtualUpdate = BaseVirtualEntity<
+  never,
+  object,
+  UpdateConfiguration
+> & {
+  onInstall: CreateRemovableCallback<{ backup?: boolean; version?: string }>;
 };

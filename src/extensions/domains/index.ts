@@ -15,3 +15,4 @@ export * from "./sensor.extension";
 export * from "./switch.extension";
 export * from "./text.extension";
 export * from "./time.extension";
+export * from "./update.extension";
