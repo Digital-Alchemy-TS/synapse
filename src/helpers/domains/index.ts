@@ -7,7 +7,7 @@ export * from "./cover";
 export * from "./date";
 export * from "./datetime";
 export * from "./fan";
-// export * from "./humidifier";
+export * from "./humidifier";
 export * from "./image";
 export * from "./index";
 // export * from "./lawn-mower";

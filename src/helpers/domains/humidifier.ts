@@ -1,44 +1,78 @@
-import { TContext } from "@digital-alchemy/core";
+import { HumidifierDeviceClass } from "@digital-alchemy/hass";
 
-import { BASE_CONFIG_KEYS, EntityConfigCommon } from "../common-config.helper";
-import { TSynapseId } from "../utility.helper";
+import {
+  BaseEntityParams,
+  BaseVirtualEntity,
+  CreateRemovableCallback,
+  RemovableCallback,
+} from "../base-domain.helper";
+import { EntityConfigCommon } from "../common-config.helper";
 
-export type TAlarmControlPanel<
-  STATE extends AlarmControlPanelValue,
-  ATTRIBUTES extends object = object,
-> = {
-  context: TContext;
-  defaultState?: STATE;
-  defaultAttributes?: ATTRIBUTES;
-  name: string;
-} & AlarmControlPanelConfiguration;
+export type SynapseHumidifierParams = BaseEntityParams<HumidifierStates> &
+  HumidifierConfiguration & {
+    set_humidity?: RemovableCallback<{ humidity: number }>;
+    turn_on?: RemovableCallback;
+    turn_off?: RemovableCallback;
+  };
 
-export type AlarmControlPanelConfiguration = EntityConfigCommon & {
-  code_arm_required?: boolean;
-  code_format?: "text" | "number";
-  supported_features?: number;
-  changed_by?: string;
+// supposed to be the same thing
+type HumidifierStates = "on" | "off";
+type HumidifierModes =
+  | "normal"
+  | "eco"
+  | "away"
+  | "boost"
+  | "comfort"
+  | "home"
+  | "sleep"
+  | "auto"
+  | "baby";
+
+export type HumidifierConfiguration = EntityConfigCommon & {
+  /**
+   * Returns the current status of the device.
+   */
+  action?: string;
+  /**
+   * The available modes. Requires `SUPPORT_MODES`.
+   */
+  available_modes?: `${HumidifierModes}`[];
+  /**
+   * The current humidity measured by the device.
+   */
+  current_humidity?: number;
+  /**
+   * Type of hygrostat
+   */
+  device_class?: `${HumidifierDeviceClass}`;
+  /**
+   * Whether the device is on or off.
+   */
+  is_on?: boolean;
+  /**
+   * The maximum humidity.
+   */
+  max_humidity?: number;
+  /**
+   * The minimum humidity.
+   */
+  min_humidity?: string;
+  /**
+   * The current active mode. Requires `SUPPORT_MODES`.
+   */
+  mode?: `${HumidifierModes}`;
+  /**
+   * The target humidity the device is trying to reach.
+   */
+  target_humidity?: number;
 };
 
-export type AlarmControlPanelValue =
-  | "disarmed"
-  | "armed_home"
-  | "armed_away"
-  | "armed_night"
-  | "armed_vacation"
-  | "armed_custom_bypass"
-  | "pending"
-  | "arming"
-  | "disarming"
-  | "triggered";
-
-export const ALARM_CONTROL_PANEL_CONFIGURATION_KEYS = [
-  ...BASE_CONFIG_KEYS,
-  "device_class",
-] as (keyof AlarmControlPanelConfiguration)[];
-
-export type HassAlarmControlPanelEvent = {
-  data: { unique_id: TSynapseId; code: string };
+export type SynapseVirtualHumidifier = BaseVirtualEntity<
+  HumidifierStates,
+  object,
+  HumidifierConfiguration
+> & {
+  onSetHumidity: CreateRemovableCallback<{ humidity: number }>;
+  onTurnOn: CreateRemovableCallback;
+  onTurnOff: CreateRemovableCallback;
 };
-
-export type RemoveReturn = { remove: () => void };
