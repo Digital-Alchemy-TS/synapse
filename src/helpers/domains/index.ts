@@ -10,7 +10,7 @@ export * from "./fan";
 export * from "./humidifier";
 export * from "./image";
 export * from "./index";
-// export * from "./lawn-mower";
+export * from "./lawn-mower";
 // export * from "./light";
 export * from "./lock";
 export * from "./media-player";
