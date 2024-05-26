@@ -14,6 +14,7 @@ export * from "./number.extension";
 export * from "./scene.extension";
 export * from "./select.extension";
 export * from "./sensor.extension";
+export * from "./siren.extension";
 export * from "./switch.extension";
 export * from "./text.extension";
 export * from "./time.extension";

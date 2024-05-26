@@ -20,7 +20,7 @@ export * from "./number";
 export * from "./scene";
 export * from "./select";
 export * from "./sensor";
-// export * from "./siren";
+export * from "./siren";
 export * from "./switch";
 export * from "./text";
 export * from "./time";
