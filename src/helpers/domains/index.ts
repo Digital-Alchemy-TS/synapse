@@ -13,7 +13,7 @@ export * from "./index";
 // export * from "./lawn-mower";
 // export * from "./light";
 export * from "./lock";
-// export * from "./media-player";
+export * from "./media-player";
 export * from "./notify";
 export * from "./number";
 // export * from "./remote";

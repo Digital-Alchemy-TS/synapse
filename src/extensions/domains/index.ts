@@ -7,6 +7,7 @@ export * from "./date.extension";
 export * from "./datetime.extension";
 export * from "./fan.extension";
 export * from "./lock.extension";
+export * from "./media-player";
 export * from "./notify.extension";
 export * from "./number.extension";
 export * from "./scene.extension";

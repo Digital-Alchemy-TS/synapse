@@ -3,20 +3,22 @@ ignorePaths: []
 dictionaryDefinitions: []
 dictionaries: []
 words:
-  - hass
-  - gotify
-  - desync
-  - mbar
-  - sonarjs
-  - datetime
   - alexa
   - cbar
-  - kbit
-  - mbit
-  - homeassistant
-  - zeroconf
+  - datetime
+  - desync
   - endregion
-  - hvac
   - gbit
+  - gotify
+  - hass
+  - homeassistant
+  - hvac
+  - kbit
+  - mbar
+  - mbit
+  - sonarjs
+  - tvshow
+  - utcnow
+  - zeroconf
 ignoreWords: []
 import: []
