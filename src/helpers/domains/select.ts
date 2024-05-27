@@ -8,7 +8,7 @@ import { EntityConfigCommon } from "../common-config.helper";
 
 export type SynapseSelectParams = BaseEntityParams<string> &
   SelectConfiguration & {
-    select_option: RemovableCallback<SetValueData>;
+    select_option?: RemovableCallback<SetValueData>;
     /**
      * default: true
      */
@@ -18,7 +18,13 @@ export type SynapseSelectParams = BaseEntityParams<string> &
 type SetValueData = { value: string };
 
 export type SelectConfiguration = EntityConfigCommon & {
+  /**
+   * The current select option
+   */
   current_option?: string;
+  /**
+   * A list of available options as strings
+   */
   options?: string[];
 };
 

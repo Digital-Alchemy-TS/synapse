@@ -1,29 +1,26 @@
-import { is, TServiceParams } from "@digital-alchemy/core";
+import { TServiceParams } from "@digital-alchemy/core";
 
 import {
-  RemovableCallback,
-  SelectConfiguration,
-  SynapseSelectParams,
-  SynapseVirtualSelect,
+  ImageConfiguration,
+  SynapseImageParams,
+  SynapseVirtualImage,
+  TRegistry,
   VIRTUAL_ENTITY_BASE_KEYS,
-} from "../../helpers";
-import { TRegistry } from "../registry.extension";
+} from "../..";
 
-export function VirtualSelect({ context, synapse }: TServiceParams) {
-  const registry = synapse.registry.create<SynapseVirtualSelect>({
+export function VirtualImage({ context, synapse }: TServiceParams) {
+  const registry = synapse.registry.create<SynapseVirtualImage>({
     context,
-    // @ts-expect-error it's fine
-    domain: "select",
+    // @ts-expect-error its fine
+    domain: "image",
   });
 
-  // #MARK: create
-  return function <
-    STATE extends string = string,
-    ATTRIBUTES extends object = object,
-  >(entity: SynapseSelectParams) {
-    const proxy = new Proxy({} as SynapseVirtualSelect, {
+  return function create<ATTRIBUTES extends object = object>(
+    entity: SynapseImageParams,
+  ) {
+    const proxy = new Proxy({} as SynapseVirtualImage, {
       // #MARK: get
-      get(_, property: keyof SynapseVirtualSelect) {
+      get(_, property: keyof SynapseVirtualImage) {
         // > common
         // * name
         if (property === "name") {
@@ -57,25 +54,14 @@ export function VirtualSelect({ context, synapse }: TServiceParams) {
         if (property === "state") {
           return loader.state;
         }
-        // > domain specific
-        // * onActivate
-        if (property === "onSelectOption") {
-          return (callback: RemovableCallback) =>
-            synapse.registry.removableListener(SELECT_OPTION, callback);
-        }
         return undefined;
       },
 
-      ownKeys: () => [...VIRTUAL_ENTITY_BASE_KEYS, "onSelectOption"],
+      ownKeys: () => [...VIRTUAL_ENTITY_BASE_KEYS],
 
       // #MARK: set
       set(_, property: string, value: unknown) {
         // > common
-        // * state
-        if (property === "state") {
-          loader.setState(value as STATE);
-          return true;
-        }
         // * attributes
         if (property === "attributes") {
           loader.setAttributes(value as ATTRIBUTES);
@@ -90,31 +76,14 @@ export function VirtualSelect({ context, synapse }: TServiceParams) {
 
     // - Initialize value storage
     const loader = synapse.storage.wrapper<
-      STATE,
+      never,
       ATTRIBUTES,
-      SelectConfiguration
+      ImageConfiguration
     >({
-      load_keys: ["options", "current_option"],
       name: entity.name,
       registry: registry as TRegistry<unknown>,
       unique_id,
     });
-
-    // - Attach bus events
-    const SELECT_OPTION = synapse.registry.busTransfer({
-      context,
-      eventName: "select_option",
-      unique_id,
-    });
-
-    // - Attach static listener
-    if (is.function(entity.select_option)) {
-      proxy.onSelectOption(entity.select_option);
-    }
-
-    if (entity.managed !== false) {
-      proxy.onSelectOption(({ value }) => (proxy.state = value));
-    }
 
     // - Done
     return proxy;

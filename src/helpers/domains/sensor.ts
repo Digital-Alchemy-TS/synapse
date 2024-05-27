@@ -1,9 +1,8 @@
-import { TBlackHole, TContext } from "@digital-alchemy/core";
-import { PICK_ENTITY } from "@digital-alchemy/hass";
+import { TBlackHole } from "@digital-alchemy/core";
+import { Dayjs } from "dayjs";
 
 import { BaseEntityParams, BaseVirtualEntity } from "../base-domain.helper";
-import { BASE_CONFIG_KEYS, EntityConfigCommon } from "../common-config.helper";
-import { UpdateCallback } from "../event";
+import { EntityConfigCommon } from "../common-config.helper";
 
 type DurationSensor = {
   device_class: "duration";
@@ -314,7 +313,16 @@ export type SensorConfiguration = EntityConfigCommon &
      *
      * Note that the `datetime.datetime` returned by the `last_reset` property will be converted to an ISO 8601-formatted string when the entity's state attributes are updated. When changing `last_reset`, the `state` must be a valid number.
      */
-    last_reset?: Date;
+    last_reset?: Dayjs;
+    /**
+     * The unit of measurement to be used for the sensor's state.
+     * For sensors with a unique_id, this will be used as the initial unit of measurement, which users can then override.
+     * For sensors without a unique_id, this will be the unit of measurement for the sensor's state.
+     * This property is intended to be used by integrations to override automatic unit conversion rules, for example,
+     * to make a temperature sensor always display in °C regardless of whether the configured unit system prefers °C or °F,
+     * or to make a distance sensor always display in miles even if the configured unit system is metric.
+     */
+    suggested_unit_of_measurement?: string;
   } & (
     | {
         /**
@@ -340,7 +348,6 @@ export type SynapseVirtualSensor = BaseVirtualEntity<
   object,
   SensorConfiguration
 > & {
-  is_on: boolean;
   /**
    * bumps the last reset time
    */

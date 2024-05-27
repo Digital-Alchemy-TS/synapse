@@ -77,7 +77,12 @@ export function VirtualMediaPlayer({ context, synapse }: TServiceParams) {
         return undefined;
       },
 
-      ownKeys: () => [...VIRTUAL_ENTITY_BASE_KEYS, "onSetValue"],
+      ownKeys: () => [
+        ...VIRTUAL_ENTITY_BASE_KEYS,
+        "onPlayMedia",
+        "onSelectSoundMode",
+        "onSelectSource",
+      ],
 
       // #MARK: set
       set(_, property: string, value: unknown) {

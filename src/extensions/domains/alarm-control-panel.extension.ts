@@ -96,7 +96,16 @@ export function VirtualAlarmControlPanel({ context, synapse }: TServiceParams) {
         return undefined;
       },
 
-      ownKeys: () => [...VIRTUAL_ENTITY_BASE_KEYS, "onSetValue"],
+      ownKeys: () => [
+        ...VIRTUAL_ENTITY_BASE_KEYS,
+        "onArmCustomBypass",
+        "onTrigger",
+        "onArmVacation",
+        "onArmNight",
+        "onArmAway",
+        "onArmHome",
+        "onDisarm",
+      ],
 
       // #MARK: set
       set(_, property: string, value: unknown) {

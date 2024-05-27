@@ -8,7 +8,6 @@ export function EntityGenerator({
   logger,
 }: TServiceParams) {
   const sensor = synapse.sensor({
-    area_id: "bedroom",
     context,
     defaultAttributes: {
       destination: "saturn",
@@ -63,15 +62,19 @@ export function EntityGenerator({
 
   synapse.switch({
     context,
-    device_class: "outlet",
     name: "Example switch",
-    suggested_object_id: "example_the_special_switch",
   });
 
-  synapse.alarm_control_panel({
+  const acp = synapse.alarm_control_panel({
+    arm_night({ code }) {
+      logger.info({ code }, `arm_night called with code via static attachment`);
+    },
     context,
     name: "Example alarm panel",
   });
+  acp.onArmNight(({ code }) =>
+    logger.info({ code }, `arm_night called with code via dynamic attachment`),
+  );
 
   synapse.lock({
     context,
@@ -82,9 +85,9 @@ export function EntityGenerator({
 
   synapse.number({
     context,
-    max_value: 420,
-    min_value: 69,
     name: "Example number",
+    native_max_value: 420,
+    native_min_value: 69,
     suggested_object_id: "example_the_number",
   });
 }

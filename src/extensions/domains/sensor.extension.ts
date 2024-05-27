@@ -1,4 +1,5 @@
 import { TServiceParams } from "@digital-alchemy/core";
+import dayjs from "dayjs";
 
 import {
   SENSOR_DEVICE_CLASS_CONFIG_KEYS,
@@ -69,7 +70,7 @@ export function VirtualSensor({ context, synapse, logger }: TServiceParams) {
               `reset`,
             );
             // what it means to "reset" is up to dev
-            entity.last_reset = new Date();
+            entity.last_reset = dayjs();
           };
         }
         return undefined;

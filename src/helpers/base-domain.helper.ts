@@ -1,8 +1,6 @@
 import { TBlackHole, TContext } from "@digital-alchemy/core";
 import { ENTITY_STATE, PICK_ENTITY } from "@digital-alchemy/hass";
 
-import { RemoveReturn } from "./domains";
-
 export type BaseEntityParams<
   STATE extends unknown,
   ATTRIBUTES extends object = object,
@@ -18,9 +16,9 @@ export type UpdateCallback<ENTITY_ID extends PICK_ENTITY> = (
   callback: (
     new_state: NonNullable<ENTITY_STATE<ENTITY_ID>>,
     old_state: NonNullable<ENTITY_STATE<ENTITY_ID>>,
-    remove: () => TBlackHole,
+    remove: () => void,
   ) => TBlackHole,
-) => RemoveReturn;
+) => { remove: () => void };
 
 export type BaseVirtualEntity<
   STATE extends unknown,

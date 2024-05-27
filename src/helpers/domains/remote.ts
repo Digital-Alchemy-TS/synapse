@@ -19,7 +19,13 @@ export type SynapseRemoteParams = BaseEntityParams<RemoteStates> &
 type RemoteStates = never;
 
 export type RemoteConfiguration = EntityConfigCommon & {
+  /**
+   * Return the current active activity
+   */
   current_activity?: string;
+  /**
+   * Return the list of available activities
+   */
   activity_list?: string[];
   supported_features?: number;
 };

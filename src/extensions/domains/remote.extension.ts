@@ -92,7 +92,15 @@ export function VirtualRemote({ context, synapse }: TServiceParams) {
         return undefined;
       },
 
-      ownKeys: () => [...VIRTUAL_ENTITY_BASE_KEYS, "onSetValue"],
+      ownKeys: () => [
+        ...VIRTUAL_ENTITY_BASE_KEYS,
+        "onTurnOn",
+        "onTurnOff",
+        "onToggle",
+        "onSendCommand",
+        "onLearnCommand",
+        "onDeleteCommand",
+      ],
 
       // #MARK: set
       set(_, property: string, value: unknown) {

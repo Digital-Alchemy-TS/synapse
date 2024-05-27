@@ -7,6 +7,7 @@ export * from "./cover.extension";
 export * from "./date.extension";
 export * from "./datetime.extension";
 export * from "./fan.extension";
+export * from "./image.extension";
 export * from "./lawn-mower.extension";
 export * from "./light.extension";
 export * from "./lock.extension";

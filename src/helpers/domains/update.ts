@@ -31,6 +31,13 @@ export type UpdateConfiguration = EntityConfigCommon & {
    * The latest version of the software available.
    */
   latest_version?: string;
+  /**
+   * This method can be implemented so users can can get the full release notes in the more-info dialog of the Home Assistant Frontend before they install the update.
+   *
+   * The returned string can contain markdown, and the frontend will format that correctly.
+   *
+   * This method requires UpdateEntityFeature.RELEASE_NOTES to be set.
+   */
   release_notes?: string;
   /**
    * Summary of the release notes or changelog.

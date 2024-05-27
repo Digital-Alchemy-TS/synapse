@@ -94,7 +94,12 @@ export function VirtualNumber({ context, synapse }: TServiceParams) {
       ATTRIBUTES,
       NumberConfiguration
     >({
-      config_defaults: { max_value: 100, min_value: 0, mode: "auto", step: 1 },
+      config_defaults: {
+        mode: "auto",
+        native_max_value: 100,
+        native_min_value: 0,
+        step: 1,
+      },
       load_keys: ["mode", "max_value", "min_value", "step"],
       name: entity.name,
       registry: registry as TRegistry<unknown>,

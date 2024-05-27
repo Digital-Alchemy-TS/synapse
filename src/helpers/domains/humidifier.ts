@@ -15,7 +15,6 @@ export type SynapseHumidifierParams = BaseEntityParams<HumidifierStates> &
     turn_off?: RemovableCallback;
   };
 
-// supposed to be the same thing
 type HumidifierStates = "on" | "off";
 type HumidifierModes =
   | "normal"

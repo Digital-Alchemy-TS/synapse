@@ -97,7 +97,16 @@ export function VirtualFan({ context, synapse }: TServiceParams) {
         return undefined;
       },
 
-      ownKeys: () => [...VIRTUAL_ENTITY_BASE_KEYS, "onSetValue"],
+      ownKeys: () => [
+        ...VIRTUAL_ENTITY_BASE_KEYS,
+        "onSetDirection",
+        "onSetPresetMode",
+        "onSetPercentage",
+        "onTurnOn",
+        "onTurnOff",
+        "onToggle",
+        "onOscillate",
+      ],
 
       // #MARK: set
       set(_, property: string, value: unknown) {

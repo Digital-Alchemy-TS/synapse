@@ -5,7 +5,6 @@ import {
   RemovableCallback,
 } from "../base-domain.helper";
 import { EntityConfigCommon } from "../common-config.helper";
-import { SensorDeviceClasses } from "./sensor";
 
 export type SynapseDateParams = BaseEntityParams<string> &
   DateConfiguration & {
@@ -16,8 +15,6 @@ export type SynapseDateParams = BaseEntityParams<string> &
     managed?: boolean;
   };
 
-// supposed to be the same thing
-export type DateDeviceClasses = SensorDeviceClasses;
 type SetValueData = { value: string };
 
 export type DateConfiguration = EntityConfigCommon;

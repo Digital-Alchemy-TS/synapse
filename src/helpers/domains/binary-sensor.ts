@@ -10,10 +10,22 @@ export type SynapseVirtualBinarySensor = BaseVirtualEntity<
   BinarySensorValue,
   object,
   BinarySensorConfiguration
-> & { is_on: boolean };
+> & {
+  /**
+   * If the binary sensor is currently on or off.
+   */
+  is_on?: boolean;
+};
 
 export type BinarySensorConfiguration = EntityConfigCommon & {
+  /**
+   * Type of binary sensor.
+   */
   device_class?: `${BinarySensorDeviceClass}`;
+  /**
+   * If the binary sensor is currently on or off.
+   */
+  is_on?: boolean;
 };
 
 export type BinarySensorValue = "on" | "off";

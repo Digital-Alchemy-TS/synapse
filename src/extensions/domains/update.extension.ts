@@ -67,7 +67,7 @@ export function VirtualUpdate({ context, synapse }: TServiceParams) {
         return undefined;
       },
 
-      ownKeys: () => [...VIRTUAL_ENTITY_BASE_KEYS, "onSetValue"],
+      ownKeys: () => [...VIRTUAL_ENTITY_BASE_KEYS, "onInstall"],
 
       // #MARK: set
       set(_, property: string, value: unknown) {

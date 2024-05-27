@@ -16,7 +16,6 @@ export type SynapseNumberParams = BaseEntityParams<number> &
     managed?: boolean;
   };
 
-// supposed to be the same thing
 export type NumberDeviceClasses = SensorDeviceClasses;
 type SetValueData = { value: number };
 
@@ -28,8 +27,17 @@ export type NumberConfiguration = EntityConfigCommon &
      * Can be `box` or `slider` to force a display mode.
      */
     mode?: "auto" | "slider" | "box";
-    max_value?: number;
-    min_value?: number;
+    /**
+     * The maximum accepted value in the number's native_unit_of_measurement (inclusive)
+     */
+    native_max_value?: number;
+    /**
+     * The minimum accepted value in the number's native_unit_of_measurement (inclusive)
+     */
+    native_min_value?: number;
+    /**
+     * Defines the resolution of the values, i.e. the smallest increment or decrement in the number's
+     */
     step?: number;
   };
 

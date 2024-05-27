@@ -5,7 +5,6 @@ import {
   RemovableCallback,
 } from "../base-domain.helper";
 import { EntityConfigCommon } from "../common-config.helper";
-import { SensorDeviceClasses } from "./sensor";
 
 export type SynapseAlarmControlPanelParams =
   BaseEntityParams<AlarmControlPanelStates> &
@@ -19,7 +18,6 @@ export type SynapseAlarmControlPanelParams =
       disarm?: RemovableCallback<SetValueData>;
     };
 
-// supposed to be the same thing
 type AlarmControlPanelStates =
   | "disarmed"
   | "armed_home"
@@ -31,19 +29,25 @@ type AlarmControlPanelStates =
   | "arming"
   | "disarming"
   | "triggered";
-export type AlarmControlPanelDeviceClasses = SensorDeviceClasses;
 type SetValueData = { code: string };
 
-export type AlarmControlPanelConfiguration = EntityConfigCommon &
-  AlarmControlPanelDeviceClasses & {
-    /**
-     * default: true
-     */
-    code_arm_required?: boolean;
-    code_format?: "number" | "text";
-    changed_by?: string;
-    supported_features?: number;
-  };
+export type AlarmControlPanelConfiguration = EntityConfigCommon & {
+  /**
+   * Whether the code is required for arm actions.
+   *
+   * default: true
+   */
+  code_arm_required?: boolean;
+  /**
+   * One of the states listed in the code formats section.
+   */
+  code_format?: "number" | "text";
+  /**
+   * Last change triggered by.
+   */
+  changed_by?: string;
+  supported_features?: number;
+};
 
 export type SynapseVirtualAlarmControlPanel = BaseVirtualEntity<
   AlarmControlPanelStates,

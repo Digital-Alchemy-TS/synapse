@@ -75,7 +75,7 @@ export function VirtualVacuum({ context, synapse }: TServiceParams) {
           return (callback: RemovableCallback) =>
             synapse.registry.removableListener(RETURN_TO_BASE, callback);
         }
-        if (property === "onSend_command") {
+        if (property === "onSendCommand") {
           return (callback: RemovableCallback) =>
             synapse.registry.removableListener(SEND_COMMAND, callback);
         }
@@ -94,7 +94,17 @@ export function VirtualVacuum({ context, synapse }: TServiceParams) {
         return undefined;
       },
 
-      ownKeys: () => [...VIRTUAL_ENTITY_BASE_KEYS, "onSetValue"],
+      ownKeys: () => [
+        ...VIRTUAL_ENTITY_BASE_KEYS,
+        "onCleanSpot",
+        "onLocate",
+        "onPause",
+        "onReturnToBase",
+        "onSendCommand",
+        "onSetFanSpeed",
+        "onStart",
+        "onStop",
+      ],
 
       // #MARK: set
       set(_, property: string, value: unknown) {
@@ -189,7 +199,7 @@ export function VirtualVacuum({ context, synapse }: TServiceParams) {
       proxy.onReturnToBase(entity.return_to_base);
     }
     if (is.function(entity.send_command)) {
-      proxy.onSend_command(entity.send_command);
+      proxy.onSendCommand(entity.send_command);
     }
     if (is.function(entity.set_fan_speed)) {
       proxy.onSetFanSpeed(entity.set_fan_speed);

@@ -5,7 +5,6 @@ import {
   RemovableCallback,
 } from "../base-domain.helper";
 import { EntityConfigCommon } from "../common-config.helper";
-import { SensorDeviceClasses } from "./sensor";
 
 export type SynapseTextParams = BaseEntityParams<string> &
   TextConfiguration & {
@@ -16,14 +15,24 @@ export type SynapseTextParams = BaseEntityParams<string> &
     managed?: boolean;
   };
 
-// supposed to be the same thing
-export type TextDeviceClasses = SensorDeviceClasses;
 type SetValueData = { value: string };
 
 export type TextConfiguration = EntityConfigCommon & {
+  /**
+   * Defines how the text should be displayed in the UI. Can be text or password.
+   */
   mode?: "text" | "password";
-  max?: number;
-  min?: number;
+  /**
+   * The maximum number of characters in the text value (inclusive).
+   */
+  native_max?: number;
+  /**
+   * The minimum number of characters in the text value (inclusive).
+   */
+  native_min?: number;
+  /**
+   * A regex pattern that the text value must match to be valid.
+   */
   pattern?: string;
 };
 

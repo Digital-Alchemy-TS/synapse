@@ -107,7 +107,18 @@ export function VirtualClimate({ context, synapse }: TServiceParams) {
         return undefined;
       },
 
-      ownKeys: () => [...VIRTUAL_ENTITY_BASE_KEYS, "onSetValue"],
+      ownKeys: () => [
+        ...VIRTUAL_ENTITY_BASE_KEYS,
+        "onSetHvacMode",
+        "onTurnOn",
+        "onTurnOff",
+        "onToggle",
+        "onSetPresetMode",
+        "onSetFanMode",
+        "onSetHumidity",
+        "onSetSwingMode",
+        "onSetTemperature",
+      ],
 
       // #MARK: set
       set(_, property: string, value: unknown) {

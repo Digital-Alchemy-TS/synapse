@@ -1,10 +1,4 @@
-import { TAreaId } from "@digital-alchemy/hass";
-
 export type EntityConfigCommon = {
-  /**
-   * Area to provide the entity in
-   */
-  area_id?: TAreaId;
   /**
    * Attempt to create the entity id using this string
    *

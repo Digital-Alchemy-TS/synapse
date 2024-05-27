@@ -77,7 +77,12 @@ export function VirtualHumidifier({ context, synapse }: TServiceParams) {
         return undefined;
       },
 
-      ownKeys: () => [...VIRTUAL_ENTITY_BASE_KEYS, "onSetValue"],
+      ownKeys: () => [
+        ...VIRTUAL_ENTITY_BASE_KEYS,
+        "onTurnOn",
+        "onTurnOff",
+        "onSetHumidity",
+      ],
 
       // #MARK: set
       set(_, property: string, value: unknown) {
