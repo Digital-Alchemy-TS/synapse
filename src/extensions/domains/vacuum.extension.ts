@@ -144,44 +144,27 @@ export function VirtualVacuum({ context, synapse }: TServiceParams) {
     });
 
     // - Attach bus events
-    const CLEAN_SPOT = synapse.registry.busTransfer({
+    const [
+      CLEAN_SPOT,
+      LOCATE,
+      PAUSE,
+      RETURN_TO_BASE,
+      SEND_COMMAND,
+      SET_FAN_SPEED,
+      START,
+      STOP,
+    ] = synapse.registry.busTransfer({
       context,
-      eventName: "clean_spot",
-      unique_id,
-    });
-    const LOCATE = synapse.registry.busTransfer({
-      context,
-      eventName: "locate",
-      unique_id,
-    });
-    const PAUSE = synapse.registry.busTransfer({
-      context,
-      eventName: "pause",
-      unique_id,
-    });
-    const RETURN_TO_BASE = synapse.registry.busTransfer({
-      context,
-      eventName: "return_to_base",
-      unique_id,
-    });
-    const SEND_COMMAND = synapse.registry.busTransfer({
-      context,
-      eventName: "send_command",
-      unique_id,
-    });
-    const SET_FAN_SPEED = synapse.registry.busTransfer({
-      context,
-      eventName: "set_fan_speed",
-      unique_id,
-    });
-    const START = synapse.registry.busTransfer({
-      context,
-      eventName: "start",
-      unique_id,
-    });
-    const STOP = synapse.registry.busTransfer({
-      context,
-      eventName: "stop",
+      eventName: [
+        "clean_spot",
+        "locate",
+        "pause",
+        "return_to_base",
+        "send_command",
+        "set_fan_speed",
+        "start",
+        "stop",
+      ],
       unique_id,
     });
 

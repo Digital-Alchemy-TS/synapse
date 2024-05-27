@@ -145,39 +145,25 @@ export function VirtualAlarmControlPanel({ context, synapse }: TServiceParams) {
     });
 
     // - Attach bus events
-    const ARM_CUSTOM_BYPASS = synapse.registry.busTransfer({
+    const [
+      ARM_CUSTOM_BYPASS,
+      TRIGGER,
+      ARM_VACATION,
+      ARM_NIGHT,
+      ARM_AWAY,
+      ARM_HOME,
+      DISARM,
+    ] = synapse.registry.busTransfer({
       context,
-      eventName: "alarm_arm_custom_bypass",
-      unique_id,
-    });
-    const TRIGGER = synapse.registry.busTransfer({
-      context,
-      eventName: "alarm_trigger",
-      unique_id,
-    });
-    const ARM_VACATION = synapse.registry.busTransfer({
-      context,
-      eventName: "alarm_arm_vacation",
-      unique_id,
-    });
-    const ARM_NIGHT = synapse.registry.busTransfer({
-      context,
-      eventName: "alarm_arm_night",
-      unique_id,
-    });
-    const ARM_AWAY = synapse.registry.busTransfer({
-      context,
-      eventName: "alarm_arm_away",
-      unique_id,
-    });
-    const ARM_HOME = synapse.registry.busTransfer({
-      context,
-      eventName: "alarm_arm_home",
-      unique_id,
-    });
-    const DISARM = synapse.registry.busTransfer({
-      context,
-      eventName: "alarm_disarm",
+      eventName: [
+        "alarm_arm_custom_bypass",
+        "alarm_trigger",
+        "alarm_arm_vacation",
+        "alarm_arm_night",
+        "alarm_arm_away",
+        "alarm_arm_home",
+        "alarm_disarm",
+      ],
       unique_id,
     });
 

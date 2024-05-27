@@ -100,9 +100,9 @@ export function VirtualDate({ context, synapse }: TServiceParams) {
     });
 
     // - Attach bus events
-    const SET_VALUE = synapse.registry.busTransfer({
+    const [SET_VALUE] = synapse.registry.busTransfer({
       context,
-      eventName: "set_value",
+      eventName: ["set_value"],
       unique_id,
     });
 

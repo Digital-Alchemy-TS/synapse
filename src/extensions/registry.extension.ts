@@ -250,20 +250,24 @@ export function Registry({
      * Listen for specific socket events, and transfer to internal event bus
      */
     busTransfer({ context, eventName, unique_id }: BusTransferOptions) {
-      const target = `synapse/${eventName}/${unique_id}`;
-      const source = name(eventName);
-      hass.socket.onEvent({
-        context,
-        event: source,
-        exec({ data }: BaseEvent) {
-          if (data.unique_id !== unique_id) {
-            return;
-          }
-          event.emit(target, data);
-        },
+      const out = [] as string[];
+      eventName.forEach(eventName => {
+        const target = `synapse/${eventName}/${unique_id}`;
+        out.push(target);
+        const source = name(eventName);
+        hass.socket.onEvent({
+          context,
+          event: source,
+          exec({ data }: BaseEvent) {
+            if (data.unique_id !== unique_id) {
+              return;
+            }
+            event.emit(target, data);
+          },
+        });
+        logger.debug({ source, target }, `setting up bus transfer`);
       });
-      logger.debug({ source, target }, `setting up bus transfer`);
-      return target;
+      return out;
     },
     create,
     eventName: name,
@@ -285,7 +289,7 @@ export function Registry({
 
 type BusTransferOptions = {
   context: TContext;
-  eventName: string;
+  eventName: string[];
   unique_id: TSynapseId;
 };
 

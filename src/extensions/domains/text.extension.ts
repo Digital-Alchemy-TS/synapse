@@ -94,16 +94,16 @@ export function VirtualText({ context, synapse }: TServiceParams) {
       ATTRIBUTES,
       TextConfiguration
     >({
-      load_keys: ["mode", "max", "min", "pattern"],
+      load_keys: ["mode", "native_max", "native_min", "pattern"],
       name: entity.name,
       registry: registry as TRegistry<unknown>,
       unique_id,
     });
 
     // - Attach bus events
-    const SET_VALUE = synapse.registry.busTransfer({
+    const [SET_VALUE] = synapse.registry.busTransfer({
       context,
-      eventName: "set_value",
+      eventName: ["set_value"],
       unique_id,
     });
 

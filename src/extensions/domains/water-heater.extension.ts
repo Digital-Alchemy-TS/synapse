@@ -147,34 +147,23 @@ export function VirtualWaterHeater({ context, synapse }: TServiceParams) {
     });
 
     // - Attach bus events
-    const SET_TEMPERATURE = synapse.registry.busTransfer({
+    const [
+      SET_TEMPERATURE,
+      SET_OPERATION_MODE,
+      TURN_AWAY_MODE_ON,
+      TURN_AWAY_MODE_OFF,
+      TURN_ON,
+      TURN_OFF,
+    ] = synapse.registry.busTransfer({
       context,
-      eventName: "set_temperature",
-      unique_id,
-    });
-    const SET_OPERATION_MODE = synapse.registry.busTransfer({
-      context,
-      eventName: "set_operation_mode",
-      unique_id,
-    });
-    const TURN_AWAY_MODE_ON = synapse.registry.busTransfer({
-      context,
-      eventName: "turn_away_mode_on",
-      unique_id,
-    });
-    const TURN_AWAY_MODE_OFF = synapse.registry.busTransfer({
-      context,
-      eventName: "turn_away_mode_off",
-      unique_id,
-    });
-    const TURN_ON = synapse.registry.busTransfer({
-      context,
-      eventName: "turn_on",
-      unique_id,
-    });
-    const TURN_OFF = synapse.registry.busTransfer({
-      context,
-      eventName: "turn_off",
+      eventName: [
+        "set_temperature",
+        "set_operation_mode",
+        "turn_away_mode_on",
+        "turn_away_mode_off",
+        "turn_on",
+        "turn_off",
+      ],
       unique_id,
     });
 

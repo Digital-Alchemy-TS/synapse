@@ -101,9 +101,9 @@ export function VirtualSelect({ context, synapse }: TServiceParams) {
     });
 
     // - Attach bus events
-    const SELECT_OPTION = synapse.registry.busTransfer({
+    const [SELECT_OPTION] = synapse.registry.busTransfer({
       context,
-      eventName: "select_option",
+      eventName: ["select_option"],
       unique_id,
     });
 

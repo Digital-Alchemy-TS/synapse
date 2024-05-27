@@ -62,17 +62,17 @@ export function VirtualTodoList({ context, synapse }: TServiceParams) {
         // * onCreateTodoItem
         if (property === "onCreateTodoItem") {
           return (callback: RemovableCallback) =>
-            synapse.registry.removableListener(INSTALL, callback);
+            synapse.registry.removableListener(CREATE_TODO_ITEM, callback);
         }
         // * onDeleteTodoItem
         if (property === "onDeleteTodoItem") {
           return (callback: RemovableCallback) =>
-            synapse.registry.removableListener(INSTALL, callback);
+            synapse.registry.removableListener(DELETE_TODO_ITEM, callback);
         }
         // * onMoveTodoItem
         if (property === "onMoveTodoItem") {
           return (callback: RemovableCallback) =>
-            synapse.registry.removableListener(INSTALL, callback);
+            synapse.registry.removableListener(MOVE_TODO_ITEM, callback);
         }
         return undefined;
       },
@@ -117,11 +117,12 @@ export function VirtualTodoList({ context, synapse }: TServiceParams) {
     });
 
     // - Attach bus events
-    const INSTALL = synapse.registry.busTransfer({
-      context,
-      eventName: "install",
-      unique_id,
-    });
+    const [CREATE_TODO_ITEM, DELETE_TODO_ITEM, MOVE_TODO_ITEM] =
+      synapse.registry.busTransfer({
+        context,
+        eventName: ["create_todo_item", "delete_todo_item", "move_todo_item"],
+        unique_id,
+      });
 
     // - Attach static listener
     if (is.function(entity.create_todo_item)) {

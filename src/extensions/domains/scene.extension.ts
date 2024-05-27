@@ -92,9 +92,9 @@ export function VirtualScene({ context, synapse }: TServiceParams) {
     });
 
     // - Attach bus events
-    const ACTIVATE = synapse.registry.busTransfer({
+    const [ACTIVATE] = synapse.registry.busTransfer({
       context,
-      eventName: "activate",
+      eventName: ["activate"],
       unique_id,
     });
 

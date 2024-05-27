@@ -125,21 +125,9 @@ export function VirtualSwitch({ context, synapse, logger }: TServiceParams) {
     });
 
     // - Attach bus events
-    const TURN_OFF = synapse.registry.busTransfer({
+    const [TURN_OFF, TOGGLE, TURN_ON] = synapse.registry.busTransfer({
       context,
-      eventName: "turn_off",
-      unique_id,
-    });
-
-    const TOGGLE = synapse.registry.busTransfer({
-      context,
-      eventName: "toggle",
-      unique_id,
-    });
-
-    const TURN_ON = synapse.registry.busTransfer({
-      context,
-      eventName: "turn_on",
+      eventName: ["turn_off", "toggle", "turn_on"],
       unique_id,
     });
 

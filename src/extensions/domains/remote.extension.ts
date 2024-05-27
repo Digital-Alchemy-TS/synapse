@@ -135,39 +135,23 @@ export function VirtualRemote({ context, synapse }: TServiceParams) {
     });
 
     // - Attach bus events
-    const TURN_ON = synapse.registry.busTransfer({
+    const [
+      TURN_ON,
+      TURN_OFF,
+      TOGGLE,
+      SEND_COMMAND,
+      LEARN_COMMAND,
+      DELETE_COMMAND,
+    ] = synapse.registry.busTransfer({
       context,
-      eventName: "turn_on",
-      unique_id,
-    });
-
-    const TURN_OFF = synapse.registry.busTransfer({
-      context,
-      eventName: "turn_off",
-      unique_id,
-    });
-
-    const TOGGLE = synapse.registry.busTransfer({
-      context,
-      eventName: "toggle",
-      unique_id,
-    });
-
-    const SEND_COMMAND = synapse.registry.busTransfer({
-      context,
-      eventName: "send_command",
-      unique_id,
-    });
-
-    const LEARN_COMMAND = synapse.registry.busTransfer({
-      context,
-      eventName: "learn_command",
-      unique_id,
-    });
-
-    const DELETE_COMMAND = synapse.registry.busTransfer({
-      context,
-      eventName: "delete_command",
+      eventName: [
+        "turn_on",
+        "turn_off",
+        "toggle",
+        "send_command",
+        "learn_command",
+        "delete_command",
+      ],
       unique_id,
     });
 

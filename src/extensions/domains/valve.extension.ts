@@ -131,26 +131,17 @@ export function VirtualValve({ context, synapse }: TServiceParams) {
     });
 
     // - Attach bus events
-    const OPEN_VALVE = synapse.registry.busTransfer({
-      context,
-      eventName: "open_valve",
-      unique_id,
-    });
-    const CLOSE_VALVE = synapse.registry.busTransfer({
-      context,
-      eventName: "close_valve",
-      unique_id,
-    });
-    const SET_VALVE_POSITION = synapse.registry.busTransfer({
-      context,
-      eventName: "set_valve_position",
-      unique_id,
-    });
-    const STOP_VALVE = synapse.registry.busTransfer({
-      context,
-      eventName: "stop_valve",
-      unique_id,
-    });
+    const [OPEN_VALVE, CLOSE_VALVE, SET_VALVE_POSITION, STOP_VALVE] =
+      synapse.registry.busTransfer({
+        context,
+        eventName: [
+          "open_valve",
+          "close_valve",
+          "set_valve_position",
+          "stop_valve",
+        ],
+        unique_id,
+      });
 
     // - Attach static listener
     if (is.function(entity.open_valve)) {

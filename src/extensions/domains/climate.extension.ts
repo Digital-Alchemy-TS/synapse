@@ -176,49 +176,29 @@ export function VirtualClimate({ context, synapse }: TServiceParams) {
     });
 
     // - Attach bus events
-    const SET_HVAC_MODE = synapse.registry.busTransfer({
+    const [
+      SET_HVAC_MODE,
+      TURN_ON,
+      TURN_OFF,
+      TOGGLE,
+      SET_PRESET_MODE,
+      SET_FAN_MODE,
+      SET_HUMIDITY,
+      SET_SWING_MODE,
+      SET_TEMPERATURE,
+    ] = synapse.registry.busTransfer({
       context,
-      eventName: "set_hvac_mode",
-      unique_id,
-    });
-    const TURN_ON = synapse.registry.busTransfer({
-      context,
-      eventName: "turn_on",
-      unique_id,
-    });
-    const TURN_OFF = synapse.registry.busTransfer({
-      context,
-      eventName: "turn_off",
-      unique_id,
-    });
-    const TOGGLE = synapse.registry.busTransfer({
-      context,
-      eventName: "toggle",
-      unique_id,
-    });
-    const SET_PRESET_MODE = synapse.registry.busTransfer({
-      context,
-      eventName: "set_preset_mode",
-      unique_id,
-    });
-    const SET_FAN_MODE = synapse.registry.busTransfer({
-      context,
-      eventName: "set_fan_mode",
-      unique_id,
-    });
-    const SET_HUMIDITY = synapse.registry.busTransfer({
-      context,
-      eventName: "set_humidity",
-      unique_id,
-    });
-    const SET_SWING_MODE = synapse.registry.busTransfer({
-      context,
-      eventName: "set_swing_mode",
-      unique_id,
-    });
-    const SET_TEMPERATURE = synapse.registry.busTransfer({
-      context,
-      eventName: "set_temperature",
+      eventName: [
+        "set_hvac_mode",
+        "turn_on",
+        "turn_off",
+        "toggle",
+        "set_preset_mode",
+        "set_fan_mode",
+        "set_humidity",
+        "set_swing_mode",
+        "set_temperature",
+      ],
       unique_id,
     });
 

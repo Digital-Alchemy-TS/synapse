@@ -117,19 +117,9 @@ export function VirtualLawnMower({ context, synapse }: TServiceParams) {
     });
 
     // - Attach bus events
-    const START_MOWING = synapse.registry.busTransfer({
+    const [START_MOWING, DOCK, PAUSE] = synapse.registry.busTransfer({
       context,
-      eventName: "start_mowing",
-      unique_id,
-    });
-    const DOCK = synapse.registry.busTransfer({
-      context,
-      eventName: "dock",
-      unique_id,
-    });
-    const PAUSE = synapse.registry.busTransfer({
-      context,
-      eventName: "pause",
+      eventName: ["start_mowing", "dock", "pause"],
       unique_id,
     });
 

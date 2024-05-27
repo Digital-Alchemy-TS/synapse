@@ -147,39 +147,25 @@ export function VirtualFan({ context, synapse }: TServiceParams) {
     );
 
     // - Attach bus events
-    const SET_DIRECTION = synapse.registry.busTransfer({
+    const [
+      SET_DIRECTION,
+      SET_PRESET_MODE,
+      SET_PERCENTAGE,
+      TURN_ON,
+      TURN_OFF,
+      TOGGLE,
+      OSCILLATE,
+    ] = synapse.registry.busTransfer({
       context,
-      eventName: "set_direction",
-      unique_id,
-    });
-    const SET_PRESET_MODE = synapse.registry.busTransfer({
-      context,
-      eventName: "set_preset_mode",
-      unique_id,
-    });
-    const SET_PERCENTAGE = synapse.registry.busTransfer({
-      context,
-      eventName: "set_percentage",
-      unique_id,
-    });
-    const TURN_ON = synapse.registry.busTransfer({
-      context,
-      eventName: "turn_on",
-      unique_id,
-    });
-    const TURN_OFF = synapse.registry.busTransfer({
-      context,
-      eventName: "turn_off",
-      unique_id,
-    });
-    const TOGGLE = synapse.registry.busTransfer({
-      context,
-      eventName: "toggle",
-      unique_id,
-    });
-    const OSCILLATE = synapse.registry.busTransfer({
-      context,
-      eventName: "oscillate",
+      eventName: [
+        "set_direction",
+        "set_preset_mode",
+        "set_percentage",
+        "turn_on",
+        "turn_off",
+        "toggle",
+        "oscillate",
+      ],
       unique_id,
     });
 

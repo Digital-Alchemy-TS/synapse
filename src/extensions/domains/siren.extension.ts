@@ -107,15 +107,9 @@ export function VirtualSiren({ context, synapse }: TServiceParams) {
     });
 
     // - Attach bus events
-    const TURN_OFF = synapse.registry.busTransfer({
+    const [TURN_OFF, TURN_ON] = synapse.registry.busTransfer({
       context,
-      eventName: "turn_off",
-      unique_id,
-    });
-
-    const TURN_ON = synapse.registry.busTransfer({
-      context,
-      eventName: "turn_on",
+      eventName: ["turn_off", "turn_on"],
       unique_id,
     });
 

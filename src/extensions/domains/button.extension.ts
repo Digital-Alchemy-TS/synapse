@@ -90,9 +90,9 @@ export function VirtualButton({ context, synapse }: TServiceParams) {
     });
 
     // - Attach bus events
-    const PRESS_EVENT = synapse.registry.busTransfer({
+    const [PRESS_EVENT] = synapse.registry.busTransfer({
       context,
-      eventName: "press",
+      eventName: ["press"],
       unique_id,
     });
 

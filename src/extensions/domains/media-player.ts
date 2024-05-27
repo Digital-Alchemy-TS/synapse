@@ -150,23 +150,12 @@ export function VirtualMediaPlayer({ context, synapse }: TServiceParams) {
     });
 
     // - Attach bus events
-    const PLAY_MEDIA = synapse.registry.busTransfer({
-      context,
-      eventName: "play_media",
-      unique_id,
-    });
-
-    const SELECT_SOUND_MODE = synapse.registry.busTransfer({
-      context,
-      eventName: "select_sound_mode",
-      unique_id,
-    });
-
-    const SELECT_SOURCE = synapse.registry.busTransfer({
-      context,
-      eventName: "select_source",
-      unique_id,
-    });
+    const [PLAY_MEDIA, SELECT_SOUND_MODE, SELECT_SOURCE] =
+      synapse.registry.busTransfer({
+        context,
+        eventName: ["play_media", "select_sound_mode", "select_source"],
+        unique_id,
+      });
 
     // - Attach static listener
     if (is.function(entity.play_media)) {

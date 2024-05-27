@@ -126,21 +126,9 @@ export function VirtualLock({ context, synapse, logger }: TServiceParams) {
     });
 
     // - Attach bus events
-    const LOCK = synapse.registry.busTransfer({
+    const [LOCK, UNLOCK, OPEN] = synapse.registry.busTransfer({
       context,
-      eventName: "lock",
-      unique_id,
-    });
-
-    const UNLOCK = synapse.registry.busTransfer({
-      context,
-      eventName: "unlock",
-      unique_id,
-    });
-
-    const OPEN = synapse.registry.busTransfer({
-      context,
-      eventName: "open",
+      eventName: ["lock", "unlock", "open"],
       unique_id,
     });
 

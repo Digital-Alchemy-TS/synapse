@@ -157,44 +157,27 @@ export function VirtualCover({ context, synapse }: TServiceParams) {
     });
 
     // - Attach bus events
-    const STOP_COVER_TILT = synapse.registry.busTransfer({
+    const [
+      STOP_COVER_TILT,
+      SET_COVER_TILT_POSITION,
+      CLOSE_COVER_TILT,
+      OPEN_COVER_TILT,
+      STOP_COVER,
+      SET_COVER_POSITION,
+      CLOSE_COVER,
+      OPEN_COVER,
+    ] = synapse.registry.busTransfer({
       context,
-      eventName: "stop_cover_tilt",
-      unique_id,
-    });
-    const SET_COVER_TILT_POSITION = synapse.registry.busTransfer({
-      context,
-      eventName: "set_cover_tilt_position",
-      unique_id,
-    });
-    const CLOSE_COVER_TILT = synapse.registry.busTransfer({
-      context,
-      eventName: "close_cover_tilt",
-      unique_id,
-    });
-    const OPEN_COVER_TILT = synapse.registry.busTransfer({
-      context,
-      eventName: "open_cover_tilt",
-      unique_id,
-    });
-    const STOP_COVER = synapse.registry.busTransfer({
-      context,
-      eventName: "stop_cover",
-      unique_id,
-    });
-    const SET_COVER_POSITION = synapse.registry.busTransfer({
-      context,
-      eventName: "set_cover_position",
-      unique_id,
-    });
-    const CLOSE_COVER = synapse.registry.busTransfer({
-      context,
-      eventName: "close_cover",
-      unique_id,
-    });
-    const OPEN_COVER = synapse.registry.busTransfer({
-      context,
-      eventName: "open_cover",
+      eventName: [
+        "stop_cover_tilt",
+        "set_cover_tilt_position",
+        "close_cover_tilt",
+        "open_cover_tilt",
+        "stop_cover",
+        "set_cover_position",
+        "close_cover",
+        "open_cover",
+      ],
       unique_id,
     });
 

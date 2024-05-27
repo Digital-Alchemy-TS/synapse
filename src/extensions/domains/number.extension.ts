@@ -100,16 +100,16 @@ export function VirtualNumber({ context, synapse }: TServiceParams) {
         native_min_value: 0,
         step: 1,
       },
-      load_keys: ["mode", "max_value", "min_value", "step"],
+      load_keys: ["mode", "native_max_value", "native_min_value", "step"],
       name: entity.name,
       registry: registry as TRegistry<unknown>,
       unique_id,
     });
 
     // - Attach bus events
-    const SET_VALUE = synapse.registry.busTransfer({
+    const [SET_VALUE] = synapse.registry.busTransfer({
       context,
-      eventName: "native_set_value",
+      eventName: ["native_set_value"],
       unique_id,
     });
 

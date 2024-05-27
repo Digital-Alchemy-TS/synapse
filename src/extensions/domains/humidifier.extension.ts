@@ -127,19 +127,9 @@ export function VirtualHumidifier({ context, synapse }: TServiceParams) {
     });
 
     // - Attach bus events
-    const TURN_ON = synapse.registry.busTransfer({
+    const [TURN_ON, TURN_OFF, SET_HUMIDITY] = synapse.registry.busTransfer({
       context,
-      eventName: "turn_on",
-      unique_id,
-    });
-    const TURN_OFF = synapse.registry.busTransfer({
-      context,
-      eventName: "turn_off",
-      unique_id,
-    });
-    const SET_HUMIDITY = synapse.registry.busTransfer({
-      context,
-      eventName: "set_humidity",
+      eventName: ["turn_on", "turn_off", "set_humidity"],
       unique_id,
     });
 

@@ -90,9 +90,9 @@ export function VirtualNotify({ context, synapse }: TServiceParams) {
     });
 
     // - Attach bus events
-    const SEND_MESSAGE = synapse.registry.busTransfer({
+    const [SEND_MESSAGE] = synapse.registry.busTransfer({
       context,
-      eventName: "send_message",
+      eventName: ["send_message"],
       unique_id,
     });
 

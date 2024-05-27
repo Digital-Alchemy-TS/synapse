@@ -113,9 +113,9 @@ export function VirtualUpdate({ context, synapse }: TServiceParams) {
     });
 
     // - Attach bus events
-    const INSTALL = synapse.registry.busTransfer({
+    const [INSTALL] = synapse.registry.busTransfer({
       context,
-      eventName: "install",
+      eventName: ["install"],
       unique_id,
     });
 
