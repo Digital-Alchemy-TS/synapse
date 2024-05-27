@@ -1,6 +1,6 @@
 import { is, TBlackHole, TServiceParams } from "@digital-alchemy/core";
 
-import { TRegistry, VIRTUAL_ENTITY_BASE_KEYS } from "../..";
+import { isBaseEntityKeys, TRegistry, VIRTUAL_ENTITY_BASE_KEYS } from "../..";
 import {
   ButtonConfiguration,
   SynapseButtonParams,
@@ -23,33 +23,8 @@ export function VirtualButton({ context, synapse }: TServiceParams) {
       // #MARK: get
       get(_, property: keyof SynapseVirtualButton) {
         // > common
-        // * name
-        if (property === "name") {
-          return entity.name;
-        }
-        // * unique_id
-        if (property === "unique_id") {
-          return unique_id;
-        }
-        // * onUpdate
-        if (property === "onUpdate") {
-          return loader.onUpdate();
-        }
-        // * _rawConfiguration
-        if (property === "_rawConfiguration") {
-          return loader.configuration;
-        }
-        // * _rawAttributes
-        if (property === "_rawAttributes") {
-          return loader.attributes;
-        }
-        // * attributes
-        if (property === "attributes") {
-          return loader.attributesProxy();
-        }
-        // * configuration
-        if (property === "configuration") {
-          return loader.configurationProxy();
+        if (isBaseEntityKeys(property)) {
+          return loader.baseGet(property);
         }
         // > domain specific
         // * onPress

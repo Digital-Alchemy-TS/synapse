@@ -56,6 +56,7 @@ export const VIRTUAL_ENTITY_BASE_KEYS = [
   "name",
   "state",
   "onUpdate",
+  "unique_id",
 ];
 
 export type RemovableCallback<DATA extends unknown = unknown> = (

@@ -1,6 +1,7 @@
 import { is, TServiceParams } from "@digital-alchemy/core";
 
 import {
+  isBaseEntityKeys,
   MediaPlayerConfiguration,
   RemovableCallback,
   SynapseMediaPlayerParams,
@@ -26,37 +27,8 @@ export function VirtualMediaPlayer({ context, synapse }: TServiceParams) {
       // eslint-disable-next-line sonarjs/cognitive-complexity
       get(_, property: keyof SynapseVirtualMediaPlayer) {
         // > common
-        // * name
-        if (property === "name") {
-          return entity.name;
-        }
-        // * unique_id
-        if (property === "unique_id") {
-          return unique_id;
-        }
-        // * onUpdate
-        if (property === "onUpdate") {
-          return loader.onUpdate();
-        }
-        // * _rawConfiguration
-        if (property === "_rawConfiguration") {
-          return loader.configuration;
-        }
-        // * _rawAttributes
-        if (property === "_rawAttributes") {
-          return loader.attributes;
-        }
-        // * attributes
-        if (property === "attributes") {
-          return loader.attributesProxy();
-        }
-        // * configuration
-        if (property === "configuration") {
-          return loader.configurationProxy();
-        }
-        // * state
-        if (property === "state") {
-          return loader.state;
+        if (isBaseEntityKeys(property)) {
+          return loader.baseGet(property);
         }
         // > domain specific
         // * onPlayMedia

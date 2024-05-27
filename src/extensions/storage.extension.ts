@@ -1,7 +1,12 @@
 import { each, is, TBlackHole, TServiceParams } from "@digital-alchemy/core";
 import { ENTITY_STATE, PICK_ENTITY } from "@digital-alchemy/hass";
 
-import { BASE_CONFIG_KEYS, BaseEntityParams, TSynapseId } from "..";
+import {
+  BASE_CONFIG_KEYS,
+  BaseEntityParams,
+  TSynapseId,
+  VIRTUAL_ENTITY_BASE_KEYS,
+} from "..";
 import { TRegistry } from ".";
 
 type LoaderOptions<CONFIGURATION extends object> = {
@@ -116,6 +121,35 @@ export function ValueStorage({ logger, lifecycle, hass }: TServiceParams) {
             return true;
           },
         });
+      },
+
+      baseGet(keys: BaseEntityKeys) {
+        switch (keys) {
+          case "name": {
+            return name;
+          }
+          case "unique_id": {
+            return unique_id;
+          }
+          case "onUpdate": {
+            return entity.onUpdate();
+          }
+          case "_rawAttributes": {
+            return entity.attributes;
+          }
+          case "_rawConfiguration": {
+            return entity.configuration;
+          }
+          case "attributes": {
+            return entity.attributesProxy();
+          }
+          case "configuration": {
+            return entity.configurationProxy();
+          }
+          case "state": {
+            return entity.state;
+          }
+        }
       },
 
       configuration: defaultConfiguration,
@@ -265,3 +299,16 @@ export function ValueStorage({ logger, lifecycle, hass }: TServiceParams) {
     wrapper,
   };
 }
+
+type BaseEntityKeys =
+  | "name"
+  | "unique_id"
+  | "onUpdate"
+  | "_rawConfiguration"
+  | "_rawAttributes"
+  | "attributes"
+  | "configuration"
+  | "state";
+
+export const isBaseEntityKeys = (key: string): key is BaseEntityKeys =>
+  VIRTUAL_ENTITY_BASE_KEYS.includes(key);
