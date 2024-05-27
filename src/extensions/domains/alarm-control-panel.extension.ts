@@ -1,8 +1,7 @@
-import { is, TServiceParams } from "@digital-alchemy/core";
+import { TServiceParams } from "@digital-alchemy/core";
 
 import {
   AlarmControlPanelConfiguration,
-  RemovableCallback,
   SynapseAlarmControlPanelParams,
   SynapseVirtualAlarmControlPanel,
   VIRTUAL_ENTITY_BASE_KEYS,
@@ -25,47 +24,10 @@ export function VirtualAlarmControlPanel({ context, synapse }: TServiceParams) {
     const proxy = new Proxy({} as SynapseVirtualAlarmControlPanel, {
       // #MARK: get
       get(_, property: keyof SynapseVirtualAlarmControlPanel) {
-        // > common
         if (isBaseEntityKeys(property)) {
           return loader.baseGet(property);
         }
-        // > domain specific
-        // * onArmCustomBypass
-        if (property === "onArmCustomBypass") {
-          return (callback: RemovableCallback) =>
-            synapse.registry.removableListener(ARM_CUSTOM_BYPASS, callback);
-        }
-        // * onTrigger
-        if (property === "onTrigger") {
-          return (callback: RemovableCallback) =>
-            synapse.registry.removableListener(TRIGGER, callback);
-        }
-        // * onArmVacation
-        if (property === "onArmVacation") {
-          return (callback: RemovableCallback) =>
-            synapse.registry.removableListener(ARM_VACATION, callback);
-        }
-        // * onArmNight
-        if (property === "onArmNight") {
-          return (callback: RemovableCallback) =>
-            synapse.registry.removableListener(ARM_NIGHT, callback);
-        }
-        // * onArmAway
-        if (property === "onArmAway") {
-          return (callback: RemovableCallback) =>
-            synapse.registry.removableListener(ARM_AWAY, callback);
-        }
-        // * onArmHome
-        if (property === "onArmHome") {
-          return (callback: RemovableCallback) =>
-            synapse.registry.removableListener(ARM_HOME, callback);
-        }
-        // * onDisarm
-        if (property === "onDisarm") {
-          return (callback: RemovableCallback) =>
-            synapse.registry.removableListener(DISARM, callback);
-        }
-        return undefined;
+        return dynamicAttach(property);
       },
 
       ownKeys: () => [
@@ -117,15 +79,7 @@ export function VirtualAlarmControlPanel({ context, synapse }: TServiceParams) {
     });
 
     // - Attach bus events
-    const [
-      ARM_CUSTOM_BYPASS,
-      TRIGGER,
-      ARM_VACATION,
-      ARM_NIGHT,
-      ARM_AWAY,
-      ARM_HOME,
-      DISARM,
-    ] = synapse.registry.busTransfer({
+    const { dynamicAttach, staticAttach } = synapse.registry.busTransfer({
       context,
       eventName: [
         "alarm_arm_custom_bypass",
@@ -140,27 +94,7 @@ export function VirtualAlarmControlPanel({ context, synapse }: TServiceParams) {
     });
 
     // - Attach static listener
-    if (is.function(entity.arm_custom_bypass)) {
-      proxy.onArmCustomBypass(entity.arm_custom_bypass);
-    }
-    if (is.function(entity.trigger)) {
-      proxy.onTrigger(entity.trigger);
-    }
-    if (is.function(entity.arm_vacation)) {
-      proxy.onArmVacation(entity.arm_vacation);
-    }
-    if (is.function(entity.arm_night)) {
-      proxy.onArmNight(entity.arm_night);
-    }
-    if (is.function(entity.arm_away)) {
-      proxy.onArmAway(entity.arm_away);
-    }
-    if (is.function(entity.arm_home)) {
-      proxy.onArmHome(entity.arm_home);
-    }
-    if (is.function(entity.disarm)) {
-      proxy.onDisarm(entity.disarm);
-    }
+    staticAttach(proxy, entity);
 
     // - Done
     return proxy;

@@ -27,7 +27,6 @@ export function VirtualBinarySensor({ context, synapse }: TServiceParams) {
     const proxy = new Proxy({} as SynapseVirtualBinarySensor, {
       // #MARK: get
       get(_, property: keyof SynapseVirtualBinarySensor) {
-        // > common
         if (isBaseEntityKeys(property)) {
           return loader.baseGet(property);
         }

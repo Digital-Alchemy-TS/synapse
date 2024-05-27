@@ -26,44 +26,10 @@ export function VirtualVacuum({ context, synapse }: TServiceParams) {
       // #MARK: get
       // eslint-disable-next-line sonarjs/cognitive-complexity
       get(_, property: keyof SynapseVirtualVacuum) {
-        // > common
         if (isBaseEntityKeys(property)) {
           return loader.baseGet(property);
         }
-        // > domain specific
-        if (property === "onCleanSpot") {
-          return (callback: RemovableCallback) =>
-            synapse.registry.removableListener(CLEAN_SPOT, callback);
-        }
-        if (property === "onLocate") {
-          return (callback: RemovableCallback) =>
-            synapse.registry.removableListener(LOCATE, callback);
-        }
-        if (property === "onPause") {
-          return (callback: RemovableCallback) =>
-            synapse.registry.removableListener(PAUSE, callback);
-        }
-        if (property === "onReturnToBase") {
-          return (callback: RemovableCallback) =>
-            synapse.registry.removableListener(RETURN_TO_BASE, callback);
-        }
-        if (property === "onSendCommand") {
-          return (callback: RemovableCallback) =>
-            synapse.registry.removableListener(SEND_COMMAND, callback);
-        }
-        if (property === "onSetFanSpeed") {
-          return (callback: RemovableCallback) =>
-            synapse.registry.removableListener(SET_FAN_SPEED, callback);
-        }
-        if (property === "onStart") {
-          return (callback: RemovableCallback) =>
-            synapse.registry.removableListener(START, callback);
-        }
-        if (property === "onStop") {
-          return (callback: RemovableCallback) =>
-            synapse.registry.removableListener(STOP, callback);
-        }
-        return undefined;
+        return dynamicAttach(property);
       },
 
       ownKeys: () => [
@@ -116,16 +82,7 @@ export function VirtualVacuum({ context, synapse }: TServiceParams) {
     });
 
     // - Attach bus events
-    const [
-      CLEAN_SPOT,
-      LOCATE,
-      PAUSE,
-      RETURN_TO_BASE,
-      SEND_COMMAND,
-      SET_FAN_SPEED,
-      START,
-      STOP,
-    ] = synapse.registry.busTransfer({
+    const { dynamicAttach, staticAttach } = synapse.registry.busTransfer({
       context,
       eventName: [
         "clean_spot",
@@ -141,30 +98,7 @@ export function VirtualVacuum({ context, synapse }: TServiceParams) {
     });
 
     // - Attach static listener
-    if (is.function(entity.clean_spot)) {
-      proxy.onCleanSpot(entity.clean_spot);
-    }
-    if (is.function(entity.locate)) {
-      proxy.onLocate(entity.locate);
-    }
-    if (is.function(entity.pause)) {
-      proxy.onPause(entity.pause);
-    }
-    if (is.function(entity.return_to_base)) {
-      proxy.onReturnToBase(entity.return_to_base);
-    }
-    if (is.function(entity.send_command)) {
-      proxy.onSendCommand(entity.send_command);
-    }
-    if (is.function(entity.set_fan_speed)) {
-      proxy.onSetFanSpeed(entity.set_fan_speed);
-    }
-    if (is.function(entity.start)) {
-      proxy.onStart(entity.start);
-    }
-    if (is.function(entity.stop)) {
-      proxy.onStop(entity.stop);
-    }
+    staticAttach(proxy, entity);
 
     // - Done
     return proxy;

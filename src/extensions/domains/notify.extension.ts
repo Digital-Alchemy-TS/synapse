@@ -24,17 +24,10 @@ export function VirtualNotify({ context, synapse }: TServiceParams) {
     const proxy = new Proxy({} as SynapseVirtualNotify, {
       // #MARK: get
       get(_, property: keyof SynapseVirtualNotify) {
-        // > common
         if (isBaseEntityKeys(property)) {
           return loader.baseGet(property);
         }
-        // > domain specific
-        // * onPress
-        if (property === "onSendMessage") {
-          return (callback: (remove: () => void) => TBlackHole) =>
-            synapse.registry.removableListener(SEND_MESSAGE, callback);
-        }
-        return undefined;
+        return dynamicAttach(property);
       },
 
       ownKeys: () => [...VIRTUAL_ENTITY_BASE_KEYS, "onPress"],
@@ -66,16 +59,14 @@ export function VirtualNotify({ context, synapse }: TServiceParams) {
     });
 
     // - Attach bus events
-    const [SEND_MESSAGE] = synapse.registry.busTransfer({
+    const { dynamicAttach, staticAttach } = synapse.registry.busTransfer({
       context,
       eventName: ["send_message"],
       unique_id,
     });
 
     // - Attach static listener
-    if (is.function(entity.send_message)) {
-      proxy.onSendMessage(entity.send_message);
-    }
+    staticAttach(proxy, entity);
 
     // - Done
     return proxy;

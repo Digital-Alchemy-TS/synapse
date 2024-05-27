@@ -26,32 +26,10 @@ export function VirtualValve({ context, synapse }: TServiceParams) {
       // #MARK: get
       // eslint-disable-next-line sonarjs/cognitive-complexity
       get(_, property: keyof SynapseVirtualValve) {
-        // > common
         if (isBaseEntityKeys(property)) {
           return loader.baseGet(property);
         }
-        // > domain specific
-        // * onOpenValve
-        if (property === "onOpenValve") {
-          return (callback: RemovableCallback) =>
-            synapse.registry.removableListener(OPEN_VALVE, callback);
-        }
-        // * onCloseValve
-        if (property === "onCloseValve") {
-          return (callback: RemovableCallback) =>
-            synapse.registry.removableListener(CLOSE_VALVE, callback);
-        }
-        // * onSetValvePosition
-        if (property === "onSetValvePosition") {
-          return (callback: RemovableCallback) =>
-            synapse.registry.removableListener(SET_VALVE_POSITION, callback);
-        }
-        // * onStopValve
-        if (property === "onStopValve") {
-          return (callback: RemovableCallback) =>
-            synapse.registry.removableListener(STOP_VALVE, callback);
-        }
-        return undefined;
+        return dynamicAttach(property);
       },
 
       ownKeys: () => [
@@ -103,31 +81,19 @@ export function VirtualValve({ context, synapse }: TServiceParams) {
     });
 
     // - Attach bus events
-    const [OPEN_VALVE, CLOSE_VALVE, SET_VALVE_POSITION, STOP_VALVE] =
-      synapse.registry.busTransfer({
-        context,
-        eventName: [
-          "open_valve",
-          "close_valve",
-          "set_valve_position",
-          "stop_valve",
-        ],
-        unique_id,
-      });
+    const { dynamicAttach, staticAttach } = synapse.registry.busTransfer({
+      context,
+      eventName: [
+        "open_valve",
+        "close_valve",
+        "set_valve_position",
+        "stop_valve",
+      ],
+      unique_id,
+    });
 
     // - Attach static listener
-    if (is.function(entity.open_valve)) {
-      proxy.onOpenValve(entity.open_valve);
-    }
-    if (is.function(entity.close_valve)) {
-      proxy.onCloseValve(entity.close_valve);
-    }
-    if (is.function(entity.set_valve_position)) {
-      proxy.onSetValvePosition(entity.set_valve_position);
-    }
-    if (is.function(entity.stop_valve)) {
-      proxy.onStopValve(entity.stop_valve);
-    }
+    staticAttach(proxy, entity);
 
     // - Done
     return proxy;

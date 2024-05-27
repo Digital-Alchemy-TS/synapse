@@ -26,27 +26,10 @@ export function VirtualTodoList({ context, synapse }: TServiceParams) {
       // #MARK: get
       // eslint-disable-next-line sonarjs/cognitive-complexity
       get(_, property: keyof SynapseVirtualTodoList) {
-        // > common
         if (isBaseEntityKeys(property)) {
           return loader.baseGet(property);
         }
-        // > domain specific
-        // * onCreateTodoItem
-        if (property === "onCreateTodoItem") {
-          return (callback: RemovableCallback) =>
-            synapse.registry.removableListener(CREATE_TODO_ITEM, callback);
-        }
-        // * onDeleteTodoItem
-        if (property === "onDeleteTodoItem") {
-          return (callback: RemovableCallback) =>
-            synapse.registry.removableListener(DELETE_TODO_ITEM, callback);
-        }
-        // * onMoveTodoItem
-        if (property === "onMoveTodoItem") {
-          return (callback: RemovableCallback) =>
-            synapse.registry.removableListener(MOVE_TODO_ITEM, callback);
-        }
-        return undefined;
+        return dynamicAttach(property);
       },
 
       ownKeys: () => [
@@ -89,23 +72,14 @@ export function VirtualTodoList({ context, synapse }: TServiceParams) {
     });
 
     // - Attach bus events
-    const [CREATE_TODO_ITEM, DELETE_TODO_ITEM, MOVE_TODO_ITEM] =
-      synapse.registry.busTransfer({
-        context,
-        eventName: ["create_todo_item", "delete_todo_item", "move_todo_item"],
-        unique_id,
-      });
+    const { dynamicAttach, staticAttach } = synapse.registry.busTransfer({
+      context,
+      eventName: ["create_todo_item", "delete_todo_item", "move_todo_item"],
+      unique_id,
+    });
 
     // - Attach static listener
-    if (is.function(entity.create_todo_item)) {
-      proxy.onCreateTodoItem(entity.create_todo_item);
-    }
-    if (is.function(entity.delete_todo_item)) {
-      proxy.onDeleteTodoItem(entity.delete_todo_item);
-    }
-    if (is.function(entity.move_todo_item)) {
-      proxy.onMoveTodoItem(entity.move_todo_item);
-    }
+    staticAttach(proxy, entity);
 
     // - Done
     return proxy;

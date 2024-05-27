@@ -26,17 +26,10 @@ export function VirtualScene({ context, synapse }: TServiceParams) {
     const proxy = new Proxy({} as SynapseVirtualScene, {
       // #MARK: get
       get(_, property: keyof SynapseVirtualScene) {
-        // > common
         if (isBaseEntityKeys(property)) {
           return loader.baseGet(property);
         }
-        // > domain specific
-        // * onActivate
-        if (property === "onActivate") {
-          return (callback: RemovableCallback) =>
-            synapse.registry.removableListener(ACTIVATE, callback);
-        }
-        return undefined;
+        return dynamicAttach(property);
       },
 
       ownKeys: () => [...VIRTUAL_ENTITY_BASE_KEYS, "onActivate"],
@@ -64,16 +57,14 @@ export function VirtualScene({ context, synapse }: TServiceParams) {
     });
 
     // - Attach bus events
-    const [ACTIVATE] = synapse.registry.busTransfer({
+    const { dynamicAttach, staticAttach } = synapse.registry.busTransfer({
       context,
       eventName: ["activate"],
       unique_id,
     });
 
     // - Attach static listener
-    if (is.function(entity.activate)) {
-      proxy.onActivate(entity.activate);
-    }
+    staticAttach(proxy, entity);
 
     // - Done
     return proxy;

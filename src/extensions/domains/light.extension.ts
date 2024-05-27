@@ -26,22 +26,10 @@ export function VirtualLight({ context, synapse }: TServiceParams) {
       // #MARK: get
       // eslint-disable-next-line sonarjs/cognitive-complexity
       get(_, property: keyof SynapseVirtualLight) {
-        // > common
         if (isBaseEntityKeys(property)) {
           return loader.baseGet(property);
         }
-        // > domain specific
-        // * onTurnOn
-        if (property === "onTurnOn") {
-          return (callback: RemovableCallback) =>
-            synapse.registry.removableListener(TURN_ON, callback);
-        }
-        // * onTurnOff
-        if (property === "onTurnOff") {
-          return (callback: RemovableCallback) =>
-            synapse.registry.removableListener(TURN_OFF, callback);
-        }
-        return undefined;
+        return dynamicAttach(property);
       },
 
       ownKeys: () => [...VIRTUAL_ENTITY_BASE_KEYS, "onTurnOn", "onTurnOff"],
@@ -95,19 +83,14 @@ export function VirtualLight({ context, synapse }: TServiceParams) {
     });
 
     // - Attach bus events
-    const [TURN_ON, TURN_OFF] = synapse.registry.busTransfer({
+    const { dynamicAttach, staticAttach } = synapse.registry.busTransfer({
       context,
       eventName: ["turn_on", "turn_off"],
       unique_id,
     });
 
     // - Attach static listener
-    if (is.function(entity.turn_on)) {
-      proxy.onTurnOn(entity.turn_on);
-    }
-    if (is.function(entity.turn_off)) {
-      proxy.onTurnOff(entity.turn_off);
-    }
+    staticAttach(proxy, entity);
 
     // - Done
     return proxy;

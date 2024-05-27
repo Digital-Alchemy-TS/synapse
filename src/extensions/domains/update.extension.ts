@@ -26,17 +26,10 @@ export function VirtualUpdate({ context, synapse }: TServiceParams) {
       // #MARK: get
       // eslint-disable-next-line sonarjs/cognitive-complexity
       get(_, property: keyof SynapseVirtualUpdate) {
-        // > common
         if (isBaseEntityKeys(property)) {
           return loader.baseGet(property);
         }
-        // > domain specific
-        // * onInstall
-        if (property === "onInstall") {
-          return (callback: RemovableCallback) =>
-            synapse.registry.removableListener(INSTALL, callback);
-        }
-        return undefined;
+        return dynamicAttach(property);
       },
 
       ownKeys: () => [...VIRTUAL_ENTITY_BASE_KEYS, "onInstall"],
@@ -85,16 +78,14 @@ export function VirtualUpdate({ context, synapse }: TServiceParams) {
     });
 
     // - Attach bus events
-    const [INSTALL] = synapse.registry.busTransfer({
+    const { dynamicAttach, staticAttach } = synapse.registry.busTransfer({
       context,
       eventName: ["install"],
       unique_id,
     });
 
     // - Attach static listener
-    if (is.function(entity.install)) {
-      proxy.onInstall(entity.install);
-    }
+    staticAttach(proxy, entity);
 
     // - Done
     return proxy;

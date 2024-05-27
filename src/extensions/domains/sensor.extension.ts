@@ -29,12 +29,9 @@ export function VirtualSensor({ context, synapse, logger }: TServiceParams) {
     const proxy = new Proxy({} as SynapseVirtualSensor, {
       // #MARK: get
       get(_, property: keyof SynapseVirtualSensor) {
-        // > common
         if (isBaseEntityKeys(property)) {
           return loader.baseGet(property);
         }
-        // > domain specific
-        // * reset
         if (property === "reset") {
           return function () {
             logger.debug(

@@ -26,42 +26,10 @@ export function VirtualRemote({ context, synapse }: TServiceParams) {
       // #MARK: get
       // eslint-disable-next-line sonarjs/cognitive-complexity
       get(_, property: keyof SynapseVirtualRemote) {
-        // > common
         if (isBaseEntityKeys(property)) {
           return loader.baseGet(property);
         }
-        // > domain specific
-        // * onTurnOn
-        if (property === "onTurnOn") {
-          return (callback: RemovableCallback) =>
-            synapse.registry.removableListener(TURN_ON, callback);
-        }
-        // * onTurnOff
-        if (property === "onTurnOff") {
-          return (callback: RemovableCallback) =>
-            synapse.registry.removableListener(TURN_OFF, callback);
-        }
-        // * onToggle
-        if (property === "onToggle") {
-          return (callback: RemovableCallback) =>
-            synapse.registry.removableListener(TOGGLE, callback);
-        }
-        // * onSendCommand
-        if (property === "onSendCommand") {
-          return (callback: RemovableCallback) =>
-            synapse.registry.removableListener(SEND_COMMAND, callback);
-        }
-        // * onLearnCommand
-        if (property === "onLearnCommand") {
-          return (callback: RemovableCallback) =>
-            synapse.registry.removableListener(LEARN_COMMAND, callback);
-        }
-        // * onDeleteCommand
-        if (property === "onDeleteCommand") {
-          return (callback: RemovableCallback) =>
-            synapse.registry.removableListener(DELETE_COMMAND, callback);
-        }
-        return undefined;
+        return dynamicAttach(property);
       },
 
       ownKeys: () => [
@@ -107,14 +75,7 @@ export function VirtualRemote({ context, synapse }: TServiceParams) {
     });
 
     // - Attach bus events
-    const [
-      TURN_ON,
-      TURN_OFF,
-      TOGGLE,
-      SEND_COMMAND,
-      LEARN_COMMAND,
-      DELETE_COMMAND,
-    ] = synapse.registry.busTransfer({
+    const { dynamicAttach, staticAttach } = synapse.registry.busTransfer({
       context,
       eventName: [
         "turn_on",
@@ -128,24 +89,7 @@ export function VirtualRemote({ context, synapse }: TServiceParams) {
     });
 
     // - Attach static listener
-    if (is.function(entity.turn_on)) {
-      proxy.onTurnOn(entity.turn_on);
-    }
-    if (is.function(entity.turn_off)) {
-      proxy.onTurnOff(entity.turn_off);
-    }
-    if (is.function(entity.toggle)) {
-      proxy.onToggle(entity.toggle);
-    }
-    if (is.function(entity.send_command)) {
-      proxy.onSendCommand(entity.send_command);
-    }
-    if (is.function(entity.learn_command)) {
-      proxy.onLearnCommand(entity.learn_command);
-    }
-    if (is.function(entity.delete_command)) {
-      proxy.onDeleteCommand(entity.delete_command);
-    }
+    staticAttach(proxy, entity);
 
     // - Done
     return proxy;

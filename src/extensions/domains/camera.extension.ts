@@ -26,38 +26,10 @@ export function VirtualCamera({ context, synapse }: TServiceParams) {
       // #MARK: get
       // eslint-disable-next-line sonarjs/cognitive-complexity
       get(_, property: keyof SynapseVirtualCamera) {
-        // > common
         if (isBaseEntityKeys(property)) {
           return loader.baseGet(property);
         }
-        // > domain specific
-        // * onTurnOn
-        if (property === "onTurnOn") {
-          return (callback: RemovableCallback) =>
-            synapse.registry.removableListener(TURN_ON, callback);
-        }
-        // * onTurnOff
-        if (property === "onTurnOff") {
-          return (callback: RemovableCallback) =>
-            synapse.registry.removableListener(TURN_OFF, callback);
-        }
-        // * onEnableMotionDetection
-        if (property === "onEnableMotionDetection") {
-          return (callback: RemovableCallback) =>
-            synapse.registry.removableListener(
-              ENABLE_MOTION_DETECTION,
-              callback,
-            );
-        }
-        // * onDisableMotionDetection
-        if (property === "onDisableMotionDetection") {
-          return (callback: RemovableCallback) =>
-            synapse.registry.removableListener(
-              DISABLE_MOTION_DETECTION,
-              callback,
-            );
-        }
-        return undefined;
+        return dynamicAttach(property);
       },
 
       ownKeys: () => [
@@ -112,12 +84,7 @@ export function VirtualCamera({ context, synapse }: TServiceParams) {
     });
 
     // - Attach bus events
-    const [
-      TURN_ON,
-      TURN_OFF,
-      ENABLE_MOTION_DETECTION,
-      DISABLE_MOTION_DETECTION,
-    ] = synapse.registry.busTransfer({
+    const { dynamicAttach, staticAttach } = synapse.registry.busTransfer({
       context,
       eventName: [
         "turn_on",
@@ -129,18 +96,7 @@ export function VirtualCamera({ context, synapse }: TServiceParams) {
     });
 
     // - Attach static listener
-    if (is.function(entity.turn_on)) {
-      proxy.onTurnOn(entity.turn_on);
-    }
-    if (is.function(entity.turn_off)) {
-      proxy.onTurnOff(entity.turn_off);
-    }
-    if (is.function(entity.enable_motion_detection)) {
-      proxy.onEnableMotionDetection(entity.enable_motion_detection);
-    }
-    if (is.function(entity.disable_motion_detection)) {
-      proxy.onDisableMotionDetection(entity.disable_motion_detection);
-    }
+    staticAttach(proxy, entity);
 
     // - Done
     return proxy;

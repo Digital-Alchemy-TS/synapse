@@ -2,13 +2,19 @@ import {
   InternalError,
   is,
   SECOND,
+  START,
   TContext,
   TServiceParams,
 } from "@digital-alchemy/core";
 import { ALL_DOMAINS } from "@digital-alchemy/hass";
 import { createHash } from "crypto";
 
-import { BaseEntityParams, RemovableCallback, TSynapseId } from "..";
+import {
+  BaseEntityParams,
+  CreateRemovableCallback,
+  RemovableCallback,
+  TSynapseId,
+} from "..";
 
 type BaseEntity = {
   attributes: object;
@@ -54,6 +60,7 @@ export function Registry({
   logger,
   hass,
   cache,
+  synapse,
   config,
   internal,
   context,
@@ -249,10 +256,11 @@ export function Registry({
      * Listen for specific socket events, and transfer to internal event bus
      */
     busTransfer({ context, eventName, unique_id }: BusTransferOptions) {
-      const out = [] as string[];
+      const formatted = new Map<string, string>();
+      // const entity = synapse.registry.
       eventName.forEach(eventName => {
         const target = `synapse/${eventName}/${unique_id}`;
-        out.push(target);
+        formatted.set(formatEventName(eventName), target);
         const source = name(eventName);
         hass.socket.onEvent({
           context,
@@ -266,7 +274,25 @@ export function Registry({
         });
         logger.debug({ source, target }, `setting up bus transfer`);
       });
-      return out;
+      return {
+        dynamicAttach(key: string) {
+          const name = formatted.get(key);
+          if (!name) {
+            return undefined;
+          }
+          return (callback: RemovableCallback) =>
+            synapse.registry.removableListener(name, callback);
+        },
+        staticAttach(proxy: object, entity: object) {
+          eventName.forEach(key => {
+            const formatted = formatEventName(key) as keyof typeof proxy;
+            const value = proxy[formatted] as CreateRemovableCallback;
+            if (is.function(value)) {
+              value(entity[key as keyof typeof entity] as RemovableCallback);
+            }
+          });
+        },
+      };
     },
     create,
     eventName: name,
@@ -308,3 +334,12 @@ export type TRegistry<DATA extends unknown = unknown> = {
   send: (unique_id: TSynapseId, data: object) => Promise<void>;
   setCache: (unique_id: TSynapseId, value: DATA) => Promise<void>;
 };
+
+const EVERYTHING_ELSE = 1;
+const formatEventName = (eventName: string) =>
+  [
+    "on",
+    eventName
+      .split("_")
+      .map(i => i.charAt(START).toUpperCase() + i.slice(EVERYTHING_ELSE)),
+  ].join(",");

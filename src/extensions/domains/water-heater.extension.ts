@@ -26,42 +26,10 @@ export function VirtualWaterHeater({ context, synapse }: TServiceParams) {
       // #MARK: get
       // eslint-disable-next-line sonarjs/cognitive-complexity
       get(_, property: keyof SynapseVirtualWaterHeater) {
-        // > common
         if (isBaseEntityKeys(property)) {
           return loader.baseGet(property);
         }
-        // > domain specific
-        // * onSetTemperature
-        if (property === "onSetTemperature") {
-          return (callback: RemovableCallback) =>
-            synapse.registry.removableListener(SET_TEMPERATURE, callback);
-        }
-        // * onSetOperationMode
-        if (property === "onSetOperationMode") {
-          return (callback: RemovableCallback) =>
-            synapse.registry.removableListener(SET_OPERATION_MODE, callback);
-        }
-        // * onTurnAwayModeOn
-        if (property === "onTurnAwayModeOn") {
-          return (callback: RemovableCallback) =>
-            synapse.registry.removableListener(TURN_AWAY_MODE_ON, callback);
-        }
-        // * onTurnAwayModeOff
-        if (property === "onTurnAwayModeOff") {
-          return (callback: RemovableCallback) =>
-            synapse.registry.removableListener(TURN_AWAY_MODE_OFF, callback);
-        }
-        // * onTurnOn
-        if (property === "onTurnOn") {
-          return (callback: RemovableCallback) =>
-            synapse.registry.removableListener(TURN_ON, callback);
-        }
-        // * onTurnOff
-        if (property === "onTurnOff") {
-          return (callback: RemovableCallback) =>
-            synapse.registry.removableListener(TURN_OFF, callback);
-        }
-        return undefined;
+        return dynamicAttach(property);
       },
 
       ownKeys: () => [
@@ -119,14 +87,7 @@ export function VirtualWaterHeater({ context, synapse }: TServiceParams) {
     });
 
     // - Attach bus events
-    const [
-      SET_TEMPERATURE,
-      SET_OPERATION_MODE,
-      TURN_AWAY_MODE_ON,
-      TURN_AWAY_MODE_OFF,
-      TURN_ON,
-      TURN_OFF,
-    ] = synapse.registry.busTransfer({
+    const { dynamicAttach, staticAttach } = synapse.registry.busTransfer({
       context,
       eventName: [
         "set_temperature",
@@ -140,24 +101,7 @@ export function VirtualWaterHeater({ context, synapse }: TServiceParams) {
     });
 
     // - Attach static listener
-    if (is.function(entity.set_temperature)) {
-      proxy.onSetTemperature(entity.set_temperature);
-    }
-    if (is.function(entity.set_operation_mode)) {
-      proxy.onSetOperationMode(entity.set_operation_mode);
-    }
-    if (is.function(entity.turn_away_mode_on)) {
-      proxy.onTurnAwayModeOn(entity.turn_away_mode_on);
-    }
-    if (is.function(entity.turn_away_mode_off)) {
-      proxy.onTurnAwayModeOff(entity.turn_away_mode_off);
-    }
-    if (is.function(entity.turn_on)) {
-      proxy.onTurnOn(entity.turn_on);
-    }
-    if (is.function(entity.turn_off)) {
-      proxy.onTurnOff(entity.turn_off);
-    }
+    staticAttach(proxy, entity);
 
     // - Done
     return proxy;

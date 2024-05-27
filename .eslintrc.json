@@ -42,9 +42,9 @@
         "unicorn/no-empty-file": "off",
         "sonarjs/prefer-single-boolean-return": "off",
         "unicorn/no-array-callback-reference": "off",
+        "@typescript-eslint/unbound-method": "off",
         "unicorn/no-await-expression-member": "off",
         "unicorn/no-useless-undefined": "off",
-        "@typescript-eslint/unbound-method": "error",
         "import/no-extraneous-dependencies": [
           "error",
           {

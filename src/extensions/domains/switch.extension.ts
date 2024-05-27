@@ -26,31 +26,10 @@ export function VirtualSwitch({ context, synapse, logger }: TServiceParams) {
     const proxy = new Proxy({} as SynapseVirtualSwitch, {
       // #MARK: get
       get(_, property: keyof SynapseVirtualSwitch) {
-        // > common
         if (isBaseEntityKeys(property)) {
           return loader.baseGet(property);
         }
-        // > domain specific
-        // * is_on
-        if (property === "is_on") {
-          return loader.state === "on";
-        }
-        // * onToggle
-        if (property === "onToggle") {
-          return (callback: RemovableCallback) =>
-            synapse.registry.removableListener(TOGGLE, callback);
-        }
-        // * onTurnOff
-        if (property === "onTurnOff") {
-          return (callback: RemovableCallback) =>
-            synapse.registry.removableListener(TURN_OFF, callback);
-        }
-        // * onTurnOn
-        if (property === "onTurnOn") {
-          return (callback: RemovableCallback) =>
-            synapse.registry.removableListener(TURN_ON, callback);
-        }
-        return undefined;
+        return dynamicAttach(property);
       },
 
       ownKeys: () => [
@@ -97,13 +76,14 @@ export function VirtualSwitch({ context, synapse, logger }: TServiceParams) {
     });
 
     // - Attach bus events
-    const [TURN_OFF, TOGGLE, TURN_ON] = synapse.registry.busTransfer({
+    const { dynamicAttach, staticAttach } = synapse.registry.busTransfer({
       context,
       eventName: ["turn_off", "toggle", "turn_on"],
       unique_id,
     });
 
     // - Attach static listener
+    staticAttach(proxy, entity);
     if (entity.managed !== false) {
       logger.debug(
         { context: entity.context, name: entity.name },

@@ -26,47 +26,10 @@ export function VirtualFan({ context, synapse }: TServiceParams) {
       // #MARK: get
       // eslint-disable-next-line sonarjs/cognitive-complexity
       get(_, property: keyof SynapseVirtualFan) {
-        // > common
         if (isBaseEntityKeys(property)) {
           return loader.baseGet(property);
         }
-        // > domain specific
-        // * onStopFanTilt
-        if (property === "onSetDirection") {
-          return (callback: RemovableCallback) =>
-            synapse.registry.removableListener(SET_DIRECTION, callback);
-        }
-        // * onSetFanTiltPosition
-        if (property === "onSetPresetMode") {
-          return (callback: RemovableCallback) =>
-            synapse.registry.removableListener(SET_PRESET_MODE, callback);
-        }
-        // * onCloseFanTilt
-        if (property === "onSetPercentage") {
-          return (callback: RemovableCallback) =>
-            synapse.registry.removableListener(SET_PERCENTAGE, callback);
-        }
-        // * onOpenFanTilt
-        if (property === "onTurnOn") {
-          return (callback: RemovableCallback) =>
-            synapse.registry.removableListener(TURN_ON, callback);
-        }
-        // * onStopFan
-        if (property === "onTurnOff") {
-          return (callback: RemovableCallback) =>
-            synapse.registry.removableListener(TURN_OFF, callback);
-        }
-        // * onSetFanPosition
-        if (property === "onToggle") {
-          return (callback: RemovableCallback) =>
-            synapse.registry.removableListener(TOGGLE, callback);
-        }
-        // * onCloseFan
-        if (property === "onOscillate") {
-          return (callback: RemovableCallback) =>
-            synapse.registry.removableListener(OSCILLATE, callback);
-        }
-        return undefined;
+        return dynamicAttach(property);
       },
 
       ownKeys: () => [
@@ -119,15 +82,7 @@ export function VirtualFan({ context, synapse }: TServiceParams) {
     );
 
     // - Attach bus events
-    const [
-      SET_DIRECTION,
-      SET_PRESET_MODE,
-      SET_PERCENTAGE,
-      TURN_ON,
-      TURN_OFF,
-      TOGGLE,
-      OSCILLATE,
-    ] = synapse.registry.busTransfer({
+    const { dynamicAttach, staticAttach } = synapse.registry.busTransfer({
       context,
       eventName: [
         "set_direction",
@@ -142,27 +97,7 @@ export function VirtualFan({ context, synapse }: TServiceParams) {
     });
 
     // - Attach static listener
-    if (is.function(entity.set_direction)) {
-      proxy.onSetDirection(entity.set_direction);
-    }
-    if (is.function(entity.set_preset_mode)) {
-      proxy.onSetPresetMode(entity.set_preset_mode);
-    }
-    if (is.function(entity.set_percentage)) {
-      proxy.onSetPercentage(entity.set_percentage);
-    }
-    if (is.function(entity.turn_on)) {
-      proxy.onTurnOn(entity.turn_on);
-    }
-    if (is.function(entity.turn_off)) {
-      proxy.onTurnOff(entity.turn_off);
-    }
-    if (is.function(entity.toggle)) {
-      proxy.onToggle(entity.toggle);
-    }
-    if (is.function(entity.oscillate)) {
-      proxy.onOscillate(entity.oscillate);
-    }
+    staticAttach(proxy, entity);
 
     // - Done
     return proxy;

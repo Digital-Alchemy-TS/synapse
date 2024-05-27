@@ -26,27 +26,10 @@ export function VirtualHumidifier({ context, synapse }: TServiceParams) {
       // #MARK: get
       // eslint-disable-next-line sonarjs/cognitive-complexity
       get(_, property: keyof SynapseVirtualHumidifier) {
-        // > common
         if (isBaseEntityKeys(property)) {
           return loader.baseGet(property);
         }
-        // > domain specific
-        // * onTurnOn
-        if (property === "onTurnOn") {
-          return (callback: RemovableCallback) =>
-            synapse.registry.removableListener(TURN_ON, callback);
-        }
-        // * onTurnOff
-        if (property === "onTurnOff") {
-          return (callback: RemovableCallback) =>
-            synapse.registry.removableListener(TURN_OFF, callback);
-        }
-        // * onSetHumidity
-        if (property === "onSetHumidity") {
-          return (callback: RemovableCallback) =>
-            synapse.registry.removableListener(SET_HUMIDITY, callback);
-        }
-        return undefined;
+        return dynamicAttach(property);
       },
 
       ownKeys: () => [
@@ -99,22 +82,14 @@ export function VirtualHumidifier({ context, synapse }: TServiceParams) {
     });
 
     // - Attach bus events
-    const [TURN_ON, TURN_OFF, SET_HUMIDITY] = synapse.registry.busTransfer({
+    const { dynamicAttach, staticAttach } = synapse.registry.busTransfer({
       context,
       eventName: ["turn_on", "turn_off", "set_humidity"],
       unique_id,
     });
 
     // - Attach static listener
-    if (is.function(entity.turn_on)) {
-      proxy.onTurnOn(entity.turn_on);
-    }
-    if (is.function(entity.turn_off)) {
-      proxy.onTurnOff(entity.turn_off);
-    }
-    if (is.function(entity.set_humidity)) {
-      proxy.onSetHumidity(entity.set_humidity);
-    }
+    staticAttach(proxy, entity);
 
     // - Done
     return proxy;

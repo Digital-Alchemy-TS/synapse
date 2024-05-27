@@ -26,27 +26,10 @@ export function VirtualMediaPlayer({ context, synapse }: TServiceParams) {
       // #MARK: get
       // eslint-disable-next-line sonarjs/cognitive-complexity
       get(_, property: keyof SynapseVirtualMediaPlayer) {
-        // > common
         if (isBaseEntityKeys(property)) {
           return loader.baseGet(property);
         }
-        // > domain specific
-        // * onPlayMedia
-        if (property === "onPlayMedia") {
-          return (callback: RemovableCallback) =>
-            synapse.registry.removableListener(PLAY_MEDIA, callback);
-        }
-        // * onSelectSoundMode
-        if (property === "onSelectSoundMode") {
-          return (callback: RemovableCallback) =>
-            synapse.registry.removableListener(SELECT_SOUND_MODE, callback);
-        }
-        // * onSelectSource
-        if (property === "onSelectSource") {
-          return (callback: RemovableCallback) =>
-            synapse.registry.removableListener(SELECT_SOURCE, callback);
-        }
-        return undefined;
+        return dynamicAttach(property);
       },
 
       ownKeys: () => [
@@ -122,23 +105,14 @@ export function VirtualMediaPlayer({ context, synapse }: TServiceParams) {
     });
 
     // - Attach bus events
-    const [PLAY_MEDIA, SELECT_SOUND_MODE, SELECT_SOURCE] =
-      synapse.registry.busTransfer({
-        context,
-        eventName: ["play_media", "select_sound_mode", "select_source"],
-        unique_id,
-      });
+    const { dynamicAttach, staticAttach } = synapse.registry.busTransfer({
+      context,
+      eventName: ["play_media", "select_sound_mode", "select_source"],
+      unique_id,
+    });
 
     // - Attach static listener
-    if (is.function(entity.play_media)) {
-      proxy.onPlayMedia(entity.play_media);
-    }
-    if (is.function(entity.select_sound_mode)) {
-      proxy.onSelectSoundMode(entity.select_sound_mode);
-    }
-    if (is.function(entity.select_source)) {
-      proxy.onSelectSource(entity.select_source);
-    }
+    staticAttach(proxy, entity);
 
     // - Done
     return proxy;

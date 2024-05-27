@@ -22,17 +22,10 @@ export function VirtualButton({ context, synapse }: TServiceParams) {
     const proxy = new Proxy({} as SynapseVirtualButton, {
       // #MARK: get
       get(_, property: keyof SynapseVirtualButton) {
-        // > common
         if (isBaseEntityKeys(property)) {
           return loader.baseGet(property);
         }
-        // > domain specific
-        // * onPress
-        if (property === "onPress") {
-          return (callback: (remove: () => void) => TBlackHole) =>
-            synapse.registry.removableListener(PRESS_EVENT, callback);
-        }
-        return undefined;
+        return dynamicAttach(property);
       },
 
       ownKeys: () => [...VIRTUAL_ENTITY_BASE_KEYS, "onPress"],
@@ -65,16 +58,14 @@ export function VirtualButton({ context, synapse }: TServiceParams) {
     });
 
     // - Attach bus events
-    const [PRESS_EVENT] = synapse.registry.busTransfer({
+    const { dynamicAttach, staticAttach } = synapse.registry.busTransfer({
       context,
       eventName: ["press"],
       unique_id,
     });
 
     // - Attach static listener
-    if (is.function(entity.press)) {
-      proxy.onPress(entity.press);
-    }
+    staticAttach(proxy, entity);
 
     // - Done
     return proxy;

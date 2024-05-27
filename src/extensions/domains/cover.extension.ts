@@ -26,55 +26,10 @@ export function VirtualCover({ context, synapse }: TServiceParams) {
       // #MARK: get
       // eslint-disable-next-line sonarjs/cognitive-complexity
       get(_, property: keyof SynapseVirtualCover) {
-        // > common
         if (isBaseEntityKeys(property)) {
           return loader.baseGet(property);
         }
-        // > domain specific
-        // * onStopCoverTilt
-        if (property === "onStopCoverTilt") {
-          return (callback: RemovableCallback) =>
-            synapse.registry.removableListener(STOP_COVER_TILT, callback);
-        }
-        // * onSetCoverTiltPosition
-        if (property === "onSetCoverTiltPosition") {
-          return (callback: RemovableCallback) =>
-            synapse.registry.removableListener(
-              SET_COVER_TILT_POSITION,
-              callback,
-            );
-        }
-        // * onCloseCoverTilt
-        if (property === "onCloseCoverTilt") {
-          return (callback: RemovableCallback) =>
-            synapse.registry.removableListener(CLOSE_COVER_TILT, callback);
-        }
-        // * onOpenCoverTilt
-        if (property === "onOpenCoverTilt") {
-          return (callback: RemovableCallback) =>
-            synapse.registry.removableListener(OPEN_COVER_TILT, callback);
-        }
-        // * onStopCover
-        if (property === "onStopCover") {
-          return (callback: RemovableCallback) =>
-            synapse.registry.removableListener(STOP_COVER, callback);
-        }
-        // * onSetCoverPosition
-        if (property === "onSetCoverPosition") {
-          return (callback: RemovableCallback) =>
-            synapse.registry.removableListener(SET_COVER_POSITION, callback);
-        }
-        // * onCloseCover
-        if (property === "onCloseCover") {
-          return (callback: RemovableCallback) =>
-            synapse.registry.removableListener(CLOSE_COVER, callback);
-        }
-        // * onOpenCover
-        if (property === "onOpenCover") {
-          return (callback: RemovableCallback) =>
-            synapse.registry.removableListener(OPEN_COVER, callback);
-        }
-        return undefined;
+        return dynamicAttach(property);
       },
 
       ownKeys: () => [
@@ -129,16 +84,7 @@ export function VirtualCover({ context, synapse }: TServiceParams) {
     });
 
     // - Attach bus events
-    const [
-      STOP_COVER_TILT,
-      SET_COVER_TILT_POSITION,
-      CLOSE_COVER_TILT,
-      OPEN_COVER_TILT,
-      STOP_COVER,
-      SET_COVER_POSITION,
-      CLOSE_COVER,
-      OPEN_COVER,
-    ] = synapse.registry.busTransfer({
+    const { dynamicAttach, staticAttach } = synapse.registry.busTransfer({
       context,
       eventName: [
         "stop_cover_tilt",
@@ -154,30 +100,7 @@ export function VirtualCover({ context, synapse }: TServiceParams) {
     });
 
     // - Attach static listener
-    if (is.function(entity.stop_cover_tilt)) {
-      proxy.onStopCoverTilt(entity.stop_cover_tilt);
-    }
-    if (is.function(entity.set_cover_tilt_position)) {
-      proxy.onSetCoverTiltPosition(entity.set_cover_tilt_position);
-    }
-    if (is.function(entity.close_cover_tilt)) {
-      proxy.onCloseCoverTilt(entity.close_cover_tilt);
-    }
-    if (is.function(entity.open_cover_tilt)) {
-      proxy.onOpenCoverTilt(entity.open_cover_tilt);
-    }
-    if (is.function(entity.stop_cover)) {
-      proxy.onStopCover(entity.stop_cover);
-    }
-    if (is.function(entity.set_cover_position)) {
-      proxy.onSetCoverPosition(entity.set_cover_position);
-    }
-    if (is.function(entity.close_cover)) {
-      proxy.onCloseCover(entity.close_cover);
-    }
-    if (is.function(entity.close_cover)) {
-      proxy.onOpenCover(entity.open_cover);
-    }
+    staticAttach(proxy, entity);
 
     // - Done
     return proxy;

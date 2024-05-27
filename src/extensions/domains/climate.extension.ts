@@ -26,57 +26,10 @@ export function VirtualClimate({ context, synapse }: TServiceParams) {
       // #MARK: get
       // eslint-disable-next-line sonarjs/cognitive-complexity
       get(_, property: keyof SynapseVirtualClimate) {
-        // > common
         if (isBaseEntityKeys(property)) {
           return loader.baseGet(property);
         }
-        // > domain specific
-        // * onSetHvacMode
-        if (property === "onSetHvacMode") {
-          return (callback: RemovableCallback) =>
-            synapse.registry.removableListener(SET_HVAC_MODE, callback);
-        }
-        // * onTurnOn
-        if (property === "onTurnOn") {
-          return (callback: RemovableCallback) =>
-            synapse.registry.removableListener(TURN_ON, callback);
-        }
-        // * onTurnOff
-        if (property === "onTurnOff") {
-          return (callback: RemovableCallback) =>
-            synapse.registry.removableListener(TURN_OFF, callback);
-        }
-        // * onToggle
-        if (property === "onToggle") {
-          return (callback: RemovableCallback) =>
-            synapse.registry.removableListener(TOGGLE, callback);
-        }
-        // * onSetPresetMode
-        if (property === "onSetPresetMode") {
-          return (callback: RemovableCallback) =>
-            synapse.registry.removableListener(SET_PRESET_MODE, callback);
-        }
-        // * onSetFanMode
-        if (property === "onSetFanMode") {
-          return (callback: RemovableCallback) =>
-            synapse.registry.removableListener(SET_FAN_MODE, callback);
-        }
-        // * onSetHumidity
-        if (property === "onSetHumidity") {
-          return (callback: RemovableCallback) =>
-            synapse.registry.removableListener(SET_HUMIDITY, callback);
-        }
-        // * onSetSwingMode
-        if (property === "onSetSwingMode") {
-          return (callback: RemovableCallback) =>
-            synapse.registry.removableListener(SET_SWING_MODE, callback);
-        }
-        // * onSetTemperature
-        if (property === "onSetTemperature") {
-          return (callback: RemovableCallback) =>
-            synapse.registry.removableListener(SET_TEMPERATURE, callback);
-        }
-        return undefined;
+        return dynamicAttach(property);
       },
 
       ownKeys: () => [
@@ -148,17 +101,7 @@ export function VirtualClimate({ context, synapse }: TServiceParams) {
     });
 
     // - Attach bus events
-    const [
-      SET_HVAC_MODE,
-      TURN_ON,
-      TURN_OFF,
-      TOGGLE,
-      SET_PRESET_MODE,
-      SET_FAN_MODE,
-      SET_HUMIDITY,
-      SET_SWING_MODE,
-      SET_TEMPERATURE,
-    ] = synapse.registry.busTransfer({
+    const { dynamicAttach, staticAttach } = synapse.registry.busTransfer({
       context,
       eventName: [
         "set_hvac_mode",
@@ -175,33 +118,8 @@ export function VirtualClimate({ context, synapse }: TServiceParams) {
     });
 
     // - Attach static listener
-    if (is.function(entity.set_hvac_mode)) {
-      proxy.onSetHvacMode(entity.set_hvac_mode);
-    }
-    if (is.function(entity.turn_on)) {
-      proxy.onTurnOn(entity.turn_on);
-    }
-    if (is.function(entity.turn_off)) {
-      proxy.onTurnOff(entity.turn_off);
-    }
-    if (is.function(entity.toggle)) {
-      proxy.onToggle(entity.toggle);
-    }
-    if (is.function(entity.set_preset_mode)) {
-      proxy.onSetPresetMode(entity.set_preset_mode);
-    }
-    if (is.function(entity.set_fan_mode)) {
-      proxy.onSetFanMode(entity.set_fan_mode);
-    }
-    if (is.function(entity.set_humidity)) {
-      proxy.onSetHumidity(entity.set_humidity);
-    }
-    if (is.function(entity.set_swing_mode)) {
-      proxy.onSetSwingMode(entity.set_swing_mode);
-    }
-    if (is.function(entity.set_temperature)) {
-      proxy.onSetTemperature(entity.set_temperature);
-    }
+    staticAttach(proxy, entity);
+
     // - Done
     return proxy;
   };

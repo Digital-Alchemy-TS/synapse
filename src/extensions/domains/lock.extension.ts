@@ -25,27 +25,10 @@ export function VirtualLock({ context, synapse, logger }: TServiceParams) {
     const proxy = new Proxy({} as SynapseVirtualLock, {
       // #MARK: get
       get(_, property: keyof SynapseVirtualLock) {
-        // > common
         if (isBaseEntityKeys(property)) {
           return loader.baseGet(property);
         }
-        // > domain specific
-        // * onActivate
-        if (property === "onUnlock") {
-          return (callback: RemovableCallback) =>
-            synapse.registry.removableListener(UNLOCK, callback);
-        }
-        // * onActivate
-        if (property === "onLock") {
-          return (callback: RemovableCallback) =>
-            synapse.registry.removableListener(LOCK, callback);
-        }
-        // * onActivate
-        if (property === "onOpen") {
-          return (callback: RemovableCallback) =>
-            synapse.registry.removableListener(OPEN, callback);
-        }
-        return undefined;
+        return dynamicAttach(property);
       },
 
       ownKeys: () => [
@@ -98,13 +81,14 @@ export function VirtualLock({ context, synapse, logger }: TServiceParams) {
     });
 
     // - Attach bus events
-    const [LOCK, UNLOCK, OPEN] = synapse.registry.busTransfer({
+    const { dynamicAttach, staticAttach } = synapse.registry.busTransfer({
       context,
       eventName: ["lock", "unlock", "open"],
       unique_id,
     });
 
     // - Attach static listener
+    staticAttach(proxy, entity);
     if (entity.managed !== false) {
       logger.debug(
         { context: entity.context, name: entity.name },
@@ -113,15 +97,6 @@ export function VirtualLock({ context, synapse, logger }: TServiceParams) {
       proxy.onLock(() => (proxy.configuration.is_locked = true));
       proxy.onUnlock(() => (proxy.configuration.is_locked = false));
       proxy.onOpen(() => (proxy.configuration.is_open = true));
-    }
-    if (is.function(entity.open)) {
-      proxy.onOpen(entity.open);
-    }
-    if (is.function(entity.lock)) {
-      proxy.onOpen(entity.lock);
-    }
-    if (is.function(entity.unlock)) {
-      proxy.onOpen(entity.unlock);
     }
 
     // - Done

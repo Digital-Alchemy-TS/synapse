@@ -25,17 +25,10 @@ export function VirtualSelect({ context, synapse }: TServiceParams) {
     const proxy = new Proxy({} as SynapseVirtualSelect, {
       // #MARK: get
       get(_, property: keyof SynapseVirtualSelect) {
-        // > common
         if (isBaseEntityKeys(property)) {
           return loader.baseGet(property);
         }
-        // > domain specific
-        // * onActivate
-        if (property === "onSelectOption") {
-          return (callback: RemovableCallback) =>
-            synapse.registry.removableListener(SELECT_OPTION, callback);
-        }
-        return undefined;
+        return dynamicAttach(property);
       },
 
       ownKeys: () => [...VIRTUAL_ENTITY_BASE_KEYS, "onSelectOption"],
@@ -73,16 +66,14 @@ export function VirtualSelect({ context, synapse }: TServiceParams) {
     });
 
     // - Attach bus events
-    const [SELECT_OPTION] = synapse.registry.busTransfer({
+    const { dynamicAttach, staticAttach } = synapse.registry.busTransfer({
       context,
       eventName: ["select_option"],
       unique_id,
     });
 
     // - Attach static listener
-    if (is.function(entity.select_option)) {
-      proxy.onSelectOption(entity.select_option);
-    }
+    staticAttach(proxy, entity);
 
     if (entity.managed !== false) {
       proxy.onSelectOption(({ value }) => (proxy.state = value));

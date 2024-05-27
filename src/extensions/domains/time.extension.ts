@@ -25,17 +25,10 @@ export function VirtualTime({ context, synapse }: TServiceParams) {
     const proxy = new Proxy({} as SynapseVirtualTime, {
       // #MARK: get
       get(_, property: keyof SynapseVirtualTime) {
-        // > common
         if (isBaseEntityKeys(property)) {
           return loader.baseGet(property);
         }
-        // > domain specific
-        // * onActivate
-        if (property === "onSetValue") {
-          return (callback: RemovableCallback) =>
-            synapse.registry.removableListener(SET_VALUE, callback);
-        }
-        return undefined;
+        return dynamicAttach(property);
       },
 
       ownKeys: () => [...VIRTUAL_ENTITY_BASE_KEYS, "onSetValue"],
@@ -72,16 +65,14 @@ export function VirtualTime({ context, synapse }: TServiceParams) {
     });
 
     // - Attach bus events
-    const [SET_VALUE] = synapse.registry.busTransfer({
+    const { dynamicAttach, staticAttach } = synapse.registry.busTransfer({
       context,
       eventName: ["set_value"],
       unique_id,
     });
 
     // - Attach static listener
-    if (is.function(entity.set_value)) {
-      proxy.onSetValue(entity.set_value);
-    }
+    staticAttach(proxy, entity);
 
     if (entity.managed !== false) {
       proxy.onSetValue(({ value }) => (proxy.state = value));
