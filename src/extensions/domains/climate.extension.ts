@@ -1,9 +1,8 @@
-import { is, TServiceParams } from "@digital-alchemy/core";
+import { TServiceParams } from "@digital-alchemy/core";
 
 import {
   ClimateConfiguration,
   isBaseEntityKeys,
-  RemovableCallback,
   SynapseClimateParams,
   SynapseVirtualClimate,
   VIRTUAL_ENTITY_BASE_KEYS,

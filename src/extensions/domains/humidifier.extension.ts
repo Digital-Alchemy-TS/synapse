@@ -1,9 +1,8 @@
-import { is, TServiceParams } from "@digital-alchemy/core";
+import { TServiceParams } from "@digital-alchemy/core";
 
 import {
   HumidifierConfiguration,
   isBaseEntityKeys,
-  RemovableCallback,
   SynapseHumidifierParams,
   SynapseVirtualHumidifier,
   VIRTUAL_ENTITY_BASE_KEYS,

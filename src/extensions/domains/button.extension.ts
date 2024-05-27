@@ -1,10 +1,12 @@
-import { is, TBlackHole, TServiceParams } from "@digital-alchemy/core";
+import { TServiceParams } from "@digital-alchemy/core";
 
-import { isBaseEntityKeys, TRegistry, VIRTUAL_ENTITY_BASE_KEYS } from "../..";
 import {
   ButtonConfiguration,
+  isBaseEntityKeys,
   SynapseButtonParams,
   SynapseVirtualButton,
+  TRegistry,
+  VIRTUAL_ENTITY_BASE_KEYS,
 } from "../..";
 
 export function VirtualButton({ context, synapse }: TServiceParams) {

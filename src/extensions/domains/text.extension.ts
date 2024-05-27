@@ -1,7 +1,6 @@
-import { is, TServiceParams } from "@digital-alchemy/core";
+import { TServiceParams } from "@digital-alchemy/core";
 
 import {
-  RemovableCallback,
   SynapseTextParams,
   SynapseVirtualText,
   TextConfiguration,

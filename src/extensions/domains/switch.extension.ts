@@ -2,7 +2,6 @@ import { TServiceParams } from "@digital-alchemy/core";
 
 import {
   isBaseEntityKeys,
-  RemovableCallback,
   SwitchConfiguration,
   SwitchValue,
   SynapseSwitchParams,

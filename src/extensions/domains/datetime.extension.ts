@@ -1,8 +1,7 @@
-import { is, TServiceParams } from "@digital-alchemy/core";
+import { TServiceParams } from "@digital-alchemy/core";
 
 import {
   DateTimeConfiguration,
-  RemovableCallback,
   SynapseDateTimeParams,
   SynapseVirtualDateTime,
   VIRTUAL_ENTITY_BASE_KEYS,

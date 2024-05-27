@@ -1,8 +1,7 @@
-import { is, TServiceParams } from "@digital-alchemy/core";
+import { TServiceParams } from "@digital-alchemy/core";
 
 import {
   NumberConfiguration,
-  RemovableCallback,
   SynapseNumberParams,
   SynapseVirtualNumber,
   VIRTUAL_ENTITY_BASE_KEYS,
