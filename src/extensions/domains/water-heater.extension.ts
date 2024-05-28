@@ -1,13 +1,13 @@
 import { TServiceParams } from "@digital-alchemy/core";
 
 import {
+  isBaseEntityKeys,
   SynapseVirtualWaterHeater,
   SynapseWaterHeaterParams,
   VIRTUAL_ENTITY_BASE_KEYS,
   WaterHeaterConfiguration,
 } from "../../helpers";
 import { TRegistry } from "../registry.extension";
-import { isBaseEntityKeys } from "../storage.extension";
 
 export function VirtualWaterHeater({ context, synapse }: TServiceParams) {
   const registry = synapse.registry.create<SynapseVirtualWaterHeater>({
@@ -31,16 +31,7 @@ export function VirtualWaterHeater({ context, synapse }: TServiceParams) {
         return dynamicAttach(property);
       },
 
-      ownKeys: () => [
-        ...VIRTUAL_ENTITY_BASE_KEYS,
-        "onSetTemperature",
-        "onSetOperationMode",
-        "onTurnAwayModeOn",
-        "onTurnAwayModeOff",
-        "onTurnOn",
-        "onTurnOff",
-      ],
-
+      ownKeys: () => [...VIRTUAL_ENTITY_BASE_KEYS, ...keys],
       // #MARK: set
       set(_, property: string, value: unknown) {
         // > common
@@ -86,7 +77,7 @@ export function VirtualWaterHeater({ context, synapse }: TServiceParams) {
     });
 
     // - Attach bus events
-    const { dynamicAttach, staticAttach } = synapse.registry.busTransfer({
+    const { dynamicAttach, staticAttach, keys } = synapse.registry.busTransfer({
       context,
       eventName: [
         "set_temperature",

@@ -171,7 +171,7 @@ export function Registry({
       add(data: DATA, entity: BaseEntityParams<unknown>) {
         const unique_id = (
           is.empty(entity.unique_id)
-            ? generateHash(`${getIdentifier()}:${data.name}`)
+            ? generateHash(`${getIdentifier()}:${entity.name}`)
             : entity.unique_id
         ) as TSynapseId;
         if (registry.has(unique_id)) {
@@ -185,11 +185,11 @@ export function Registry({
         CONFIG_FROM_UNIQUE_ID.set(unique_id, entity);
         if (initComplete) {
           logger.warn(
-            { context: context, domain, name: data.name },
+            { context: context, domain, name: entity.name },
             `late entity generation`,
           );
         }
-        logger.debug({ name: data.name }, `register {%s}`, domain);
+        logger.debug({ name: entity.name }, `register {%s}`, domain);
         return unique_id;
       },
 
@@ -257,7 +257,6 @@ export function Registry({
      */
     busTransfer({ context, eventName, unique_id }: BusTransferOptions) {
       const formatted = new Map<string, string>();
-      // const entity = synapse.registry.
       eventName.forEach(eventName => {
         const target = `synapse/${eventName}/${unique_id}`;
         formatted.set(formatEventName(eventName), target);
@@ -283,6 +282,7 @@ export function Registry({
           return (callback: RemovableCallback) =>
             synapse.registry.removableListener(name, callback);
         },
+        keys: [...formatted.keys()],
         staticAttach(proxy: object, entity: object) {
           eventName.forEach(key => {
             const formatted = formatEventName(key) as keyof typeof proxy;

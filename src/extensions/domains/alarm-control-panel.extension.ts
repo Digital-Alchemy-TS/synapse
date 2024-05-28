@@ -2,12 +2,12 @@ import { TServiceParams } from "@digital-alchemy/core";
 
 import {
   AlarmControlPanelConfiguration,
+  isBaseEntityKeys,
   SynapseAlarmControlPanelParams,
   SynapseVirtualAlarmControlPanel,
   VIRTUAL_ENTITY_BASE_KEYS,
 } from "../../helpers";
 import { TRegistry } from "../registry.extension";
-import { isBaseEntityKeys } from "../storage.extension";
 
 export function VirtualAlarmControlPanel({ context, synapse }: TServiceParams) {
   const registry = synapse.registry.create<SynapseVirtualAlarmControlPanel>({
@@ -30,16 +30,7 @@ export function VirtualAlarmControlPanel({ context, synapse }: TServiceParams) {
         return dynamicAttach(property);
       },
 
-      ownKeys: () => [
-        ...VIRTUAL_ENTITY_BASE_KEYS,
-        "onArmCustomBypass",
-        "onTrigger",
-        "onArmVacation",
-        "onArmNight",
-        "onArmAway",
-        "onArmHome",
-        "onDisarm",
-      ],
+      ownKeys: () => [...VIRTUAL_ENTITY_BASE_KEYS, ...keys],
 
       // #MARK: set
       set(_, property: string, value: unknown) {
@@ -79,7 +70,7 @@ export function VirtualAlarmControlPanel({ context, synapse }: TServiceParams) {
     });
 
     // - Attach bus events
-    const { dynamicAttach, staticAttach } = synapse.registry.busTransfer({
+    const { dynamicAttach, staticAttach, keys } = synapse.registry.busTransfer({
       context,
       eventName: [
         "alarm_arm_custom_bypass",

@@ -1,13 +1,13 @@
 import { TServiceParams } from "@digital-alchemy/core";
 
 import {
+  isBaseEntityKeys,
   NumberConfiguration,
   SynapseNumberParams,
   SynapseVirtualNumber,
   VIRTUAL_ENTITY_BASE_KEYS,
 } from "../../helpers";
 import { TRegistry } from "../registry.extension";
-import { isBaseEntityKeys } from "../storage.extension";
 
 export function VirtualNumber({ context, synapse }: TServiceParams) {
   const registry = synapse.registry.create<SynapseVirtualNumber>({
@@ -30,7 +30,7 @@ export function VirtualNumber({ context, synapse }: TServiceParams) {
         return dynamicAttach(property);
       },
 
-      ownKeys: () => [...VIRTUAL_ENTITY_BASE_KEYS, "onSetValue"],
+      ownKeys: () => [...VIRTUAL_ENTITY_BASE_KEYS, ...keys],
 
       // #MARK: set
       set(_, property: string, value: unknown) {
@@ -71,7 +71,7 @@ export function VirtualNumber({ context, synapse }: TServiceParams) {
     });
 
     // - Attach bus events
-    const { dynamicAttach, staticAttach } = synapse.registry.busTransfer({
+    const { dynamicAttach, staticAttach, keys } = synapse.registry.busTransfer({
       context,
       eventName: ["native_set_value"],
       unique_id,

@@ -31,12 +31,7 @@ export function VirtualTodoList({ context, synapse }: TServiceParams) {
         return dynamicAttach(property);
       },
 
-      ownKeys: () => [
-        ...VIRTUAL_ENTITY_BASE_KEYS,
-        "onCreateTodoItem",
-        "onDeleteTodoItem",
-        "onMoveTodoItem",
-      ],
+      ownKeys: () => [...VIRTUAL_ENTITY_BASE_KEYS, ...keys],
 
       // #MARK: set
       set(_, property: string, value: unknown) {
@@ -71,7 +66,7 @@ export function VirtualTodoList({ context, synapse }: TServiceParams) {
     });
 
     // - Attach bus events
-    const { dynamicAttach, staticAttach } = synapse.registry.busTransfer({
+    const { dynamicAttach, staticAttach, keys } = synapse.registry.busTransfer({
       context,
       eventName: ["create_todo_item", "delete_todo_item", "move_todo_item"],
       unique_id,

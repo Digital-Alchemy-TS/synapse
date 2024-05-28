@@ -30,7 +30,7 @@ export function VirtualNotify({ context, synapse }: TServiceParams) {
         return dynamicAttach(property);
       },
 
-      ownKeys: () => [...VIRTUAL_ENTITY_BASE_KEYS, "onPress"],
+      ownKeys: () => [...VIRTUAL_ENTITY_BASE_KEYS, ...keys],
 
       // #MARK: set
       set(_, property: string, value: unknown) {
@@ -59,7 +59,7 @@ export function VirtualNotify({ context, synapse }: TServiceParams) {
     });
 
     // - Attach bus events
-    const { dynamicAttach, staticAttach } = synapse.registry.busTransfer({
+    const { dynamicAttach, staticAttach, keys } = synapse.registry.busTransfer({
       context,
       eventName: ["send_message"],
       unique_id,

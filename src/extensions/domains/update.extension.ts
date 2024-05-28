@@ -31,7 +31,7 @@ export function VirtualUpdate({ context, synapse }: TServiceParams) {
         return dynamicAttach(property);
       },
 
-      ownKeys: () => [...VIRTUAL_ENTITY_BASE_KEYS, "onInstall"],
+      ownKeys: () => [...VIRTUAL_ENTITY_BASE_KEYS, ...keys],
 
       // #MARK: set
       set(_, property: string, value: unknown) {
@@ -77,7 +77,7 @@ export function VirtualUpdate({ context, synapse }: TServiceParams) {
     });
 
     // - Attach bus events
-    const { dynamicAttach, staticAttach } = synapse.registry.busTransfer({
+    const { dynamicAttach, staticAttach, keys } = synapse.registry.busTransfer({
       context,
       eventName: ["install"],
       unique_id,

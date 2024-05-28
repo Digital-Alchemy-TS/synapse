@@ -31,13 +31,7 @@ export function VirtualSwitch({ context, synapse, logger }: TServiceParams) {
         return dynamicAttach(property);
       },
 
-      ownKeys: () => [
-        ...VIRTUAL_ENTITY_BASE_KEYS,
-        "is_on",
-        "onTurnOn",
-        "onTurnOff",
-        "onToggle",
-      ],
+      ownKeys: () => [...VIRTUAL_ENTITY_BASE_KEYS, ...keys],
 
       // #MARK: set
       set(_, property: string, value: unknown) {
@@ -75,7 +69,7 @@ export function VirtualSwitch({ context, synapse, logger }: TServiceParams) {
     });
 
     // - Attach bus events
-    const { dynamicAttach, staticAttach } = synapse.registry.busTransfer({
+    const { dynamicAttach, staticAttach, keys } = synapse.registry.busTransfer({
       context,
       eventName: ["turn_off", "toggle", "turn_on"],
       unique_id,

@@ -31,15 +31,7 @@ export function VirtualRemote({ context, synapse }: TServiceParams) {
         return dynamicAttach(property);
       },
 
-      ownKeys: () => [
-        ...VIRTUAL_ENTITY_BASE_KEYS,
-        "onTurnOn",
-        "onTurnOff",
-        "onToggle",
-        "onSendCommand",
-        "onLearnCommand",
-        "onDeleteCommand",
-      ],
+      ownKeys: () => [...VIRTUAL_ENTITY_BASE_KEYS, ...keys],
 
       // #MARK: set
       set(_, property: string, value: unknown) {
@@ -74,7 +66,7 @@ export function VirtualRemote({ context, synapse }: TServiceParams) {
     });
 
     // - Attach bus events
-    const { dynamicAttach, staticAttach } = synapse.registry.busTransfer({
+    const { dynamicAttach, staticAttach, keys } = synapse.registry.busTransfer({
       context,
       eventName: [
         "turn_on",

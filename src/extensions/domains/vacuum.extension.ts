@@ -1,13 +1,13 @@
 import { TServiceParams } from "@digital-alchemy/core";
 
 import {
+  isBaseEntityKeys,
   SynapseVacuumParams,
   SynapseVirtualVacuum,
   VacuumConfiguration,
   VIRTUAL_ENTITY_BASE_KEYS,
 } from "../../helpers";
 import { TRegistry } from "../registry.extension";
-import { isBaseEntityKeys } from "../storage.extension";
 
 export function VirtualVacuum({ context, synapse }: TServiceParams) {
   const registry = synapse.registry.create<SynapseVirtualVacuum>({
@@ -31,18 +31,7 @@ export function VirtualVacuum({ context, synapse }: TServiceParams) {
         return dynamicAttach(property);
       },
 
-      ownKeys: () => [
-        ...VIRTUAL_ENTITY_BASE_KEYS,
-        "onCleanSpot",
-        "onLocate",
-        "onPause",
-        "onReturnToBase",
-        "onSendCommand",
-        "onSetFanSpeed",
-        "onStart",
-        "onStop",
-      ],
-
+      ownKeys: () => [...VIRTUAL_ENTITY_BASE_KEYS, ...keys],
       // #MARK: set
       set(_, property: string, value: unknown) {
         // > common
@@ -81,7 +70,7 @@ export function VirtualVacuum({ context, synapse }: TServiceParams) {
     });
 
     // - Attach bus events
-    const { dynamicAttach, staticAttach } = synapse.registry.busTransfer({
+    const { dynamicAttach, staticAttach, keys } = synapse.registry.busTransfer({
       context,
       eventName: [
         "clean_spot",

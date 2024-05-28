@@ -48,6 +48,19 @@ export type BaseVirtualEntity<
   unique_id: string;
 };
 
+export type BaseEntityKeys =
+  | "name"
+  | "unique_id"
+  | "onUpdate"
+  | "_rawConfiguration"
+  | "_rawAttributes"
+  | "attributes"
+  | "configuration"
+  | "state";
+
+export const isBaseEntityKeys = (key: string): key is BaseEntityKeys =>
+  VIRTUAL_ENTITY_BASE_KEYS.includes(key);
+
 export const VIRTUAL_ENTITY_BASE_KEYS = [
   "attributes",
   "configuration",

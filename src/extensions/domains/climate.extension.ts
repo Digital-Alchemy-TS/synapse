@@ -31,18 +31,7 @@ export function VirtualClimate({ context, synapse }: TServiceParams) {
         return dynamicAttach(property);
       },
 
-      ownKeys: () => [
-        ...VIRTUAL_ENTITY_BASE_KEYS,
-        "onSetHvacMode",
-        "onTurnOn",
-        "onTurnOff",
-        "onToggle",
-        "onSetPresetMode",
-        "onSetFanMode",
-        "onSetHumidity",
-        "onSetSwingMode",
-        "onSetTemperature",
-      ],
+      ownKeys: () => [...VIRTUAL_ENTITY_BASE_KEYS, ...keys],
 
       // #MARK: set
       set(_, property: string, value: unknown) {
@@ -100,7 +89,7 @@ export function VirtualClimate({ context, synapse }: TServiceParams) {
     });
 
     // - Attach bus events
-    const { dynamicAttach, staticAttach } = synapse.registry.busTransfer({
+    const { dynamicAttach, staticAttach, keys } = synapse.registry.busTransfer({
       context,
       eventName: [
         "set_hvac_mode",

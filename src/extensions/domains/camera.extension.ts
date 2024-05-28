@@ -2,12 +2,12 @@ import { TServiceParams } from "@digital-alchemy/core";
 
 import {
   CameraConfiguration,
+  isBaseEntityKeys,
   SynapseCameraParams,
   SynapseVirtualCamera,
   VIRTUAL_ENTITY_BASE_KEYS,
 } from "../../helpers";
 import { TRegistry } from "../registry.extension";
-import { isBaseEntityKeys } from "../storage.extension";
 
 export function VirtualCamera({ context, synapse }: TServiceParams) {
   const registry = synapse.registry.create<SynapseVirtualCamera>({
@@ -31,13 +31,7 @@ export function VirtualCamera({ context, synapse }: TServiceParams) {
         return dynamicAttach(property);
       },
 
-      ownKeys: () => [
-        ...VIRTUAL_ENTITY_BASE_KEYS,
-        "onTurnOn",
-        "onTurnOff",
-        "onEnableMotionDetection",
-        "onDisableMotionDetection",
-      ],
+      ownKeys: () => [...VIRTUAL_ENTITY_BASE_KEYS, ...keys],
 
       // #MARK: set
       set(_, property: string, value: unknown) {
@@ -83,7 +77,7 @@ export function VirtualCamera({ context, synapse }: TServiceParams) {
     });
 
     // - Attach bus events
-    const { dynamicAttach, staticAttach } = synapse.registry.busTransfer({
+    const { dynamicAttach, staticAttach, keys } = synapse.registry.busTransfer({
       context,
       eventName: [
         "turn_on",

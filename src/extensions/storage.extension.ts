@@ -3,9 +3,9 @@ import { ENTITY_STATE, PICK_ENTITY } from "@digital-alchemy/hass";
 
 import {
   BASE_CONFIG_KEYS,
+  BaseEntityKeys,
   BaseEntityParams,
   TSynapseId,
-  VIRTUAL_ENTITY_BASE_KEYS,
 } from "..";
 import { TRegistry } from ".";
 
@@ -299,16 +299,3 @@ export function ValueStorage({ logger, lifecycle, hass }: TServiceParams) {
     wrapper,
   };
 }
-
-type BaseEntityKeys =
-  | "name"
-  | "unique_id"
-  | "onUpdate"
-  | "_rawConfiguration"
-  | "_rawAttributes"
-  | "attributes"
-  | "configuration"
-  | "state";
-
-export const isBaseEntityKeys = (key: string): key is BaseEntityKeys =>
-  VIRTUAL_ENTITY_BASE_KEYS.includes(key);
