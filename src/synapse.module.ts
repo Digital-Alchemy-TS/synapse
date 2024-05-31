@@ -3,10 +3,10 @@ import { LIB_FASTIFY } from "@digital-alchemy/fastify-extension";
 import { LIB_HASS } from "@digital-alchemy/hass";
 
 import {
-  BonjourExtension,
   Configure,
   Controller,
   DeviceExtension,
+  DiscoveryExtension,
   Registry,
   ValueStorage,
   VirtualAlarmControlPanel,
@@ -77,9 +77,7 @@ export const LIB_SYNAPSE = CreateLibrary({
   configuration: {
     EMIT_HEARTBEAT: {
       default: true,
-      description: [
-        "Emit a heartbeat pulse so the extension knows the service is alive",
-      ],
+      description: ["Emit a heartbeat pulse so the extension knows the service is alive"],
       type: "boolean",
     },
     EVENT_NAMESPACE: {
@@ -108,10 +106,7 @@ export const LIB_SYNAPSE = CreateLibrary({
       type: "string",
     },
     METADATA_TITLE: {
-      description: [
-        "Title for the integration provided by this app",
-        "Defaults to app name",
-      ],
+      description: ["Title for the integration provided by this app", "Defaults to app name"],
       type: "string",
     },
     METADATA_UNIQUE_ID: {
@@ -132,11 +127,6 @@ export const LIB_SYNAPSE = CreateLibrary({
   priorityInit: ["registry", "storage"],
   services: {
     /**
-     * Zeroconf discovery
-     */
-    bonjour: BonjourExtension,
-
-    /**
      * internal
      */
     configure: Configure,
@@ -150,6 +140,11 @@ export const LIB_SYNAPSE = CreateLibrary({
      * Internal tools to create the device that registers with entities
      */
     device: DeviceExtension,
+
+    /**
+     * Zeroconf discovery
+     */
+    discovery: DiscoveryExtension,
 
     /**
      * internal tools for managing entities

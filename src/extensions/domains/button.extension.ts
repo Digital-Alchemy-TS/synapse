@@ -17,9 +17,7 @@ export function VirtualButton({ context, synapse }: TServiceParams) {
   });
 
   // #MARK: create
-  return function <ATTRIBUTES extends object = object>(
-    entity: SynapseButtonParams,
-  ) {
+  return function <ATTRIBUTES extends object = object>(entity: SynapseButtonParams) {
     // - Define the proxy
     const proxy = new Proxy({} as SynapseVirtualButton, {
       // #MARK: get
@@ -48,11 +46,7 @@ export function VirtualButton({ context, synapse }: TServiceParams) {
     const unique_id = registry.add(proxy, entity);
 
     // - Initialize value storage
-    const loader = synapse.storage.wrapper<
-      never,
-      ATTRIBUTES,
-      ButtonConfiguration
-    >({
+    const loader = synapse.storage.wrapper<never, ATTRIBUTES, ButtonConfiguration>({
       load_keys: ["device_class"],
       name: entity.name,
       registry: registry as TRegistry<unknown>,

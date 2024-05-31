@@ -17,10 +17,9 @@ export function VirtualLight({ context, synapse }: TServiceParams) {
   });
 
   // #MARK: create
-  return function <
-    STATE extends string = string,
-    ATTRIBUTES extends object = object,
-  >(entity: SynapseLightParams) {
+  return function <STATE extends string = string, ATTRIBUTES extends object = object>(
+    entity: SynapseLightParams,
+  ) {
     const proxy = new Proxy({} as SynapseVirtualLight, {
       // #MARK: get
       // eslint-disable-next-line sonarjs/cognitive-complexity
@@ -54,11 +53,7 @@ export function VirtualLight({ context, synapse }: TServiceParams) {
     const unique_id = registry.add(proxy, entity);
 
     // - Initialize value storage
-    const loader = synapse.storage.wrapper<
-      STATE,
-      ATTRIBUTES,
-      LightConfiguration
-    >({
+    const loader = synapse.storage.wrapper<STATE, ATTRIBUTES, LightConfiguration>({
       load_keys: [
         "brightness",
         "color_mode",

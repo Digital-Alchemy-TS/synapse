@@ -30,11 +30,7 @@ export type RemoteConfiguration = EntityConfigCommon & {
   supported_features?: number;
 };
 
-export type SynapseVirtualRemote = BaseVirtualEntity<
-  RemoteStates,
-  object,
-  RemoteConfiguration
-> & {
+export type SynapseVirtualRemote = BaseVirtualEntity<RemoteStates, object, RemoteConfiguration> & {
   onTurnOn?: CreateRemovableCallback<{ activity?: string }>;
   onTurnOff?: CreateRemovableCallback<{ activity?: string }>;
   onToggle?: CreateRemovableCallback<{ activity?: string }>;

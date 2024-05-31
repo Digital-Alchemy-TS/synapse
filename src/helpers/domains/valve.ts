@@ -44,11 +44,7 @@ export type ValveConfiguration = EntityConfigCommon & {
   supported_features?: number;
 };
 
-export type SynapseVirtualValve = BaseVirtualEntity<
-  ValveStates,
-  object,
-  ValveConfiguration
-> & {
+export type SynapseVirtualValve = BaseVirtualEntity<ValveStates, object, ValveConfiguration> & {
   onOpenValve?: CreateRemovableCallback;
   onCloseValve?: CreateRemovableCallback;
   onSetValvePosition?: CreateRemovableCallback;

@@ -17,10 +17,9 @@ export function VirtualValve({ context, synapse }: TServiceParams) {
   });
 
   // #MARK: create
-  return function <
-    STATE extends string = string,
-    ATTRIBUTES extends object = object,
-  >(entity: SynapseValveParams) {
+  return function <STATE extends string = string, ATTRIBUTES extends object = object>(
+    entity: SynapseValveParams,
+  ) {
     const proxy = new Proxy({} as SynapseVirtualValve, {
       // #MARK: get
       // eslint-disable-next-line sonarjs/cognitive-complexity
@@ -54,11 +53,7 @@ export function VirtualValve({ context, synapse }: TServiceParams) {
     const unique_id = registry.add(proxy, entity);
 
     // - Initialize value storage
-    const loader = synapse.storage.wrapper<
-      STATE,
-      ATTRIBUTES,
-      ValveConfiguration
-    >({
+    const loader = synapse.storage.wrapper<STATE, ATTRIBUTES, ValveConfiguration>({
       load_keys: [
         "current_valve_position",
         "is_closed",
@@ -76,12 +71,7 @@ export function VirtualValve({ context, synapse }: TServiceParams) {
     // - Attach bus events
     const { dynamicAttach, staticAttach, keys } = synapse.registry.busTransfer({
       context,
-      eventName: [
-        "open_valve",
-        "close_valve",
-        "set_valve_position",
-        "stop_valve",
-      ],
+      eventName: ["open_valve", "close_valve", "set_valve_position", "stop_valve"],
       unique_id,
     });
 

@@ -30,11 +30,7 @@ export type SwitchConfiguration = EntityConfigCommon & {
 
 export type SwitchValue = "on" | "off";
 
-export type SynapseVirtualSwitch = BaseVirtualEntity<
-  SwitchValue,
-  object,
-  SwitchConfiguration
-> & {
+export type SynapseVirtualSwitch = BaseVirtualEntity<SwitchValue, object, SwitchConfiguration> & {
   is_on: boolean;
   onTurnOff: CreateRemovableCallback;
   onToggle: CreateRemovableCallback;

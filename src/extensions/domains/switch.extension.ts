@@ -78,10 +78,7 @@ export function VirtualSwitch({ context, synapse, logger }: TServiceParams) {
     // - Attach static listener
     staticAttach(proxy, entity);
     if (entity.managed !== false) {
-      logger.debug(
-        { context: entity.context, name: entity.name },
-        `setting up state management`,
-      );
+      logger.debug({ context: entity.context, name: entity.name }, `setting up state management`);
       proxy.onToggle(() => (proxy.is_on = !proxy.is_on));
       proxy.onTurnOn(() => (proxy.is_on = true));
       proxy.onTurnOff(() => (proxy.is_on = false));

@@ -18,13 +18,7 @@ export type SynapseVacuumParams = BaseEntityParams<VacuumStates> &
     stop?: RemovableCallback;
   };
 
-type VacuumStates =
-  | "cleaning"
-  | "docked"
-  | "idle"
-  | "paused"
-  | "returning"
-  | "error";
+type VacuumStates = "cleaning" | "docked" | "idle" | "paused" | "returning" | "error";
 
 export type VacuumConfiguration = EntityConfigCommon & {
   /**
@@ -42,11 +36,7 @@ export type VacuumConfiguration = EntityConfigCommon & {
   supported_features?: number;
 };
 
-export type SynapseVirtualVacuum = BaseVirtualEntity<
-  VacuumStates,
-  object,
-  VacuumConfiguration
-> & {
+export type SynapseVirtualVacuum = BaseVirtualEntity<VacuumStates, object, VacuumConfiguration> & {
   onCleanSpot: CreateRemovableCallback;
   onLocate: CreateRemovableCallback;
   onPause: CreateRemovableCallback;

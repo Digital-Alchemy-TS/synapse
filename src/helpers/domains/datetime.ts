@@ -1,3 +1,5 @@
+import { Dayjs } from "dayjs";
+
 import {
   BaseEntityParams,
   BaseVirtualEntity,
@@ -17,10 +19,10 @@ export type SynapseDateTimeParams = BaseEntityParams<string> &
 
 type SetValueData = { value: string };
 
-export type DateTimeConfiguration = EntityConfigCommon;
+export type DateTimeConfiguration = EntityConfigCommon & {
+  native_value?: Dayjs;
+};
 
-export type SynapseVirtualDateTime = BaseVirtualEntity<
-  string,
-  object,
-  DateTimeConfiguration
-> & { onSetValue: CreateRemovableCallback<SetValueData> };
+export type SynapseVirtualDateTime = BaseVirtualEntity<string, object, DateTimeConfiguration> & {
+  onSetValue: CreateRemovableCallback<SetValueData>;
+};

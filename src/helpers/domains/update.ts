@@ -55,10 +55,6 @@ export type UpdateConfiguration = EntityConfigCommon & {
   title?: string;
 };
 
-export type SynapseVirtualUpdate = BaseVirtualEntity<
-  never,
-  object,
-  UpdateConfiguration
-> & {
+export type SynapseVirtualUpdate = BaseVirtualEntity<never, object, UpdateConfiguration> & {
   onInstall: CreateRemovableCallback<{ backup?: boolean; version?: string }>;
 };

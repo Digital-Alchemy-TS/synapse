@@ -17,9 +17,7 @@ export function VirtualNotify({ context, synapse }: TServiceParams) {
   });
 
   // #MARK: create
-  return function <ATTRIBUTES extends object = object>(
-    entity: SynapseNotifyParams,
-  ) {
+  return function <ATTRIBUTES extends object = object>(entity: SynapseNotifyParams) {
     // - Define the proxy
     const proxy = new Proxy({} as SynapseVirtualNotify, {
       // #MARK: get
@@ -48,11 +46,7 @@ export function VirtualNotify({ context, synapse }: TServiceParams) {
     const unique_id = registry.add(proxy, entity);
 
     // - Initialize value storage
-    const loader = synapse.storage.wrapper<
-      never,
-      ATTRIBUTES,
-      NotifyConfiguration
-    >({
+    const loader = synapse.storage.wrapper<never, ATTRIBUTES, NotifyConfiguration>({
       name: entity.name,
       registry: registry as TRegistry<unknown>,
       unique_id,

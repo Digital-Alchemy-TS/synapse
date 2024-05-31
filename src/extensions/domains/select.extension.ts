@@ -10,20 +10,22 @@ import {
 import { TRegistry } from "../registry.extension";
 
 export function VirtualSelect({ context, synapse }: TServiceParams) {
-  const registry = synapse.registry.create<SynapseVirtualSelect>({
+  const registry = synapse.registry.create<SynapseVirtualSelect<string>>({
     context,
     // @ts-expect-error it's fine
     domain: "select",
   });
 
   // #MARK: create
-  return function <
-    STATE extends string = string,
-    ATTRIBUTES extends object = object,
-  >(entity: SynapseSelectParams) {
-    const proxy = new Proxy({} as SynapseVirtualSelect, {
+  return function <OPTIONS extends string, ATTRIBUTES extends object = object>(
+    entity: SynapseSelectParams<OPTIONS>,
+  ) {
+    const proxy = new Proxy({} as SynapseVirtualSelect<OPTIONS>, {
       // #MARK: get
-      get(_, property: keyof SynapseVirtualSelect) {
+      get(_, property: keyof SynapseVirtualSelect<OPTIONS>) {
+        if (property === "state") {
+          return loader.configuration.current_option;
+        }
         if (isBaseEntityKeys(property)) {
           return loader.baseGet(property);
         }
@@ -37,7 +39,7 @@ export function VirtualSelect({ context, synapse }: TServiceParams) {
         // > common
         // * state
         if (property === "state") {
-          loader.setState(value as STATE);
+          loader.setConfiguration("current_option", value as OPTIONS);
           return true;
         }
         // * attributes
@@ -53,11 +55,7 @@ export function VirtualSelect({ context, synapse }: TServiceParams) {
     const unique_id = registry.add(proxy, entity);
 
     // - Initialize value storage
-    const loader = synapse.storage.wrapper<
-      STATE,
-      ATTRIBUTES,
-      SelectConfiguration
-    >({
+    const loader = synapse.storage.wrapper<OPTIONS, ATTRIBUTES, SelectConfiguration<OPTIONS>>({
       load_keys: ["options", "current_option"],
       name: entity.name,
       registry: registry as TRegistry<unknown>,
@@ -75,7 +73,7 @@ export function VirtualSelect({ context, synapse }: TServiceParams) {
     staticAttach(proxy, entity);
 
     if (entity.managed !== false) {
-      proxy.onSelectOption(({ value }) => (proxy.state = value));
+      proxy.onSelectOption(({ option }) => (proxy.configuration.current_option = option));
     }
 
     // - Done

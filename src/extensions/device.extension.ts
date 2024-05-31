@@ -4,12 +4,7 @@ import { join } from "path";
 
 import { HassDeviceMetadata } from "../helpers";
 
-export function DeviceExtension({
-  config,
-  lifecycle,
-  logger,
-  internal,
-}: TServiceParams) {
+export function DeviceExtension({ config, lifecycle, logger, internal }: TServiceParams) {
   let synapseVersion: string;
 
   lifecycle.onPostConfig(() => {

@@ -17,8 +17,6 @@ export type ButtonConfiguration = EntityConfigCommon & {
   device_class?: `${ButtonDeviceClass}`;
 };
 
-export type SynapseVirtualButton = BaseVirtualEntity<
-  never,
-  object,
-  ButtonConfiguration
-> & { onPress: CreateRemovableCallback };
+export type SynapseVirtualButton = BaseVirtualEntity<never, object, ButtonConfiguration> & {
+  onPress: CreateRemovableCallback;
+};

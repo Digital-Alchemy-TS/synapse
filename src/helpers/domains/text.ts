@@ -34,10 +34,12 @@ export type TextConfiguration = EntityConfigCommon & {
    * A regex pattern that the text value must match to be valid.
    */
   pattern?: string;
+  /**
+   * The value of the text.
+   */
+  native_value?: string;
 };
 
-export type SynapseVirtualText = BaseVirtualEntity<
-  string,
-  object,
-  TextConfiguration
-> & { onSetValue: CreateRemovableCallback<SetValueData> };
+export type SynapseVirtualText = BaseVirtualEntity<string, object, TextConfiguration> & {
+  onSetValue: CreateRemovableCallback<SetValueData>;
+};

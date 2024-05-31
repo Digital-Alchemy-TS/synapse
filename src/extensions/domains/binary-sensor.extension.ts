@@ -67,11 +67,7 @@ export function VirtualBinarySensor({ context, synapse }: TServiceParams) {
     const unique_id = registry.add(proxy, entity);
 
     // - Initialize value storage
-    const loader = synapse.storage.wrapper<
-      STATE,
-      ATTRIBUTES,
-      BinarySensorConfiguration
-    >({
+    const loader = synapse.storage.wrapper<STATE, ATTRIBUTES, BinarySensorConfiguration>({
       config_defaults: { entity_category: "diagnostic" },
       load_keys: ["device_class"],
       name: entity.name,

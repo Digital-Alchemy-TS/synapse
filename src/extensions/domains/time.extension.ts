@@ -17,13 +17,15 @@ export function VirtualTime({ context, synapse }: TServiceParams) {
   });
 
   // #MARK: create
-  return function <
-    STATE extends string = string,
-    ATTRIBUTES extends object = object,
-  >(entity: SynapseTimeParams) {
+  return function <STATE extends string = string, ATTRIBUTES extends object = object>(
+    entity: SynapseTimeParams,
+  ) {
     const proxy = new Proxy({} as SynapseVirtualTime, {
       // #MARK: get
       get(_, property: keyof SynapseVirtualTime) {
+        if (property === "state") {
+          return loader.configuration.native_value;
+        }
         if (isBaseEntityKeys(property)) {
           return loader.baseGet(property);
         }
@@ -53,11 +55,8 @@ export function VirtualTime({ context, synapse }: TServiceParams) {
     const unique_id = registry.add(proxy, entity);
 
     // - Initialize value storage
-    const loader = synapse.storage.wrapper<
-      STATE,
-      ATTRIBUTES,
-      TimeConfiguration
-    >({
+    const loader = synapse.storage.wrapper<STATE, ATTRIBUTES, TimeConfiguration>({
+      load_keys: ["native_value"],
       name: entity.name,
       registry: registry as TRegistry<unknown>,
       unique_id,

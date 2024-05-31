@@ -41,15 +41,7 @@ type WindSpeedSensor = {
 
 type SpeedSensor = {
   device_class: "speed";
-  unit_of_measurement:
-    | "ft/s"
-    | "in/d"
-    | "in/h"
-    | "km/h"
-    | "kn"
-    | "m/s"
-    | "mph"
-    | "mm/d";
+  unit_of_measurement: "ft/s" | "in/d" | "in/h" | "km/h" | "kn" | "m/s" | "mph" | "mm/d";
 };
 
 type VoltageSensor = {
@@ -74,15 +66,7 @@ type SoundPressureSensor = {
 
 type PressureSensor = {
   device_class: "pressure";
-  unit_of_measurement:
-    | "cbar"
-    | "bar"
-    | "hPa"
-    | "inHg"
-    | "kPa"
-    | "mbar"
-    | "Pa"
-    | "psi";
+  unit_of_measurement: "cbar" | "bar" | "hPa" | "inHg" | "kPa" | "mbar" | "Pa" | "psi";
 };
 
 type ReactivePowerSensor = {
@@ -199,15 +183,7 @@ type DataSizeSensor = {
 
 type AtmosphericPressureSensor = {
   device_class: "atmospheric_pressure";
-  unit_of_measurement:
-    | "cbar"
-    | "bar"
-    | "hPa"
-    | "inHg"
-    | "kPa"
-    | "mbar"
-    | "Pa"
-    | "psi";
+  unit_of_measurement: "cbar" | "bar" | "hPa" | "inHg" | "kPa" | "mbar" | "Pa" | "psi";
 };
 
 type CurrentSensor = {
@@ -233,10 +209,7 @@ type DefaultSensor = {
   unit_of_measurement?: void;
 };
 
-export const SENSOR_DEVICE_CLASS_CONFIG_KEYS = [
-  "device_class",
-  "unit_of_measurement",
-];
+export const SENSOR_DEVICE_CLASS_CONFIG_KEYS = ["device_class", "unit_of_measurement"];
 
 export enum SensorStateClass {
   /**
@@ -297,8 +270,7 @@ export type SensorDeviceClasses =
   | AtmosphericPressureSensor
   | DefaultSensor;
 
-export type SynapseSensorParams = BaseEntityParams<SensorValue> &
-  SensorConfiguration;
+export type SynapseSensorParams = BaseEntityParams<SensorValue> & SensorConfiguration;
 
 export type SensorConfiguration = EntityConfigCommon &
   SensorDeviceClasses & {
@@ -343,11 +315,7 @@ export type SensorConfiguration = EntityConfigCommon &
 
 export type SensorValue = string | number;
 
-export type SynapseVirtualSensor = BaseVirtualEntity<
-  SensorValue,
-  object,
-  SensorConfiguration
-> & {
+export type SynapseVirtualSensor = BaseVirtualEntity<SensorValue, object, SensorConfiguration> & {
   /**
    * bumps the last reset time
    */

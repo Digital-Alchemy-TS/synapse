@@ -1,10 +1,7 @@
 import { TBlackHole, TContext } from "@digital-alchemy/core";
 import { ENTITY_STATE, PICK_ENTITY } from "@digital-alchemy/hass";
 
-export type BaseEntityParams<
-  STATE extends unknown,
-  ATTRIBUTES extends object = object,
-> = {
+export type BaseEntityParams<STATE extends unknown, ATTRIBUTES extends object = object> = {
   context: TContext;
   defaultState?: STATE;
   defaultAttributes?: ATTRIBUTES;

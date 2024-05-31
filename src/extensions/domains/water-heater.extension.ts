@@ -17,10 +17,9 @@ export function VirtualWaterHeater({ context, synapse }: TServiceParams) {
   });
 
   // #MARK: create
-  return function <
-    STATE extends string = string,
-    ATTRIBUTES extends object = object,
-  >(entity: SynapseWaterHeaterParams) {
+  return function <STATE extends string = string, ATTRIBUTES extends object = object>(
+    entity: SynapseWaterHeaterParams,
+  ) {
     const proxy = new Proxy({} as SynapseVirtualWaterHeater, {
       // #MARK: get
       // eslint-disable-next-line sonarjs/cognitive-complexity
@@ -53,11 +52,7 @@ export function VirtualWaterHeater({ context, synapse }: TServiceParams) {
     const unique_id = registry.add(proxy, entity);
 
     // - Initialize value storage
-    const loader = synapse.storage.wrapper<
-      STATE,
-      ATTRIBUTES,
-      WaterHeaterConfiguration
-    >({
+    const loader = synapse.storage.wrapper<STATE, ATTRIBUTES, WaterHeaterConfiguration>({
       load_keys: [
         "min_temp",
         "max_temp",

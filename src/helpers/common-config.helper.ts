@@ -28,6 +28,7 @@ export type EntityConfigCommon = {
 
 export const BASE_CONFIG_KEYS = [
   "area_id",
+  "name",
   "suggested_object_id",
   "unique_id",
   "icon",

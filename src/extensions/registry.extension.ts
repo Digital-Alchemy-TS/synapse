@@ -2,19 +2,15 @@ import {
   InternalError,
   is,
   SECOND,
+  sleep,
   START,
   TContext,
   TServiceParams,
 } from "@digital-alchemy/core";
-import { ALL_DOMAINS } from "@digital-alchemy/hass";
+import { ALL_DOMAINS, TRawDomains } from "@digital-alchemy/hass";
 import { createHash } from "crypto";
 
-import {
-  BaseEntityParams,
-  CreateRemovableCallback,
-  RemovableCallback,
-  TSynapseId,
-} from "..";
+import { BaseEntityParams, EntityConfigCommon, RemovableCallback, TSynapseId } from "..";
 
 type BaseEntity = {
   attributes: object;
@@ -26,13 +22,9 @@ type BaseEntity = {
   unique_id: string;
 };
 
-type SynapseSocketOptions<DATA extends object> = {
+type SynapseSocketOptions = {
   context: TContext;
   domain: ALL_DOMAINS;
-  /**
-   * used to export data for payloads to extension
-   */
-  details?: (data: DATA) => object;
 };
 
 const BOOT_TIME = new Date().toISOString();
@@ -45,15 +37,19 @@ function generateHash(input: string) {
 
 type Configurable = { configuration: object };
 
-function squishData<DATA extends Configurable>({
-  configuration,
-  ...data
-}: DATA) {
+function squishData<DATA extends Configurable>({ configuration, ...data }: DATA) {
   return {
     ...configuration,
     ...data,
   };
 }
+const formatObjectId = (input: string) =>
+  input
+    .trim()
+    .toLowerCase()
+    .replaceAll(/[^\d_a-z]+/g, "_")
+    .replaceAll(/^_+|_+$/g, "")
+    .replaceAll(/_+/g, "_");
 
 export function Registry({
   lifecycle,
@@ -68,16 +64,13 @@ export function Registry({
   scheduler,
 }: TServiceParams) {
   const LOADERS = new Map<ALL_DOMAINS, () => object[]>();
-  const CONFIG_FROM_UNIQUE_ID = new Map<
-    TSynapseId,
-    BaseEntityParams<unknown>
-  >();
+  const CONFIG_FROM_UNIQUE_ID = new Map<TSynapseId, BaseEntityParams<unknown>>();
+  const META_REGISTRY = new Map<TRawDomains, Map<TSynapseId, BaseEntity>>();
   type TDomain = ReturnType<typeof create>;
   const domains = new Map<ALL_DOMAINS, TDomain>();
   const initComplete = false;
   const getIdentifier = () => internal.boot.application.name;
-  const name = (a: string) =>
-    [config.synapse.EVENT_NAMESPACE, a, getIdentifier()].join("/");
+  const name = (a: string) => [config.synapse.EVENT_NAMESPACE, a, getIdentifier()].join("/");
 
   function buildEntityState() {
     const domains = Object.fromEntries(
@@ -112,11 +105,13 @@ export function Registry({
     });
   });
 
+  hass.socket.onConnect(async () => {
+    logger.debug({ name: "onConnect" }, `reconnect heartbeat`);
+    await hass.socket.fireEvent(name("heartbeat"));
+  });
+
   lifecycle.onPreShutdown(async () => {
-    logger.debug(
-      { name: "onPreShutdown" },
-      `notifying synapse extension of shutdown`,
-    );
+    logger.debug({ name: "onPreShutdown" }, `notifying synapse extension of shutdown`);
     await hass.socket.fireEvent(name("shutdown"));
   });
 
@@ -144,22 +139,19 @@ export function Registry({
   function create<DATA extends BaseEntity>({
     domain,
     context,
-    details = entity => ({
-      attributes: entity._rawAttributes,
-      configuration: entity._rawConfiguration,
-      state: entity.state,
-    }),
-  }: SynapseSocketOptions<DATA>): TRegistry<DATA> {
+  }: SynapseSocketOptions): TRegistry<DATA> {
     logger.trace({ name: domain }, `init domain`);
     const registry = new Map<TSynapseId, DATA>();
+    META_REGISTRY.set(domain, registry);
     const CACHE_KEY = (unique_id: TSynapseId) => `${domain}_cache:${unique_id}`;
 
     // * Export the data for hass
     LOADERS.set(domain, () => {
       return [...registry.entries()].map(([unique_id, item]) => {
         return {
-          ...details(item),
-          name: item.name,
+          attributes: item.attributes,
+          ...item.configuration,
+          state: item.state,
           unique_id,
         };
       });
@@ -168,26 +160,22 @@ export function Registry({
     // * Registry interactions
     const out = {
       // * Add
-      add(data: DATA, entity: BaseEntityParams<unknown>) {
+      add(data: DATA, entity: BaseEntityParams<unknown> & EntityConfigCommon) {
         const unique_id = (
           is.empty(entity.unique_id)
             ? generateHash(`${getIdentifier()}:${entity.name}`)
             : entity.unique_id
         ) as TSynapseId;
         if (registry.has(unique_id)) {
-          throw new InternalError(
-            context,
-            `ENTITY_COLLISION`,
-            `${domain} registry already id`,
-          );
+          throw new InternalError(context, `ENTITY_COLLISION`, `${domain} registry already id`);
         }
+        // Without the suggested_object_id, home assistant will prefer using the unique_id to create the entity id
+        entity.suggested_object_id ??= formatObjectId(entity.name);
+
         registry.set(unique_id, data);
         CONFIG_FROM_UNIQUE_ID.set(unique_id, entity);
         if (initComplete) {
-          logger.warn(
-            { context: context, domain, name: entity.name },
-            `late entity generation`,
-          );
+          logger.warn({ context: context, domain, name: entity.name }, `late entity generation`);
         }
         logger.debug({ name: entity.name }, `register {%s}`, domain);
         return unique_id;
@@ -283,26 +271,29 @@ export function Registry({
             synapse.registry.removableListener(name, callback);
         },
         keys: [...formatted.keys()],
+        // TODO: it works but it is ugly
         staticAttach(proxy: object, entity: object) {
           eventName.forEach(key => {
-            const formatted = formatEventName(key) as keyof typeof proxy;
-            const value = proxy[formatted] as CreateRemovableCallback;
-            if (is.function(value)) {
-              value(entity[key as keyof typeof entity] as RemovableCallback);
+            const name = formatEventName(key) as keyof typeof proxy;
+            const value = entity[key as keyof typeof entity] as RemovableCallback;
+            const callback = proxy[name] as (callback_: unknown) => void;
+            if (is.function(value) && !is.empty(name) && is.function(callback)) {
+              callback(value);
             }
           });
         },
       };
+    },
+    byId(id: TSynapseId) {
+      const registry = [...META_REGISTRY.values()].find(item => !is.undefined(item.get(id)));
+      return registry?.get(id);
     },
     create,
     eventName: name,
     /**
      * Generate an event listener that is easy to remove by developer
      */
-    removableListener<DATA extends object>(
-      eventName: string,
-      callback: RemovableCallback<DATA>,
-    ) {
+    removableListener<DATA extends object>(eventName: string, callback: RemovableCallback<DATA>) {
       const remove = () => event.removeListener(eventName, exec);
       const exec = async (data: DATA) =>
         await internal.safeExec(async () => await callback(data, remove));
@@ -337,9 +328,8 @@ export type TRegistry<DATA extends unknown = unknown> = {
 
 const EVERYTHING_ELSE = 1;
 const formatEventName = (eventName: string) =>
-  [
-    "on",
-    eventName
-      .split("_")
-      .map(i => i.charAt(START).toUpperCase() + i.slice(EVERYTHING_ELSE)),
-  ].join(",");
+  "on" +
+  eventName
+    .split("_")
+    .map(i => i.charAt(START).toUpperCase() + i.slice(EVERYTHING_ELSE))
+    .join("");

@@ -17,10 +17,9 @@ export function VirtualSiren({ context, synapse }: TServiceParams) {
   });
 
   // #MARK: create
-  return function <
-    STATE extends string = string,
-    ATTRIBUTES extends object = object,
-  >(entity: SynapseSirenParams) {
+  return function <STATE extends string = string, ATTRIBUTES extends object = object>(
+    entity: SynapseSirenParams,
+  ) {
     const proxy = new Proxy({} as SynapseVirtualSiren, {
       // #MARK: get
       get(_, property: keyof SynapseVirtualSiren) {
@@ -53,11 +52,7 @@ export function VirtualSiren({ context, synapse }: TServiceParams) {
     const unique_id = registry.add(proxy, entity);
 
     // - Initialize value storage
-    const loader = synapse.storage.wrapper<
-      STATE,
-      ATTRIBUTES,
-      SirenConfiguration
-    >({
+    const loader = synapse.storage.wrapper<STATE, ATTRIBUTES, SirenConfiguration>({
       load_keys: ["is_on", "available_tones", "supported_features"],
       name: entity.name,
       registry: registry as TRegistry<unknown>,

@@ -13,17 +13,19 @@ export function VirtualText({ context, synapse }: TServiceParams) {
   const registry = synapse.registry.create<SynapseVirtualText>({
     context,
     // @ts-expect-error it's fine
-    domain: "select",
+    domain: "text",
   });
 
   // #MARK: create
-  return function <
-    STATE extends string = string,
-    ATTRIBUTES extends object = object,
-  >(entity: SynapseTextParams) {
+  return function <STATE extends string = string, ATTRIBUTES extends object = object>(
+    entity: SynapseTextParams,
+  ) {
     const proxy = new Proxy({} as SynapseVirtualText, {
       // #MARK: get
       get(_, property: keyof SynapseVirtualText) {
+        if (property === "state") {
+          return loader.configuration.native_value;
+        }
         if (isBaseEntityKeys(property)) {
           return loader.baseGet(property);
         }
@@ -37,7 +39,7 @@ export function VirtualText({ context, synapse }: TServiceParams) {
         // > common
         // * state
         if (property === "state") {
-          loader.setState(value as STATE);
+          loader.setConfiguration("native_value", value as STATE);
           return true;
         }
         // * attributes
@@ -53,12 +55,8 @@ export function VirtualText({ context, synapse }: TServiceParams) {
     const unique_id = registry.add(proxy, entity);
 
     // - Initialize value storage
-    const loader = synapse.storage.wrapper<
-      STATE,
-      ATTRIBUTES,
-      TextConfiguration
-    >({
-      load_keys: ["mode", "native_max", "native_min", "pattern"],
+    const loader = synapse.storage.wrapper<STATE, ATTRIBUTES, TextConfiguration>({
+      load_keys: ["mode", "native_max", "native_min", "pattern", "native_value"],
       name: entity.name,
       registry: registry as TRegistry<unknown>,
       unique_id,
@@ -75,7 +73,7 @@ export function VirtualText({ context, synapse }: TServiceParams) {
     staticAttach(proxy, entity);
 
     if (entity.managed !== false) {
-      proxy.onSetValue(({ value }) => (proxy.state = value));
+      proxy.onSetValue(({ value }) => (proxy.configuration.native_value = value));
     }
 
     // - Done

@@ -17,10 +17,9 @@ export function VirtualCover({ context, synapse }: TServiceParams) {
   });
 
   // #MARK: create
-  return function <
-    STATE extends string = string,
-    ATTRIBUTES extends object = object,
-  >(entity: SynapseCoverParams) {
+  return function <STATE extends string = string, ATTRIBUTES extends object = object>(
+    entity: SynapseCoverParams,
+  ) {
     const proxy = new Proxy({} as SynapseVirtualCover, {
       // #MARK: get
       // eslint-disable-next-line sonarjs/cognitive-complexity
@@ -54,11 +53,7 @@ export function VirtualCover({ context, synapse }: TServiceParams) {
     const unique_id = registry.add(proxy, entity);
 
     // - Initialize value storage
-    const loader = synapse.storage.wrapper<
-      STATE,
-      ATTRIBUTES,
-      CoverConfiguration
-    >({
+    const loader = synapse.storage.wrapper<STATE, ATTRIBUTES, CoverConfiguration>({
       load_keys: [
         "current_cover_position",
         "current_cover_tilt_position",

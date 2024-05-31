@@ -17,10 +17,9 @@ export function VirtualLock({ context, synapse, logger }: TServiceParams) {
     domain: "lock",
   });
 
-  return function create<
-    STATE extends LockValue = LockValue,
-    ATTRIBUTES extends object = object,
-  >(entity: SynapseLockParams) {
+  return function create<STATE extends LockValue = LockValue, ATTRIBUTES extends object = object>(
+    entity: SynapseLockParams,
+  ) {
     const proxy = new Proxy({} as SynapseVirtualLock, {
       // #MARK: get
       get(_, property: keyof SynapseVirtualLock) {
@@ -53,11 +52,7 @@ export function VirtualLock({ context, synapse, logger }: TServiceParams) {
     const unique_id = registry.add(proxy, entity);
 
     // - Initialize value storage
-    const loader = synapse.storage.wrapper<
-      STATE,
-      ATTRIBUTES,
-      LockConfiguration
-    >({
+    const loader = synapse.storage.wrapper<STATE, ATTRIBUTES, LockConfiguration>({
       load_keys: [
         "changed_by",
         "code_format",
@@ -84,10 +79,7 @@ export function VirtualLock({ context, synapse, logger }: TServiceParams) {
     // - Attach static listener
     staticAttach(proxy, entity);
     if (entity.managed !== false) {
-      logger.debug(
-        { context: entity.context, name: entity.name },
-        `setting up state management`,
-      );
+      logger.debug({ context: entity.context, name: entity.name }, `setting up state management`);
       proxy.onLock(() => (proxy.configuration.is_locked = true));
       proxy.onUnlock(() => (proxy.configuration.is_locked = false));
       proxy.onOpen(() => (proxy.configuration.is_open = true));

@@ -17,10 +17,9 @@ export function VirtualVacuum({ context, synapse }: TServiceParams) {
   });
 
   // #MARK: create
-  return function <
-    STATE extends string = string,
-    ATTRIBUTES extends object = object,
-  >(entity: SynapseVacuumParams) {
+  return function <STATE extends string = string, ATTRIBUTES extends object = object>(
+    entity: SynapseVacuumParams,
+  ) {
     const proxy = new Proxy({} as SynapseVirtualVacuum, {
       // #MARK: get
       // eslint-disable-next-line sonarjs/cognitive-complexity
@@ -53,17 +52,8 @@ export function VirtualVacuum({ context, synapse }: TServiceParams) {
     const unique_id = registry.add(proxy, entity);
 
     // - Initialize value storage
-    const loader = synapse.storage.wrapper<
-      STATE,
-      ATTRIBUTES,
-      VacuumConfiguration
-    >({
-      load_keys: [
-        "battery_level",
-        "fan_speed",
-        "fan_speed_list",
-        "supported_features",
-      ],
+    const loader = synapse.storage.wrapper<STATE, ATTRIBUTES, VacuumConfiguration>({
+      load_keys: ["battery_level", "fan_speed", "fan_speed_list", "supported_features"],
       name: entity.name,
       registry: registry as TRegistry<unknown>,
       unique_id,

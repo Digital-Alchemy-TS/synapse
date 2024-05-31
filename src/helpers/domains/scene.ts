@@ -13,8 +13,6 @@ export type SynapseSceneParams = BaseEntityParams<never> &
 
 export type SceneConfiguration = EntityConfigCommon;
 
-export type SynapseVirtualScene = BaseVirtualEntity<
-  never,
-  object,
-  SceneConfiguration
-> & { onActivate: CreateRemovableCallback };
+export type SynapseVirtualScene = BaseVirtualEntity<never, object, SceneConfiguration> & {
+  onActivate: CreateRemovableCallback;
+};

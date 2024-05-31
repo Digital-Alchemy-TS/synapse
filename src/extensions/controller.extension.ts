@@ -3,13 +3,7 @@ import { hostname, userInfo } from "os";
 
 import { SynapseDescribeResponse } from "../helpers";
 
-export function Controller({
-  fastify,
-  config,
-  synapse,
-  logger,
-  internal,
-}: TServiceParams) {
+export function Controller({ fastify, config, synapse, logger, internal }: TServiceParams) {
   fastify.routes(server => {
     server.get("/synapse", (): SynapseDescribeResponse => {
       logger.info(`describe app`);

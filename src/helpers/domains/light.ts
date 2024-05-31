@@ -85,11 +85,7 @@ export type LightConfiguration = EntityConfigCommon & {
   xy_color?: [number, number];
 };
 
-export type SynapseVirtualLight = BaseVirtualEntity<
-  LightStates,
-  object,
-  LightConfiguration
-> & {
+export type SynapseVirtualLight = BaseVirtualEntity<LightStates, object, LightConfiguration> & {
   onTurnOn?: CreateRemovableCallback;
   onTurnOff?: CreateRemovableCallback;
 };

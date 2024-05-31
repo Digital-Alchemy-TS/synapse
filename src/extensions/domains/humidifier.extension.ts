@@ -17,10 +17,9 @@ export function VirtualHumidifier({ context, synapse }: TServiceParams) {
   });
 
   // #MARK: create
-  return function <
-    STATE extends string = string,
-    ATTRIBUTES extends object = object,
-  >(entity: SynapseHumidifierParams) {
+  return function <STATE extends string = string, ATTRIBUTES extends object = object>(
+    entity: SynapseHumidifierParams,
+  ) {
     const proxy = new Proxy({} as SynapseVirtualHumidifier, {
       // #MARK: get
       // eslint-disable-next-line sonarjs/cognitive-complexity
@@ -54,11 +53,7 @@ export function VirtualHumidifier({ context, synapse }: TServiceParams) {
     const unique_id = registry.add(proxy, entity);
 
     // - Initialize value storage
-    const loader = synapse.storage.wrapper<
-      STATE,
-      ATTRIBUTES,
-      HumidifierConfiguration
-    >({
+    const loader = synapse.storage.wrapper<STATE, ATTRIBUTES, HumidifierConfiguration>({
       load_keys: [
         "action",
         "available_modes",

@@ -1,8 +1,10 @@
-import { TServiceParams } from "@digital-alchemy/core";
+import { is, TServiceParams } from "@digital-alchemy/core";
+import dayjs, { Dayjs } from "dayjs";
 
 import {
   DateConfiguration,
   isBaseEntityKeys,
+  SynapseDateFormat,
   SynapseDateParams,
   SynapseVirtualDate,
   VIRTUAL_ENTITY_BASE_KEYS,
@@ -17,13 +19,15 @@ export function VirtualDate({ context, synapse }: TServiceParams) {
   });
 
   // #MARK: create
-  return function <
-    STATE extends string = string,
-    ATTRIBUTES extends object = object,
-  >(entity: SynapseDateParams) {
+  return function <STATE extends string = string, ATTRIBUTES extends object = object>(
+    entity: SynapseDateParams,
+  ) {
     const proxy = new Proxy({} as SynapseVirtualDate, {
       // #MARK: get
       get(_, property: keyof SynapseVirtualDate) {
+        if (property === "state") {
+          return dayjs(loader.configuration.native_value, "YYYY-MM-DD");
+        }
         if (isBaseEntityKeys(property)) {
           return loader.baseGet(property);
         }
@@ -37,7 +41,10 @@ export function VirtualDate({ context, synapse }: TServiceParams) {
         // > common
         // * state
         if (property === "state") {
-          loader.setState(value as STATE);
+          loader.setConfiguration(
+            "native_value",
+            (is.string(value) ? value : (value as Dayjs).format("YYYY-MM-DD")) as SynapseDateFormat,
+          );
           return true;
         }
         // * attributes
@@ -53,11 +60,8 @@ export function VirtualDate({ context, synapse }: TServiceParams) {
     const unique_id = registry.add(proxy, entity);
 
     // - Initialize value storage
-    const loader = synapse.storage.wrapper<
-      STATE,
-      ATTRIBUTES,
-      DateConfiguration
-    >({
+    const loader = synapse.storage.wrapper<STATE, ATTRIBUTES, DateConfiguration>({
+      load_keys: ["native_value"],
       name: entity.name,
       registry: registry as TRegistry<unknown>,
       unique_id,
@@ -72,6 +76,10 @@ export function VirtualDate({ context, synapse }: TServiceParams) {
 
     // - Attach static listener
     staticAttach(proxy, entity);
+
+    if (entity.managed !== false) {
+      proxy.onSetValue(({ value }) => (proxy.configuration.native_value = value));
+    }
 
     // - Done
     return proxy;

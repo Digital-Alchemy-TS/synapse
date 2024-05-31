@@ -17,10 +17,9 @@ export function VirtualRemote({ context, synapse }: TServiceParams) {
   });
 
   // #MARK: create
-  return function <
-    STATE extends string = string,
-    ATTRIBUTES extends object = object,
-  >(entity: SynapseRemoteParams) {
+  return function <STATE extends string = string, ATTRIBUTES extends object = object>(
+    entity: SynapseRemoteParams,
+  ) {
     const proxy = new Proxy({} as SynapseVirtualRemote, {
       // #MARK: get
       // eslint-disable-next-line sonarjs/cognitive-complexity
@@ -54,11 +53,7 @@ export function VirtualRemote({ context, synapse }: TServiceParams) {
     const unique_id = registry.add(proxy, entity);
 
     // - Initialize value storage
-    const loader = synapse.storage.wrapper<
-      STATE,
-      ATTRIBUTES,
-      RemoteConfiguration
-    >({
+    const loader = synapse.storage.wrapper<STATE, ATTRIBUTES, RemoteConfiguration>({
       load_keys: ["current_activity", "activity_list", "supported_features"],
       name: entity.name,
       registry: registry as TRegistry<unknown>,

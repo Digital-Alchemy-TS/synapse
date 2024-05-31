@@ -17,10 +17,9 @@ export function VirtualMediaPlayer({ context, synapse }: TServiceParams) {
   });
 
   // #MARK: create
-  return function <
-    STATE extends string = string,
-    ATTRIBUTES extends object = object,
-  >(entity: SynapseMediaPlayerParams) {
+  return function <STATE extends string = string, ATTRIBUTES extends object = object>(
+    entity: SynapseMediaPlayerParams,
+  ) {
     const proxy = new Proxy({} as SynapseVirtualMediaPlayer, {
       // #MARK: get
       // eslint-disable-next-line sonarjs/cognitive-complexity
@@ -54,11 +53,7 @@ export function VirtualMediaPlayer({ context, synapse }: TServiceParams) {
     const unique_id = registry.add(proxy, entity);
 
     // - Initialize value storage
-    const loader = synapse.storage.wrapper<
-      STATE,
-      ATTRIBUTES,
-      MediaPlayerConfiguration
-    >({
+    const loader = synapse.storage.wrapper<STATE, ATTRIBUTES, MediaPlayerConfiguration>({
       load_keys: [
         "app_id",
         "app_name",

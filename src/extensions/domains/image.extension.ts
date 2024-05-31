@@ -16,9 +16,7 @@ export function VirtualImage({ context, synapse }: TServiceParams) {
     domain: "image",
   });
 
-  return function create<ATTRIBUTES extends object = object>(
-    entity: SynapseImageParams,
-  ) {
+  return function create<ATTRIBUTES extends object = object>(entity: SynapseImageParams) {
     const proxy = new Proxy({} as SynapseVirtualImage, {
       // #MARK: get
       get(_, property: keyof SynapseVirtualImage) {
@@ -47,11 +45,7 @@ export function VirtualImage({ context, synapse }: TServiceParams) {
     const unique_id = registry.add(proxy, entity);
 
     // - Initialize value storage
-    const loader = synapse.storage.wrapper<
-      never,
-      ATTRIBUTES,
-      ImageConfiguration
-    >({
+    const loader = synapse.storage.wrapper<never, ATTRIBUTES, ImageConfiguration>({
       name: entity.name,
       registry: registry as TRegistry<unknown>,
       unique_id,

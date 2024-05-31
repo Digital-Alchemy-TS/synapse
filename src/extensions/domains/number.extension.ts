@@ -17,13 +17,15 @@ export function VirtualNumber({ context, synapse }: TServiceParams) {
   });
 
   // #MARK: create
-  return function <
-    STATE extends number = number,
-    ATTRIBUTES extends object = object,
-  >(entity: SynapseNumberParams) {
+  return function <STATE extends number = number, ATTRIBUTES extends object = object>(
+    entity: SynapseNumberParams,
+  ) {
     const proxy = new Proxy({} as SynapseVirtualNumber, {
       // #MARK: get
       get(_, property: keyof SynapseVirtualNumber) {
+        if (property === "state") {
+          return loader.configurationProxy().native_value;
+        }
         if (isBaseEntityKeys(property)) {
           return loader.baseGet(property);
         }
@@ -37,7 +39,7 @@ export function VirtualNumber({ context, synapse }: TServiceParams) {
         // > common
         // * state
         if (property === "state") {
-          loader.setState(value as STATE);
+          loader.setConfiguration("native_value", value as number);
           return true;
         }
         // * attributes
@@ -53,18 +55,15 @@ export function VirtualNumber({ context, synapse }: TServiceParams) {
     const unique_id = registry.add(proxy, entity);
 
     // - Initialize value storage
-    const loader = synapse.storage.wrapper<
-      STATE,
-      ATTRIBUTES,
-      NumberConfiguration
-    >({
+    const loader = synapse.storage.wrapper<STATE, ATTRIBUTES, NumberConfiguration>({
       config_defaults: {
         mode: "auto",
         native_max_value: 100,
         native_min_value: 0,
+        native_value: 0,
         step: 1,
       },
-      load_keys: ["mode", "native_max_value", "native_min_value", "step"],
+      load_keys: ["mode", "native_max_value", "native_min_value", "step", "native_value"],
       name: entity.name,
       registry: registry as TRegistry<unknown>,
       unique_id,
@@ -73,7 +72,7 @@ export function VirtualNumber({ context, synapse }: TServiceParams) {
     // - Attach bus events
     const { dynamicAttach, staticAttach, keys } = synapse.registry.busTransfer({
       context,
-      eventName: ["native_set_value"],
+      eventName: ["set_value"],
       unique_id,
     });
 
@@ -81,7 +80,7 @@ export function VirtualNumber({ context, synapse }: TServiceParams) {
     staticAttach(proxy, entity);
 
     if (entity.managed !== false) {
-      proxy.onSetValue(({ value }) => (proxy.state = value));
+      proxy.onSetValue(({ value }) => (proxy.configuration.native_value = value));
     }
 
     // - Done

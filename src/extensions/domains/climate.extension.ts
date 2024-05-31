@@ -17,10 +17,9 @@ export function VirtualClimate({ context, synapse }: TServiceParams) {
   });
 
   // #MARK: create
-  return function <
-    STATE extends string = string,
-    ATTRIBUTES extends object = object,
-  >(entity: SynapseClimateParams) {
+  return function <STATE extends string = string, ATTRIBUTES extends object = object>(
+    entity: SynapseClimateParams,
+  ) {
     const proxy = new Proxy({} as SynapseVirtualClimate, {
       // #MARK: get
       // eslint-disable-next-line sonarjs/cognitive-complexity
@@ -54,11 +53,7 @@ export function VirtualClimate({ context, synapse }: TServiceParams) {
     const unique_id = registry.add(proxy, entity);
 
     // - Initialize value storage
-    const loader = synapse.storage.wrapper<
-      STATE,
-      ATTRIBUTES,
-      ClimateConfiguration
-    >({
+    const loader = synapse.storage.wrapper<STATE, ATTRIBUTES, ClimateConfiguration>({
       load_keys: [
         "current_humidity",
         "current_temperature",

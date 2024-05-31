@@ -18,10 +18,9 @@ export function VirtualSensor({ context, synapse, logger }: TServiceParams) {
     domain: "sensor",
   });
 
-  return function <
-    STATE extends SensorValue = SensorValue,
-    ATTRIBUTES extends object = object,
-  >(entity: SynapseSensorParams) {
+  return function <STATE extends SensorValue = SensorValue, ATTRIBUTES extends object = object>(
+    entity: SynapseSensorParams,
+  ) {
     // - Provide additional defaults
     entity.defaultState ??= "" as STATE;
 
@@ -34,10 +33,7 @@ export function VirtualSensor({ context, synapse, logger }: TServiceParams) {
         }
         if (property === "reset") {
           return function () {
-            logger.debug(
-              { context: entity.context, name: entity.name },
-              `reset`,
-            );
+            logger.debug({ context: entity.context, name: entity.name }, `reset`);
             // what it means to "reset" is up to dev
             entity.last_reset = dayjs();
           };
@@ -68,11 +64,7 @@ export function VirtualSensor({ context, synapse, logger }: TServiceParams) {
     const unique_id = registry.add(proxy, entity);
 
     // - Initialize value storage
-    const loader = synapse.storage.wrapper<
-      STATE,
-      ATTRIBUTES,
-      SensorConfiguration
-    >({
+    const loader = synapse.storage.wrapper<STATE, ATTRIBUTES, SensorConfiguration>({
       load_keys: [
         ...SENSOR_DEVICE_CLASS_CONFIG_KEYS,
         "last_reset",

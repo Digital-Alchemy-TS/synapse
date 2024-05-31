@@ -17,8 +17,6 @@ type MessageData = {
   title?: string;
 };
 
-export type SynapseVirtualNotify = BaseVirtualEntity<
-  never,
-  object,
-  NotifyConfiguration
-> & { onSendMessage: CreateRemovableCallback<MessageData> };
+export type SynapseVirtualNotify = BaseVirtualEntity<never, object, NotifyConfiguration> & {
+  onSendMessage: CreateRemovableCallback<MessageData>;
+};

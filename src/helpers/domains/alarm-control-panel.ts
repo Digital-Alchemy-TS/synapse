@@ -6,17 +6,16 @@ import {
 } from "../base-domain.helper";
 import { EntityConfigCommon } from "../common-config.helper";
 
-export type SynapseAlarmControlPanelParams =
-  BaseEntityParams<AlarmControlPanelStates> &
-    AlarmControlPanelConfiguration & {
-      arm_custom_bypass?: RemovableCallback<SetValueData>;
-      trigger?: RemovableCallback<SetValueData>;
-      arm_vacation?: RemovableCallback<SetValueData>;
-      arm_night?: RemovableCallback<SetValueData>;
-      arm_away?: RemovableCallback<SetValueData>;
-      arm_home?: RemovableCallback<SetValueData>;
-      disarm?: RemovableCallback<SetValueData>;
-    };
+export type SynapseAlarmControlPanelParams = BaseEntityParams<AlarmControlPanelStates> &
+  AlarmControlPanelConfiguration & {
+    arm_custom_bypass?: RemovableCallback<SetValueData>;
+    trigger?: RemovableCallback<SetValueData>;
+    arm_vacation?: RemovableCallback<SetValueData>;
+    arm_night?: RemovableCallback<SetValueData>;
+    arm_away?: RemovableCallback<SetValueData>;
+    arm_home?: RemovableCallback<SetValueData>;
+    disarm?: RemovableCallback<SetValueData>;
+  };
 
 type AlarmControlPanelStates =
   | "disarmed"

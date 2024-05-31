@@ -6,8 +6,8 @@ import {
 } from "../base-domain.helper";
 import { EntityConfigCommon } from "../common-config.helper";
 
-export type SynapseSelectParams = BaseEntityParams<string> &
-  SelectConfiguration & {
+export type SynapseSelectParams<OPTIONS extends string> = BaseEntityParams<string> &
+  SelectConfiguration<OPTIONS> & {
     select_option?: RemovableCallback<SetValueData>;
     /**
      * default: true
@@ -15,9 +15,9 @@ export type SynapseSelectParams = BaseEntityParams<string> &
     managed?: boolean;
   };
 
-type SetValueData = { value: string };
+type SetValueData = { option: string };
 
-export type SelectConfiguration = EntityConfigCommon & {
+export type SelectConfiguration<OPTIONS extends string> = EntityConfigCommon & {
   /**
    * The current select option
    */
@@ -25,11 +25,11 @@ export type SelectConfiguration = EntityConfigCommon & {
   /**
    * A list of available options as strings
    */
-  options?: string[];
+  options?: OPTIONS[];
 };
 
-export type SynapseVirtualSelect = BaseVirtualEntity<
+export type SynapseVirtualSelect<OPTIONS extends string> = BaseVirtualEntity<
   string,
   object,
-  SelectConfiguration
+  SelectConfiguration<OPTIONS>
 > & { onSelectOption: CreateRemovableCallback<SetValueData> };

@@ -17,10 +17,9 @@ export function VirtualUpdate({ context, synapse }: TServiceParams) {
   });
 
   // #MARK: create
-  return function <
-    STATE extends string = string,
-    ATTRIBUTES extends object = object,
-  >(entity: SynapseUpdateParams) {
+  return function <STATE extends string = string, ATTRIBUTES extends object = object>(
+    entity: SynapseUpdateParams,
+  ) {
     const proxy = new Proxy({} as SynapseVirtualUpdate, {
       // #MARK: get
       // eslint-disable-next-line sonarjs/cognitive-complexity
@@ -54,11 +53,7 @@ export function VirtualUpdate({ context, synapse }: TServiceParams) {
     const unique_id = registry.add(proxy, entity);
 
     // - Initialize value storage
-    const loader = synapse.storage.wrapper<
-      STATE,
-      ATTRIBUTES,
-      UpdateConfiguration
-    >({
+    const loader = synapse.storage.wrapper<STATE, ATTRIBUTES, UpdateConfiguration>({
       load_keys: [
         "auto_update",
         "device_class",

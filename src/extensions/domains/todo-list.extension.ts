@@ -17,10 +17,9 @@ export function VirtualTodoList({ context, synapse }: TServiceParams) {
   });
 
   // #MARK: create
-  return function <
-    STATE extends string = string,
-    ATTRIBUTES extends object = object,
-  >(entity: SynapseTodoListParams) {
+  return function <STATE extends string = string, ATTRIBUTES extends object = object>(
+    entity: SynapseTodoListParams,
+  ) {
     const proxy = new Proxy({} as SynapseVirtualTodoList, {
       // #MARK: get
       // eslint-disable-next-line sonarjs/cognitive-complexity
@@ -54,11 +53,7 @@ export function VirtualTodoList({ context, synapse }: TServiceParams) {
     const unique_id = registry.add(proxy, entity);
 
     // - Initialize value storage
-    const loader = synapse.storage.wrapper<
-      STATE,
-      ATTRIBUTES,
-      TodoListConfiguration
-    >({
+    const loader = synapse.storage.wrapper<STATE, ATTRIBUTES, TodoListConfiguration>({
       load_keys: ["todo_items", "supported_features"],
       name: entity.name,
       registry: registry as TRegistry<unknown>,

@@ -39,10 +39,12 @@ export type NumberConfiguration = EntityConfigCommon &
      * Defines the resolution of the values, i.e. the smallest increment or decrement in the number's
      */
     step?: number;
+    /**
+     * The value of the number in the number's native_unit_of_measurement.
+     */
+    native_value?: number;
   };
 
-export type SynapseVirtualNumber = BaseVirtualEntity<
-  number,
-  object,
-  NumberConfiguration
-> & { onSetValue: CreateRemovableCallback<SetValueData> };
+export type SynapseVirtualNumber = BaseVirtualEntity<number, object, NumberConfiguration> & {
+  onSetValue: CreateRemovableCallback<SetValueData>;
+};

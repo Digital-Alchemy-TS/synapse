@@ -54,11 +54,7 @@ export type FanConfiguration = EntityConfigCommon & {
   speed_count?: number;
 };
 
-export type SynapseVirtualFan = BaseVirtualEntity<
-  FanStates,
-  object,
-  FanConfiguration
-> & {
+export type SynapseVirtualFan = BaseVirtualEntity<FanStates, object, FanConfiguration> & {
   onSetDirection: CreateRemovableCallback<{ direction: string }>;
   onSetPresetMode: CreateRemovableCallback<{ preset_mode: string }>;
   onSetPercentage: CreateRemovableCallback<{ percentage: number }>;

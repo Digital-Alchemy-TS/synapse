@@ -49,11 +49,7 @@ export type TodoListConfiguration = EntityConfigCommon & {
   supported_features?: number;
 };
 
-export type SynapseVirtualTodoList = BaseVirtualEntity<
-  never,
-  object,
-  TodoListConfiguration
-> & {
+export type SynapseVirtualTodoList = BaseVirtualEntity<never, object, TodoListConfiguration> & {
   onCreateTodoItem?: CreateRemovableCallback<{ item: TodoItem }>;
   onDeleteTodoItem?: CreateRemovableCallback<{ item: TodoItem }>;
   onMoveTodoItem?: CreateRemovableCallback<{ item: TodoItem }>;

@@ -1,12 +1,7 @@
-import { each, is, TBlackHole, TServiceParams } from "@digital-alchemy/core";
+import { each, is, REDIS_ERROR_COUNT, TBlackHole, TServiceParams } from "@digital-alchemy/core";
 import { ENTITY_STATE, PICK_ENTITY } from "@digital-alchemy/hass";
 
-import {
-  BASE_CONFIG_KEYS,
-  BaseEntityKeys,
-  BaseEntityParams,
-  TSynapseId,
-} from "..";
+import { BASE_CONFIG_KEYS, BaseEntityKeys, BaseEntityParams, TSynapseId } from "..";
 import { TRegistry } from ".";
 
 type LoaderOptions<CONFIGURATION extends object> = {
@@ -15,6 +10,7 @@ type LoaderOptions<CONFIGURATION extends object> = {
   name: string;
   load_keys?: (keyof CONFIGURATION)[];
   config_defaults?: Partial<CONFIGURATION>;
+  restore?: (keyof CONFIGURATION)[];
 };
 
 type TCallback = (
@@ -23,49 +19,50 @@ type TCallback = (
   remove: () => TBlackHole,
 ) => TBlackHole;
 
-export function ValueStorage({ logger, lifecycle, hass }: TServiceParams) {
+const LATE_READY = -1;
+
+export function ValueStorage({ logger, lifecycle, hass, synapse }: TServiceParams) {
   // #MARK: wrapper
-  function wrapper<
-    STATE,
-    ATTRIBUTES extends object,
-    CONFIGURATION extends object = object,
-  >({
+  function wrapper<STATE, ATTRIBUTES extends object, CONFIGURATION extends object = object>({
     registry,
     unique_id,
     name,
-    load_keys,
+    load_keys = [],
     config_defaults,
+    restore = [],
   }: LoaderOptions<CONFIGURATION>) {
     const domain = registry.domain;
 
     // #MARK: value load
-    lifecycle.onBootstrap(async () => {
+    lifecycle.onReady(async () => {
       await each(registry.list(), async (unique_id: TSynapseId) => {
-        const cache =
-          await registry.getCache<ReturnType<typeof currentState>>(unique_id);
-        if (!is.empty(cache)) {
-          entity.state = cache.state;
-          entity.attributes = cache.attributes;
-          entity.configuration = cache.configuration;
-          return;
-        }
-
-        const config = hass.entity.registry.current.find(
-          i => i.unique_id === unique_id,
-        );
+        const config = hass.entity.registry.current.find(i => i.unique_id === unique_id);
         if (!config) {
-          logger.warn("cannot find entity in hass registry");
+          logger.warn(
+            { entity: registry.rawConfigById(unique_id) },
+            "cannot find entity in hass registry",
+          );
           return;
         }
         const reference = hass.entity.byId(config.entity_id);
-        entity.state = reference.state as STATE;
-        entity.attributes = { ...reference.attributes } as ATTRIBUTES;
+        if (["unavailable", "unknown"].includes(reference.state)) {
+          await reference.nextState();
+        }
+        const proxy = synapse.registry.byId(unique_id);
+        proxy.state = reference.state as STATE;
+        restore.forEach(key => {
+          // /r/programminghorror
+          (proxy.configuration as CONFIGURATION)[key] = reference.attributes[
+            key as keyof typeof reference.attributes
+          ] as CONFIGURATION[keyof CONFIGURATION];
+        });
+        // entity.attributes = { ...reference.attributes } as ATTRIBUTES;
         logger.debug(
-          { attributes: entity.attributes, state: entity.state },
+          { attributes: reference.attributes, state: entity.state },
           `loading from hass`,
         );
       });
-    });
+    }, LATE_READY);
 
     const currentState = () => ({
       attributes: entity.attributes,
@@ -75,24 +72,22 @@ export function ValueStorage({ logger, lifecycle, hass }: TServiceParams) {
     });
 
     // #MARK: RunCallbacks
-    function runCallbacks() {
+    function runCallbacks(send = true) {
       setImmediate(async () => {
         const current = currentState();
         await registry.setCache(unique_id, current);
-        await registry.send(unique_id, current);
+        if (send) {
+          await registry.send(unique_id, current);
+        }
       });
     }
 
-    const value = registry.rawConfigById(unique_id) as BaseEntityParams<
-      STATE,
-      ATTRIBUTES
-    >;
+    lifecycle.onReady(async () => await runCallbacks(false));
+
+    const value = registry.rawConfigById(unique_id) as BaseEntityParams<STATE, ATTRIBUTES>;
     value.defaultAttributes ??= {} as ATTRIBUTES;
     const valueConfig = { ...value, ...config_defaults };
-    const keys = [
-      ...BASE_CONFIG_KEYS,
-      ...load_keys,
-    ] as (keyof typeof valueConfig)[];
+    const keys = [...BASE_CONFIG_KEYS, ...load_keys] as (keyof typeof valueConfig)[];
 
     const defaultConfiguration = Object.fromEntries(
       keys.map(i => [i, valueConfig[i]]),
@@ -103,16 +98,10 @@ export function ValueStorage({ logger, lifecycle, hass }: TServiceParams) {
 
       attributesProxy() {
         return new Proxy({} as ATTRIBUTES, {
-          get: <KEY extends Extract<keyof ATTRIBUTES, string>>(
-            _: ATTRIBUTES,
-            property: KEY,
-          ) => {
+          get: <KEY extends Extract<keyof ATTRIBUTES, string>>(_: ATTRIBUTES, property: KEY) => {
             return entity.attributes[property];
           },
-          set: <
-            KEY extends Extract<keyof ATTRIBUTES, string>,
-            VALUE extends ATTRIBUTES[KEY],
-          >(
+          set: <KEY extends Extract<keyof ATTRIBUTES, string>, VALUE extends ATTRIBUTES[KEY]>(
             _: ATTRIBUTES,
             property: KEY,
             value: VALUE,
@@ -162,10 +151,7 @@ export function ValueStorage({ logger, lifecycle, hass }: TServiceParams) {
           ) => {
             return entity.configuration[property];
           },
-          set: <
-            KEY extends Extract<keyof CONFIGURATION, string>,
-            VALUE extends CONFIGURATION[KEY],
-          >(
+          set: <KEY extends Extract<keyof CONFIGURATION, string>, VALUE extends CONFIGURATION[KEY]>(
             _: CONFIGURATION,
             property: KEY,
             value: VALUE,
@@ -201,7 +187,7 @@ export function ValueStorage({ logger, lifecycle, hass }: TServiceParams) {
                 `update attachment failed, is entity loaded in home assistant?`,
               );
             }
-          });
+          }, LATE_READY);
           return {
             remove() {
               if (remover) {
@@ -226,10 +212,7 @@ export function ValueStorage({ logger, lifecycle, hass }: TServiceParams) {
           return;
         }
         entity.attributes[key] = incoming;
-        logger.trace(
-          { domain, key, name, value: incoming },
-          `update attribute (single)`,
-        );
+        logger.trace({ domain, key, name, value: incoming }, `update attribute (single)`);
         runCallbacks();
       },
 
@@ -247,18 +230,15 @@ export function ValueStorage({ logger, lifecycle, hass }: TServiceParams) {
       },
 
       // #MARK: setAttribute
-      setConfiguration<
-        KEY extends keyof CONFIGURATION,
-        VALUE extends CONFIGURATION[KEY],
-      >(key: KEY, incoming: VALUE) {
+      setConfiguration<KEY extends keyof CONFIGURATION, VALUE extends CONFIGURATION[KEY]>(
+        key: KEY,
+        incoming: VALUE,
+      ) {
         if (is.equal(entity.configuration[key], incoming)) {
           return;
         }
         entity.configuration[key] = incoming;
-        logger.trace(
-          { domain, key, name, value: incoming },
-          `update configuration (single)`,
-        );
+        logger.trace({ domain, key, name, value: incoming }, `update configuration (single)`);
         runCallbacks();
       },
 
@@ -281,10 +261,7 @@ export function ValueStorage({ logger, lifecycle, hass }: TServiceParams) {
           return;
         }
         const old_state = entity.state;
-        logger.trace(
-          { name: registry.domain, new_state, old_state, unique_id },
-          `update state`,
-        );
+        logger.trace({ name: registry.domain, new_state, old_state, unique_id }, `update state`);
         entity.state = new_state;
         runCallbacks();
       },

@@ -46,11 +46,7 @@ export type CoverConfiguration = EntityConfigCommon & {
   is_opening?: boolean;
 };
 
-export type SynapseVirtualCover = BaseVirtualEntity<
-  CoverStates,
-  object,
-  CoverConfiguration
-> & {
+export type SynapseVirtualCover = BaseVirtualEntity<CoverStates, object, CoverConfiguration> & {
   onStopCoverTilt: CreateRemovableCallback;
   onSetCoverTiltPosition: CreateRemovableCallback;
   onCloseCoverTilt: CreateRemovableCallback;

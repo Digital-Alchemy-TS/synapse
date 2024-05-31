@@ -17,10 +17,9 @@ export function VirtualFan({ context, synapse }: TServiceParams) {
   });
 
   // #MARK: create
-  return function <
-    STATE extends string = string,
-    ATTRIBUTES extends object = object,
-  >(entity: SynapseFanParams) {
+  return function <STATE extends string = string, ATTRIBUTES extends object = object>(
+    entity: SynapseFanParams,
+  ) {
     const proxy = new Proxy({} as SynapseVirtualFan, {
       // #MARK: get
       // eslint-disable-next-line sonarjs/cognitive-complexity
@@ -54,22 +53,20 @@ export function VirtualFan({ context, synapse }: TServiceParams) {
     const unique_id = registry.add(proxy, entity);
 
     // - Initialize value storage
-    const loader = synapse.storage.wrapper<STATE, ATTRIBUTES, FanConfiguration>(
-      {
-        load_keys: [
-          "current_direction",
-          "is_on",
-          "oscillating",
-          "percentage",
-          "preset_mode",
-          "preset_modes",
-          "speed_count",
-        ],
-        name: entity.name,
-        registry: registry as TRegistry<unknown>,
-        unique_id,
-      },
-    );
+    const loader = synapse.storage.wrapper<STATE, ATTRIBUTES, FanConfiguration>({
+      load_keys: [
+        "current_direction",
+        "is_on",
+        "oscillating",
+        "percentage",
+        "preset_mode",
+        "preset_modes",
+        "speed_count",
+      ],
+      name: entity.name,
+      registry: registry as TRegistry<unknown>,
+      unique_id,
+    });
 
     // - Attach bus events
     const { dynamicAttach, staticAttach, keys } = synapse.registry.busTransfer({

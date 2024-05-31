@@ -55,11 +55,7 @@ export type LockConfiguration = EntityConfigCommon & {
 
 export type LockValue = "locked" | "unlocked";
 
-export type SynapseVirtualLock = BaseVirtualEntity<
-  never,
-  object,
-  LockConfiguration
-> & {
+export type SynapseVirtualLock = BaseVirtualEntity<never, object, LockConfiguration> & {
   onUnlock: CreateRemovableCallback;
   onLock: CreateRemovableCallback;
   onOpen: CreateRemovableCallback;

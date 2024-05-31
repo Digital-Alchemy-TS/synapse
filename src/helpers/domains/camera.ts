@@ -56,11 +56,7 @@ export type CameraConfiguration = EntityConfigCommon & {
   supported_features?: number;
 };
 
-export type SynapseVirtualCamera = BaseVirtualEntity<
-  CameraStates,
-  object,
-  CameraConfiguration
-> & {
+export type SynapseVirtualCamera = BaseVirtualEntity<CameraStates, object, CameraConfiguration> & {
   onTurnOn?: CreateRemovableCallback;
   onTurnOff?: CreateRemovableCallback;
   onEnableMotionDetection?: CreateRemovableCallback;

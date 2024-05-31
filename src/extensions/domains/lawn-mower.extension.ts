@@ -17,10 +17,9 @@ export function VirtualLawnMower({ context, synapse }: TServiceParams) {
   });
 
   // #MARK: create
-  return function <
-    STATE extends string = string,
-    ATTRIBUTES extends object = object,
-  >(entity: SynapseLawnMowerParams) {
+  return function <STATE extends string = string, ATTRIBUTES extends object = object>(
+    entity: SynapseLawnMowerParams,
+  ) {
     const proxy = new Proxy({} as SynapseVirtualLawnMower, {
       // #MARK: get
       get(_, property: keyof SynapseVirtualLawnMower) {
@@ -53,11 +52,7 @@ export function VirtualLawnMower({ context, synapse }: TServiceParams) {
     const unique_id = registry.add(proxy, entity);
 
     // - Initialize value storage
-    const loader = synapse.storage.wrapper<
-      STATE,
-      ATTRIBUTES,
-      LawnMowerConfiguration
-    >({
+    const loader = synapse.storage.wrapper<STATE, ATTRIBUTES, LawnMowerConfiguration>({
       load_keys: ["activity", "supported_features"],
       name: entity.name,
       registry: registry as TRegistry<unknown>,

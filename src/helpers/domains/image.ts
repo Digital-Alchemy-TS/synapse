@@ -3,8 +3,7 @@ import { Dayjs } from "dayjs";
 import { BaseEntityParams, BaseVirtualEntity } from "../base-domain.helper";
 import { EntityConfigCommon } from "../common-config.helper";
 
-export type SynapseImageParams = BaseEntityParams<ImageStates> &
-  ImageConfiguration;
+export type SynapseImageParams = BaseEntityParams<ImageStates> & ImageConfiguration;
 
 type ImageStates = "opening" | "open" | "closing" | "closed";
 
@@ -23,8 +22,4 @@ export type ImageConfiguration = EntityConfigCommon & {
   image_url?: string;
 };
 
-export type SynapseVirtualImage = BaseVirtualEntity<
-  ImageStates,
-  object,
-  ImageConfiguration
->;
+export type SynapseVirtualImage = BaseVirtualEntity<ImageStates, object, ImageConfiguration>;

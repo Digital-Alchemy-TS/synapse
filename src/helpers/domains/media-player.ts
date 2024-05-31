@@ -22,14 +22,7 @@ export type SynapseMediaPlayerParams = BaseEntityParams<MediaPlayerStates> &
 
 type MediaPlayerEnqueue = "add" | "next" | "play" | "replace";
 
-type MediaPlayerStates =
-  | "off"
-  | "on"
-  | "idle"
-  | "playing"
-  | "paused"
-  | "standby"
-  | "buffering";
+type MediaPlayerStates = "off" | "on" | "idle" | "playing" | "paused" | "standby" | "buffering";
 
 enum MediaType {
   MUSIC = "music",

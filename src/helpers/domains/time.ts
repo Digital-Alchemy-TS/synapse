@@ -1,3 +1,5 @@
+import { Dayjs } from "dayjs";
+
 import {
   BaseEntityParams,
   BaseVirtualEntity,
@@ -6,7 +8,7 @@ import {
 } from "../base-domain.helper";
 import { EntityConfigCommon } from "../common-config.helper";
 
-export type SynapseTimeParams = BaseEntityParams<string> &
+export type SynapseTimeParams = BaseEntityParams<Dayjs> &
   TimeConfiguration & {
     set_value?: RemovableCallback<SetValueData>;
     /**
@@ -15,12 +17,14 @@ export type SynapseTimeParams = BaseEntityParams<string> &
     managed?: boolean;
   };
 
-type SetValueData = { value: string };
+type SetValueData = { value: SynapseTimeFormat };
 
-export type TimeConfiguration = EntityConfigCommon;
+export type TimeConfiguration = EntityConfigCommon & {
+  native_value?: SynapseTimeFormat;
+};
 
-export type SynapseVirtualTime = BaseVirtualEntity<
-  string,
-  object,
-  TimeConfiguration
-> & { onSetValue: CreateRemovableCallback<SetValueData> };
+export type SynapseTimeFormat = `${number}${number}:${number}${number}:${number}${number}`;
+
+export type SynapseVirtualTime = BaseVirtualEntity<Dayjs, object, TimeConfiguration> & {
+  onSetValue: CreateRemovableCallback<SetValueData>;
+};

@@ -17,10 +17,9 @@ export function VirtualAlarmControlPanel({ context, synapse }: TServiceParams) {
   });
 
   // #MARK: create
-  return function <
-    STATE extends string = string,
-    ATTRIBUTES extends object = object,
-  >(entity: SynapseAlarmControlPanelParams) {
+  return function <STATE extends string = string, ATTRIBUTES extends object = object>(
+    entity: SynapseAlarmControlPanelParams,
+  ) {
     const proxy = new Proxy({} as SynapseVirtualAlarmControlPanel, {
       // #MARK: get
       get(_, property: keyof SynapseVirtualAlarmControlPanel) {
@@ -53,17 +52,8 @@ export function VirtualAlarmControlPanel({ context, synapse }: TServiceParams) {
     const unique_id = registry.add(proxy, entity);
 
     // - Initialize value storage
-    const loader = synapse.storage.wrapper<
-      STATE,
-      ATTRIBUTES,
-      AlarmControlPanelConfiguration
-    >({
-      load_keys: [
-        "code_arm_required",
-        "code_format",
-        "changed_by",
-        "supported_features",
-      ],
+    const loader = synapse.storage.wrapper<STATE, ATTRIBUTES, AlarmControlPanelConfiguration>({
+      load_keys: ["code_arm_required", "code_format", "changed_by", "supported_features"],
       name: entity.name,
       registry: registry as TRegistry<unknown>,
       unique_id,

@@ -29,11 +29,7 @@ export type SirenConfiguration = EntityConfigCommon & {
   supported_features?: number;
 };
 
-export type SynapseVirtualSiren = BaseVirtualEntity<
-  SirenStates,
-  object,
-  SirenConfiguration
-> & {
+export type SynapseVirtualSiren = BaseVirtualEntity<SirenStates, object, SirenConfiguration> & {
   onTurnOn?: CreateRemovableCallback;
   onTurnOff?: CreateRemovableCallback;
 };
