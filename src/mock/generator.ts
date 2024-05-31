@@ -106,7 +106,7 @@ export function EntityGenerator({ scheduler, synapse, context, logger }: TServic
     synapse.time({
       context,
       name: "Example time",
-      native_value: dayjs("2022-01-01 14:32:51"),
+      native_value: "14:32:51",
       suggested_object_id: "example_the_time",
     });
   } catch (error) {

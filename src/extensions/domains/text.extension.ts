@@ -36,6 +36,7 @@ export function VirtualText({ context, synapse }: TServiceParams) {
 
       // #MARK: set
       set(_, property: string, value: unknown) {
+        console.error({ property, value });
         // > common
         // * state
         if (property === "state") {

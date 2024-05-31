@@ -1,12 +1,4 @@
-import {
-  InternalError,
-  is,
-  SECOND,
-  sleep,
-  START,
-  TContext,
-  TServiceParams,
-} from "@digital-alchemy/core";
+import { InternalError, is, SECOND, START, TContext, TServiceParams } from "@digital-alchemy/core";
 import { ALL_DOMAINS, TRawDomains } from "@digital-alchemy/hass";
 import { createHash } from "crypto";
 
@@ -43,6 +35,7 @@ function squishData<DATA extends Configurable>({ configuration, ...data }: DATA)
     ...data,
   };
 }
+
 const formatObjectId = (input: string) =>
   input
     .trim()

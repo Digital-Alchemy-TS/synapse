@@ -1,5 +1,12 @@
-import { each, is, REDIS_ERROR_COUNT, TBlackHole, TServiceParams } from "@digital-alchemy/core";
-import { ENTITY_STATE, PICK_ENTITY } from "@digital-alchemy/hass";
+import {
+  each,
+  is,
+  REDIS_ERROR_COUNT,
+  SECOND,
+  TBlackHole,
+  TServiceParams,
+} from "@digital-alchemy/core";
+import { domain, ENTITY_STATE, PICK_ENTITY, TRawDomains } from "@digital-alchemy/hass";
 
 import { BASE_CONFIG_KEYS, BaseEntityKeys, BaseEntityParams, TSynapseId } from "..";
 import { TRegistry } from ".";
@@ -20,6 +27,7 @@ type TCallback = (
 ) => TBlackHole;
 
 const LATE_READY = -1;
+const STATELESS = new Set(["scene", "button"] as TRawDomains[]);
 
 export function ValueStorage({ logger, lifecycle, hass, synapse }: TServiceParams) {
   // #MARK: wrapper
@@ -31,7 +39,7 @@ export function ValueStorage({ logger, lifecycle, hass, synapse }: TServiceParam
     config_defaults,
     restore = [],
   }: LoaderOptions<CONFIGURATION>) {
-    const domain = registry.domain;
+    const registryDomain = registry.domain;
 
     // #MARK: value load
     lifecycle.onReady(async () => {
@@ -44,23 +52,31 @@ export function ValueStorage({ logger, lifecycle, hass, synapse }: TServiceParam
           );
           return;
         }
-        const reference = hass.entity.byId(config.entity_id);
-        if (["unavailable", "unknown"].includes(reference.state)) {
+        const entity_id = config.entity_id;
+        const reference = hass.entity.byId(entity_id);
+        if (STATELESS.has(domain(entity_id))) {
+          return;
+        }
+        if (reference.state === "unavailable") {
+          logger.trace({ name: entity_id, state: reference.state }, `waiting for initial value`);
           await reference.nextState();
+          logger.trace({ name: entity_id }, "received");
         }
         const proxy = synapse.registry.byId(unique_id);
-        proxy.state = reference.state as STATE;
         restore.forEach(key => {
-          // /r/programminghorror
-          (proxy.configuration as CONFIGURATION)[key] = reference.attributes[
+          const value = reference.attributes[
             key as keyof typeof reference.attributes
           ] as CONFIGURATION[keyof CONFIGURATION];
+          if (is.undefined(value)) {
+            return;
+          }
+          (proxy.configuration as CONFIGURATION)[key] = value;
         });
+        const value = reference.state as STATE;
+        logger.error("[%s] - {%s}", entity_id, value);
+        proxy.state = value;
         // entity.attributes = { ...reference.attributes } as ATTRIBUTES;
-        logger.debug(
-          { attributes: reference.attributes, state: entity.state },
-          `loading from hass`,
-        );
+        logger.warn({ imported: proxy.state, name: entity_id, value }, `state import`);
       });
     }, LATE_READY);
 
@@ -212,7 +228,10 @@ export function ValueStorage({ logger, lifecycle, hass, synapse }: TServiceParam
           return;
         }
         entity.attributes[key] = incoming;
-        logger.trace({ domain, key, name, value: incoming }, `update attribute (single)`);
+        logger.trace(
+          { domain: registryDomain, key, name, value: incoming },
+          `update attribute (single)`,
+        );
         runCallbacks();
       },
 
@@ -238,7 +257,10 @@ export function ValueStorage({ logger, lifecycle, hass, synapse }: TServiceParam
           return;
         }
         entity.configuration[key] = incoming;
-        logger.trace({ domain, key, name, value: incoming }, `update configuration (single)`);
+        logger.trace(
+          { domain: registryDomain, key, name, value: incoming },
+          `update configuration (single)`,
+        );
         runCallbacks();
       },
 
