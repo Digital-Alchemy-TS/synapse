@@ -1,84 +1,67 @@
 import { TServiceParams } from "@digital-alchemy/core";
+import { ValveDeviceClass } from "@digital-alchemy/hass";
 
-import {
-  isBaseEntityKeys,
-  SynapseValveParams,
-  SynapseVirtualValve,
-  ValveConfiguration,
-  VIRTUAL_ENTITY_BASE_KEYS,
-} from "../../helpers";
-import { TRegistry } from "../registry.extension";
+import { AddEntityOptions } from "../..";
+
+type EntityConfiguration = {
+  /**
+   * The current position of the valve where 0 means closed and 100 is fully open.
+   * This attribute is required on valves with reports_position = True, where it's used to determine state.
+   */
+  current_valve_position?: number;
+  /**
+   * If the valve is closed or not. Used to determine state for valves that don't report position.
+   */
+  is_closed?: boolean;
+  /**
+   * If the valve is opening or not. Used to determine state.
+   */
+  is_opening?: boolean;
+  /**
+   * If the valve knows its position or not.
+   */
+  reports_position: boolean;
+  device_class?: `${ValveDeviceClass}`;
+  /**
+   * If the valve is closing or not. Used to determine state.
+   */
+  is_closing?: boolean;
+  supported_features?: number;
+};
+
+type EntityEvents = {
+  open_valve: {
+    //
+  };
+  close_valve: {
+    //
+  };
+  set_valve_position: {
+    //
+  };
+  stop_valve: {
+    //
+  };
+};
 
 export function VirtualValve({ context, synapse }: TServiceParams) {
-  const registry = synapse.registry.create<SynapseVirtualValve>({
+  const generate = synapse.generator.create<EntityConfiguration, EntityEvents>({
+    bus_events: ["open_valve", "close_valve", "set_valve_position", "stop_valve"],
     context,
-    // @ts-expect-error it's fine
+    // @ts-expect-error its fine
     domain: "valve",
+    load_config_keys: [
+      "current_valve_position",
+      "is_closed",
+      "is_opening",
+      "reports_position",
+      "device_class",
+      "is_closing",
+      "supported_features",
+    ],
   });
 
-  // #MARK: create
-  return function <STATE extends string = string, ATTRIBUTES extends object = object>(
-    entity: SynapseValveParams,
-  ) {
-    const proxy = new Proxy({} as SynapseVirtualValve, {
-      // #MARK: get
-      // eslint-disable-next-line sonarjs/cognitive-complexity
-      get(_, property: keyof SynapseVirtualValve) {
-        if (isBaseEntityKeys(property)) {
-          return loader.baseGet(property);
-        }
-        return dynamicAttach(property);
-      },
-
-      ownKeys: () => [...VIRTUAL_ENTITY_BASE_KEYS, ...keys],
-
-      // #MARK: set
-      set(_, property: string, value: unknown) {
-        // > common
-        // * state
-        if (property === "state") {
-          loader.setState(value as STATE);
-          return true;
-        }
-        // * attributes
-        if (property === "attributes") {
-          loader.setAttributes(value as ATTRIBUTES);
-          return true;
-        }
-        return false;
-      },
-    });
-
-    // - Add to registry
-    const unique_id = registry.add(proxy, entity);
-
-    // - Initialize value storage
-    const loader = synapse.storage.wrapper<STATE, ATTRIBUTES, ValveConfiguration>({
-      load_keys: [
-        "current_valve_position",
-        "is_closed",
-        "is_opening",
-        "reports_position",
-        "device_class",
-        "is_closing",
-        "supported_features",
-      ],
-      name: entity.name,
-      registry: registry as TRegistry<unknown>,
-      unique_id,
-    });
-
-    // - Attach bus events
-    const { dynamicAttach, staticAttach, keys } = synapse.registry.busTransfer({
-      context,
-      eventName: ["open_valve", "close_valve", "set_valve_position", "stop_valve"],
-      unique_id,
-    });
-
-    // - Attach static listener
-    staticAttach(proxy, entity);
-
-    // - Done
-    return proxy;
-  };
+  return <ATTRIBUTES extends object>(
+    options: AddEntityOptions<EntityConfiguration, EntityEvents, ATTRIBUTES>,
+  ) => generate.add_entity(options);
 }

@@ -1,57 +1,37 @@
 import { TServiceParams } from "@digital-alchemy/core";
+import { Dayjs } from "dayjs";
 
-import {
-  ImageConfiguration,
-  isBaseEntityKeys,
-  SynapseImageParams,
-  SynapseVirtualImage,
-  TRegistry,
-  VIRTUAL_ENTITY_BASE_KEYS,
-} from "../..";
+import { AddEntityOptions } from "../..";
+
+type EntityConfiguration = {
+  /**
+   * The content-type of the image, set automatically if the image entity provides a URL.
+   */
+  content_type?: string;
+  /**
+   * Timestamp of when the image was last updated. Used to determine state. Frontend will call image or async_image after this changes.
+   */
+  image_last_updated?: Dayjs;
+  /**
+   * Optional URL from where the image should be fetched.
+   */
+  image_url?: string;
+};
+
+type EntityEvents = {
+  //
+};
 
 export function VirtualImage({ context, synapse }: TServiceParams) {
-  const registry = synapse.registry.create<SynapseVirtualImage>({
+  const generate = synapse.generator.create<EntityConfiguration, EntityEvents>({
+    bus_events: [],
     context,
     // @ts-expect-error its fine
     domain: "image",
+    load_config_keys: ["content_type", "image_last_updated", "image_url"],
   });
 
-  return function create<ATTRIBUTES extends object = object>(entity: SynapseImageParams) {
-    const proxy = new Proxy({} as SynapseVirtualImage, {
-      // #MARK: get
-      get(_, property: keyof SynapseVirtualImage) {
-        // > common
-        if (isBaseEntityKeys(property)) {
-          return loader.baseGet(property);
-        }
-        return undefined;
-      },
-
-      ownKeys: () => [...VIRTUAL_ENTITY_BASE_KEYS],
-
-      // #MARK: set
-      set(_, property: string, value: unknown) {
-        // > common
-        // * attributes
-        if (property === "attributes") {
-          loader.setAttributes(value as ATTRIBUTES);
-          return true;
-        }
-        return false;
-      },
-    });
-
-    // - Add to registry
-    const unique_id = registry.add(proxy, entity);
-
-    // - Initialize value storage
-    const loader = synapse.storage.wrapper<never, ATTRIBUTES, ImageConfiguration>({
-      name: entity.name,
-      registry: registry as TRegistry<unknown>,
-      unique_id,
-    });
-
-    // - Done
-    return proxy;
-  };
+  return <ATTRIBUTES extends object>(
+    options: AddEntityOptions<EntityConfiguration, EntityEvents, ATTRIBUTES>,
+  ) => generate.add_entity(options);
 }

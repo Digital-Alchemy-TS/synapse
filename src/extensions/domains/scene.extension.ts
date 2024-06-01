@@ -1,71 +1,25 @@
 import { TServiceParams } from "@digital-alchemy/core";
 
-import {
-  isBaseEntityKeys,
-  SceneConfiguration,
-  SynapseSceneParams,
-  SynapseVirtualScene,
-  TRegistry,
-  VIRTUAL_ENTITY_BASE_KEYS,
-} from "../..";
+import { AddEntityOptions } from "../..";
+
+type EntityConfiguration = {
+  //
+};
+
+type EntityEvents = {
+  activate: {
+    //
+  };
+};
 
 export function VirtualScene({ context, synapse }: TServiceParams) {
-  const registry = synapse.registry.create<SynapseVirtualScene>({
+  const generate = synapse.generator.create<EntityConfiguration, EntityEvents>({
+    bus_events: ["activate"],
     context,
     domain: "scene",
   });
 
-  // #MARK: create
-  return function <
-    STATE extends void = void,
-    ATTRIBUTES extends object = object,
-    CONFIGURATION extends SceneConfiguration = SceneConfiguration,
-  >(entity: SynapseSceneParams) {
-    // - Define the proxy
-    const proxy = new Proxy({} as SynapseVirtualScene, {
-      // #MARK: get
-      get(_, property: keyof SynapseVirtualScene) {
-        if (isBaseEntityKeys(property)) {
-          return loader.baseGet(property);
-        }
-        return dynamicAttach(property);
-      },
-
-      ownKeys: () => [...VIRTUAL_ENTITY_BASE_KEYS, ...keys],
-
-      // #MARK: set
-      set(_, property: string, value: unknown) {
-        // > common
-        // * attributes
-        if (property === "attributes") {
-          loader.setAttributes(value as ATTRIBUTES);
-          return true;
-        }
-        return false;
-      },
-    });
-
-    // - Add to registry
-    const unique_id = registry.add(proxy, entity);
-
-    // - Initialize value storage
-    const loader = synapse.storage.wrapper<STATE, ATTRIBUTES, CONFIGURATION>({
-      name: entity.name,
-      registry: registry as TRegistry<unknown>,
-      unique_id,
-    });
-
-    // - Attach bus events
-    const { dynamicAttach, staticAttach, keys } = synapse.registry.busTransfer({
-      context,
-      eventName: ["activate"],
-      unique_id,
-    });
-
-    // - Attach static listener
-    staticAttach(proxy, entity);
-
-    // - Done
-    return proxy;
-  };
+  return <ATTRIBUTES extends object>(
+    options: AddEntityOptions<EntityConfiguration, EntityEvents, ATTRIBUTES>,
+  ) => generate.add_entity(options);
 }

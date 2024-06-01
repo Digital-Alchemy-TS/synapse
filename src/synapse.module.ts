@@ -7,7 +7,9 @@ import {
   Controller,
   DeviceExtension,
   DiscoveryExtension,
+  DomainGenerator,
   Registry,
+  StateExtension,
   ValueStorage,
   VirtualAlarmControlPanel,
   VirtualBinarySensor,
@@ -145,12 +147,14 @@ export const LIB_SYNAPSE = CreateLibrary({
      * Zeroconf discovery
      */
     discovery: DiscoveryExtension,
+    generator: DomainGenerator,
 
     /**
      * internal tools for managing entities
      */
     registry: Registry,
 
+    state: StateExtension,
     /**
      * Logic for sour
      */

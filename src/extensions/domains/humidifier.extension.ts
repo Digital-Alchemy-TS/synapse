@@ -1,86 +1,90 @@
 import { TServiceParams } from "@digital-alchemy/core";
+import { HumidifierDeviceClass } from "@digital-alchemy/hass";
 
-import {
-  HumidifierConfiguration,
-  isBaseEntityKeys,
-  SynapseHumidifierParams,
-  SynapseVirtualHumidifier,
-  VIRTUAL_ENTITY_BASE_KEYS,
-} from "../..";
-import { TRegistry } from "../registry.extension";
+import { AddEntityOptions } from "../..";
+
+type EntityConfiguration = {
+  /**
+   * Returns the current status of the device.
+   */
+  action?: string;
+  /**
+   * The available modes. Requires `SUPPORT_MODES`.
+   */
+  available_modes?: `${HumidifierModes}`[];
+  /**
+   * The current humidity measured by the device.
+   */
+  current_humidity?: number;
+  /**
+   * Type of hygrostat
+   */
+  device_class?: `${HumidifierDeviceClass}`;
+  /**
+   * Whether the device is on or off.
+   */
+  is_on?: boolean;
+  /**
+   * The maximum humidity.
+   */
+  max_humidity?: number;
+  /**
+   * The minimum humidity.
+   */
+  min_humidity?: string;
+  /**
+   * The current active mode. Requires `SUPPORT_MODES`.
+   */
+  mode?: `${HumidifierModes}`;
+  /**
+   * The target humidity the device is trying to reach.
+   */
+  target_humidity?: number;
+};
+
+type HumidifierModes =
+  | "normal"
+  | "eco"
+  | "away"
+  | "boost"
+  | "comfort"
+  | "home"
+  | "sleep"
+  | "auto"
+  | "baby";
+
+type EntityEvents = {
+  set_humidity: {
+    humidity: number;
+  };
+  turn_on: {
+    //
+  };
+  turn_off: {
+    //
+  };
+};
 
 export function VirtualHumidifier({ context, synapse }: TServiceParams) {
-  const registry = synapse.registry.create<SynapseVirtualHumidifier>({
+  const generate = synapse.generator.create<EntityConfiguration, EntityEvents>({
+    bus_events: ["set_humidity", "turn_on", "turn_off"],
     context,
-    // @ts-expect-error it's fine
+    // @ts-expect-error its fine
     domain: "humidifier",
+    load_config_keys: [
+      "action",
+      "available_modes",
+      "current_humidity",
+      "device_class",
+      "is_on",
+      "max_humidity",
+      "min_humidity",
+      "mode",
+      "target_humidity",
+    ],
   });
 
-  // #MARK: create
-  return function <STATE extends string = string, ATTRIBUTES extends object = object>(
-    entity: SynapseHumidifierParams,
-  ) {
-    const proxy = new Proxy({} as SynapseVirtualHumidifier, {
-      // #MARK: get
-      // eslint-disable-next-line sonarjs/cognitive-complexity
-      get(_, property: keyof SynapseVirtualHumidifier) {
-        if (isBaseEntityKeys(property)) {
-          return loader.baseGet(property);
-        }
-        return dynamicAttach(property);
-      },
-
-      ownKeys: () => [...VIRTUAL_ENTITY_BASE_KEYS, ...keys],
-
-      // #MARK: set
-      set(_, property: string, value: unknown) {
-        // > common
-        // * state
-        if (property === "state") {
-          loader.setState(value as STATE);
-          return true;
-        }
-        // * attributes
-        if (property === "attributes") {
-          loader.setAttributes(value as ATTRIBUTES);
-          return true;
-        }
-        return false;
-      },
-    });
-
-    // - Add to registry
-    const unique_id = registry.add(proxy, entity);
-
-    // - Initialize value storage
-    const loader = synapse.storage.wrapper<STATE, ATTRIBUTES, HumidifierConfiguration>({
-      load_keys: [
-        "action",
-        "available_modes",
-        "current_humidity",
-        "device_class",
-        "is_on",
-        "max_humidity",
-        "min_humidity",
-        "mode",
-        "target_humidity",
-      ],
-      name: entity.name,
-      registry: registry as TRegistry<unknown>,
-      unique_id,
-    });
-
-    // - Attach bus events
-    const { dynamicAttach, staticAttach, keys } = synapse.registry.busTransfer({
-      context,
-      eventName: ["turn_on", "turn_off", "set_humidity"],
-      unique_id,
-    });
-
-    // - Attach static listener
-    staticAttach(proxy, entity);
-
-    // - Done
-    return proxy;
-  };
+  return <ATTRIBUTES extends object>(
+    options: AddEntityOptions<EntityConfiguration, EntityEvents, ATTRIBUTES>,
+  ) => generate.add_entity(options);
 }

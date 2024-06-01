@@ -1,81 +1,32 @@
 import { TServiceParams } from "@digital-alchemy/core";
+import { BinarySensorDeviceClass } from "@digital-alchemy/hass";
 
-import {
-  BinarySensorConfiguration,
-  BinarySensorValue,
-  isBaseEntityKeys,
-  SynapseBinarySensorParams,
-  SynapseVirtualBinarySensor,
-  TRegistry,
-  VIRTUAL_ENTITY_BASE_KEYS,
-} from "../..";
+import { AddEntityOptions } from "../..";
+
+type EntityConfiguration = {
+  /**
+   * Type of binary sensor.
+   */
+  device_class?: `${BinarySensorDeviceClass}`;
+  /**
+   * If the binary sensor is currently on or off.
+   */
+  is_on?: boolean;
+};
+
+type EntityEvents = {
+  //
+};
 
 export function VirtualBinarySensor({ context, synapse }: TServiceParams) {
-  const registry = synapse.registry.create<SynapseVirtualBinarySensor>({
+  const generate = synapse.generator.create<EntityConfiguration, EntityEvents>({
     context,
+    default_config: { is_on: false },
     domain: "binary_sensor",
+    load_config_keys: ["device_class", "is_on"],
   });
 
-  return function <
-    STATE extends BinarySensorValue = BinarySensorValue,
-    ATTRIBUTES extends object = object,
-  >(entity: SynapseBinarySensorParams) {
-    // - Provide additional defaults
-    entity.defaultState ??= "off";
-
-    // - Define the proxy
-    const proxy = new Proxy({} as SynapseVirtualBinarySensor, {
-      // #MARK: get
-      get(_, property: keyof SynapseVirtualBinarySensor) {
-        if (isBaseEntityKeys(property)) {
-          return loader.baseGet(property);
-        }
-        // > domain specific
-        // * is_on
-        if (property === "is_on") {
-          return loader.state === "on";
-        }
-        return undefined;
-      },
-
-      ownKeys: () => [...VIRTUAL_ENTITY_BASE_KEYS, "is_on"],
-
-      // #MARK: set
-      set(_, property: string, value: unknown) {
-        // * attributes
-        if (property === "attributes") {
-          loader.setAttributes(value as ATTRIBUTES);
-          return true;
-        }
-        // * state
-        if (property === "state") {
-          loader.setState(value as STATE);
-          return true;
-        }
-        // > domain specific
-        // * is_on
-        if (property === "is_on") {
-          const new_state = ((value as boolean) ? "on" : "off") as STATE;
-          loader.setState(new_state);
-          return true;
-        }
-        return false;
-      },
-    });
-
-    // - Add to registry
-    const unique_id = registry.add(proxy, entity);
-
-    // - Initialize value storage
-    const loader = synapse.storage.wrapper<STATE, ATTRIBUTES, BinarySensorConfiguration>({
-      config_defaults: { entity_category: "diagnostic" },
-      load_keys: ["device_class"],
-      name: entity.name,
-      registry: registry as TRegistry<unknown>,
-      unique_id,
-    });
-
-    // - Done
-    return proxy;
-  };
+  return <ATTRIBUTES extends object>(
+    options: AddEntityOptions<EntityConfiguration, EntityEvents, ATTRIBUTES>,
+  ) => generate.add_entity(options);
 }

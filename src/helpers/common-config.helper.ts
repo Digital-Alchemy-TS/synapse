@@ -1,10 +1,12 @@
-export type EntityConfigCommon = {
+export type EntityConfigCommon<ATTRIBUTES extends object> = {
   /**
    * Attempt to create the entity id using this string
    *
    * `binary_sensor.{suggested id}`
    *
    * Home assistant _may_ append numbers to the end in case of object_id conflicts where `unique_id` isn't the same.
+   *
+   * > **NOTE:** Default value based on `name`
    */
   suggested_object_id?: string;
   /**
@@ -24,14 +26,10 @@ export type EntityConfigCommon = {
    * **Diagnostic**: An entity exposing some configuration parameter, or diagnostics of a device.
    */
   entity_category?: "config" | "diagnostic";
+  /**
+   * Default name to provide for the entity
+   */
+  name: string;
+  translation_key?: string;
+  attributes?: ATTRIBUTES;
 };
-
-export const BASE_CONFIG_KEYS = [
-  "area_id",
-  "name",
-  "suggested_object_id",
-  "unique_id",
-  "icon",
-  "state",
-  "entity_category",
-];

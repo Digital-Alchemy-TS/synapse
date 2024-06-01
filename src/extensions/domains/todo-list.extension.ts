@@ -1,76 +1,58 @@
 import { TServiceParams } from "@digital-alchemy/core";
+import { Dayjs } from "dayjs";
 
-import {
-  isBaseEntityKeys,
-  SynapseTodoListParams,
-  SynapseVirtualTodoList,
-  TodoListConfiguration,
-  VIRTUAL_ENTITY_BASE_KEYS,
-} from "../..";
-import { TRegistry } from "../registry.extension";
+import { AddEntityOptions } from "../..";
+
+type TodoItem = {
+  /**
+   * A unique identifier for the to-do item. This field is required for updates and the entity state.
+   */
+  uid?: string;
+  /**
+   * A title or summary of the to-do item. This field is required for the entity state.
+   */
+  summary?: string;
+  /**
+   * The date and time that a to-do is expected to be completed.
+   * The types supported depend on TodoListEntityFeature.DUE_DATE or TodoListEntityFeature.DUE_DATETIME or both being set.
+   * As a datetime, must have a timezone.
+   */
+  due?: Dayjs;
+  /**
+   * Defines the overall status for the to-do item, either NEEDS_ACTION or COMPLETE. This field is required for the entity state.
+   */
+  status?: "needs_action" | "complete";
+  /**
+   * A more complete description of the to-do item than that provided by the summary.
+   * Only supported when TodoListEntityFeature.DESCRIPTION is set.
+   */
+  description?: string;
+};
+
+type EntityConfiguration = {
+  /**
+   * Required. The ordered contents of the To-do list.
+   */
+  todo_items: TodoItem[];
+  supported_features?: number;
+};
+
+type EntityEvents = {
+  create_todo_item: { item: TodoItem };
+  delete_todo_item: { item: TodoItem };
+  move_todo_item: { item: TodoItem };
+};
 
 export function VirtualTodoList({ context, synapse }: TServiceParams) {
-  const registry = synapse.registry.create<SynapseVirtualTodoList>({
+  const generate = synapse.generator.create<EntityConfiguration, EntityEvents>({
+    bus_events: ["create_todo_item", "delete_todo_item", "move_todo_item"],
     context,
-    // @ts-expect-error it's fine
+    // @ts-expect-error its fine
     domain: "todo_list",
+    load_config_keys: ["todo_items", "supported_features"],
   });
 
-  // #MARK: create
-  return function <STATE extends string = string, ATTRIBUTES extends object = object>(
-    entity: SynapseTodoListParams,
-  ) {
-    const proxy = new Proxy({} as SynapseVirtualTodoList, {
-      // #MARK: get
-      // eslint-disable-next-line sonarjs/cognitive-complexity
-      get(_, property: keyof SynapseVirtualTodoList) {
-        if (isBaseEntityKeys(property)) {
-          return loader.baseGet(property);
-        }
-        return dynamicAttach(property);
-      },
-
-      ownKeys: () => [...VIRTUAL_ENTITY_BASE_KEYS, ...keys],
-
-      // #MARK: set
-      set(_, property: string, value: unknown) {
-        // > common
-        // * state
-        if (property === "state") {
-          loader.setState(value as STATE);
-          return true;
-        }
-        // * attributes
-        if (property === "attributes") {
-          loader.setAttributes(value as ATTRIBUTES);
-          return true;
-        }
-        return false;
-      },
-    });
-
-    // - Add to registry
-    const unique_id = registry.add(proxy, entity);
-
-    // - Initialize value storage
-    const loader = synapse.storage.wrapper<STATE, ATTRIBUTES, TodoListConfiguration>({
-      load_keys: ["todo_items", "supported_features"],
-      name: entity.name,
-      registry: registry as TRegistry<unknown>,
-      unique_id,
-    });
-
-    // - Attach bus events
-    const { dynamicAttach, staticAttach, keys } = synapse.registry.busTransfer({
-      context,
-      eventName: ["create_todo_item", "delete_todo_item", "move_todo_item"],
-      unique_id,
-    });
-
-    // - Attach static listener
-    staticAttach(proxy, entity);
-
-    // - Done
-    return proxy;
-  };
+  return <ATTRIBUTES extends object>(
+    options: AddEntityOptions<EntityConfiguration, EntityEvents, ATTRIBUTES>,
+  ) => generate.add_entity(options);
 }

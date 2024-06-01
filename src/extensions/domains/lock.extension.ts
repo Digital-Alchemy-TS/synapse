@@ -1,91 +1,75 @@
 import { TServiceParams } from "@digital-alchemy/core";
 
-import {
-  isBaseEntityKeys,
-  LockConfiguration,
-  LockValue,
-  SynapseLockParams,
-  SynapseVirtualLock,
-  TRegistry,
-  VIRTUAL_ENTITY_BASE_KEYS,
-} from "../..";
+import { AddEntityOptions } from "../..";
 
-export function VirtualLock({ context, synapse, logger }: TServiceParams) {
-  const registry = synapse.registry.create<SynapseVirtualLock>({
+type EntityConfiguration = {
+  /**
+   * Describes what the last change was triggered by.
+   */
+  changed_by?: string;
+  /**
+   * Regex for code format or None if no code is required.
+   */
+  code_format?: string;
+  /**
+   * Indication of whether the lock is currently locked. Used to determine state.
+   */
+  is_locked?: boolean;
+  /**
+   * Indication of whether the lock is currently locking. Used to determine state.
+   */
+  is_locking?: boolean;
+  /**
+   * Indication of whether the lock is currently unlocking. Used to determine state.
+   */
+  is_unlocking?: boolean;
+  /**
+   * Indication of whether the lock is currently jammed. Used to determine state.
+   */
+  is_jammed?: boolean;
+  /**
+   * Indication of whether the lock is currently opening. Used to determine state.
+   */
+  is_opening?: boolean;
+  /**
+   *
+   */
+  is_open?: boolean;
+  supported_features?: number;
+};
+
+type EntityEvents = {
+  lock: {
+    //
+  };
+  unlock: {
+    //
+  };
+  open: {
+    //
+  };
+};
+
+export function VirtualLock({ context, synapse }: TServiceParams) {
+  const generate = synapse.generator.create<EntityConfiguration, EntityEvents>({
+    bus_events: ["lock", "unlock", "open"],
     context,
     // @ts-expect-error its fine
     domain: "lock",
+    load_config_keys: [
+      "changed_by",
+      "code_format",
+      "is_locked",
+      "is_locking",
+      "is_unlocking",
+      "is_jammed",
+      "is_opening",
+      "is_open",
+      "supported_features",
+    ],
   });
 
-  return function create<STATE extends LockValue = LockValue, ATTRIBUTES extends object = object>(
-    entity: SynapseLockParams,
-  ) {
-    const proxy = new Proxy({} as SynapseVirtualLock, {
-      // #MARK: get
-      get(_, property: keyof SynapseVirtualLock) {
-        if (isBaseEntityKeys(property)) {
-          return loader.baseGet(property);
-        }
-        return dynamicAttach(property);
-      },
-
-      ownKeys: () => [...VIRTUAL_ENTITY_BASE_KEYS, ...keys],
-
-      // #MARK: set
-      set(_, property: string, value: unknown) {
-        // > common
-        // * state
-        if (property === "state") {
-          loader.setState(value as STATE);
-          return true;
-        }
-        // * attributes
-        if (property === "attributes") {
-          loader.setAttributes(value as ATTRIBUTES);
-          return true;
-        }
-        return false;
-      },
-    });
-
-    // - Add to registry
-    const unique_id = registry.add(proxy, entity);
-
-    // - Initialize value storage
-    const loader = synapse.storage.wrapper<STATE, ATTRIBUTES, LockConfiguration>({
-      load_keys: [
-        "changed_by",
-        "code_format",
-        "is_locked",
-        "is_locking",
-        "is_unlocking",
-        "is_jammed",
-        "is_opening",
-        "is_open",
-        "supported_features",
-      ],
-      name: entity.name,
-      registry: registry as TRegistry<unknown>,
-      unique_id,
-    });
-
-    // - Attach bus events
-    const { dynamicAttach, staticAttach, keys } = synapse.registry.busTransfer({
-      context,
-      eventName: ["lock", "unlock", "open"],
-      unique_id,
-    });
-
-    // - Attach static listener
-    staticAttach(proxy, entity);
-    if (entity.managed !== false) {
-      logger.debug({ context: entity.context, name: entity.name }, `setting up state management`);
-      proxy.onLock(() => (proxy.configuration.is_locked = true));
-      proxy.onUnlock(() => (proxy.configuration.is_locked = false));
-      proxy.onOpen(() => (proxy.configuration.is_open = true));
-    }
-
-    // - Done
-    return proxy;
-  };
+  return <ATTRIBUTES extends object>(
+    options: AddEntityOptions<EntityConfiguration, EntityEvents, ATTRIBUTES>,
+  ) => generate.add_entity(options);
 }

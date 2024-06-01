@@ -1,8 +1,8 @@
 import { TBlackHole } from "@digital-alchemy/core";
 import { Dayjs } from "dayjs";
 
-import { BaseEntityParams, BaseVirtualEntity } from "../base-domain.helper";
-import { EntityConfigCommon } from "../common-config.helper";
+import { BaseEntityParams, BaseVirtualEntity } from "./base-domain.helper";
+import { EntityConfigCommon } from "./common-config.helper";
 
 type DurationSensor = {
   device_class: "duration";
@@ -270,10 +270,12 @@ export type SensorDeviceClasses =
   | AtmosphericPressureSensor
   | DefaultSensor;
 
-export type SynapseSensorParams = BaseEntityParams<SensorValue> & SensorConfiguration;
+export type SynapseSensorParams<ATTRIBUTES extends object> = BaseEntityParams<SensorValue> &
+  SensorConfiguration<ATTRIBUTES>;
 
-export type SensorConfiguration = EntityConfigCommon &
+export type SensorConfiguration<ATTRIBUTES extends object> = EntityConfigCommon<ATTRIBUTES> &
   SensorDeviceClasses & {
+    state?: string | number;
     /**
      * The number of decimals which should be used in the sensor's state when it's displayed.
      */
@@ -315,7 +317,11 @@ export type SensorConfiguration = EntityConfigCommon &
 
 export type SensorValue = string | number;
 
-export type SynapseVirtualSensor = BaseVirtualEntity<SensorValue, object, SensorConfiguration> & {
+export type SynapseVirtualSensor<ATTRIBUTES extends object> = BaseVirtualEntity<
+  SensorValue,
+  ATTRIBUTES,
+  SensorConfiguration<ATTRIBUTES>
+> & {
   /**
    * bumps the last reset time
    */

@@ -1,87 +1,83 @@
 import { TServiceParams } from "@digital-alchemy/core";
 
-import {
-  CameraConfiguration,
-  isBaseEntityKeys,
-  SynapseCameraParams,
-  SynapseVirtualCamera,
-  VIRTUAL_ENTITY_BASE_KEYS,
-} from "../../helpers";
-import { TRegistry } from "../registry.extension";
+import { AddEntityOptions } from "../..";
+
+type EntityConfiguration = {
+  /**
+   * The brand (manufacturer) of the camera.
+   */
+  brand?: string;
+  /**
+   * The interval between frames of the stream.
+   */
+  frame_interval?: number;
+  /**
+   * Used with CameraEntityFeature.STREAM to tell the frontend which type of stream to use (StreamType.HLS or StreamType.WEB_RTC)
+   */
+  frontend_stream_type?: string;
+  /**
+   * Indication of whether the camera is on.
+   */
+  is_on?: boolean;
+  /**
+   * Indication of whether the camera is recording. Used to determine state.
+   */
+  is_recording?: boolean;
+  /**
+   * Indication of whether the camera is streaming. Used to determine state.
+   */
+  is_streaming?: boolean;
+  /**
+   * The model of the camera.
+   */
+  model?: string;
+  /**
+   * Indication of whether the camera has motion detection enabled.
+   */
+  motion_detection_enabled?: boolean;
+  /**
+   * Determines whether or not to use the Stream integration to generate still images
+   */
+  use_stream_for_stills?: boolean;
+  supported_features?: number;
+};
+
+type EntityEvents = {
+  turn_on: {
+    //
+  };
+  turn_off: {
+    //
+  };
+  enable_motion_detection: {
+    //
+  };
+  disable_motion_detection: {
+    //
+  };
+};
 
 export function VirtualCamera({ context, synapse }: TServiceParams) {
-  const registry = synapse.registry.create<SynapseVirtualCamera>({
+  const generate = synapse.generator.create<EntityConfiguration, EntityEvents>({
+    bus_events: ["turn_on", "turn_off", "enable_motion_detection", "disable_motion_detection"],
     context,
-    // @ts-expect-error it's fine
-    domain: "fan",
+    // @ts-expect-error its fine
+    domain: "camera",
+    load_config_keys: [
+      "brand",
+      "frame_interval",
+      "frontend_stream_type",
+      "is_on",
+      "is_recording",
+      "is_streaming",
+      "model",
+      "motion_detection_enabled",
+      "use_stream_for_stills",
+      "supported_features",
+    ],
   });
 
-  // #MARK: create
-  return function <STATE extends string = string, ATTRIBUTES extends object = object>(
-    entity: SynapseCameraParams,
-  ) {
-    const proxy = new Proxy({} as SynapseVirtualCamera, {
-      // #MARK: get
-      // eslint-disable-next-line sonarjs/cognitive-complexity
-      get(_, property: keyof SynapseVirtualCamera) {
-        if (isBaseEntityKeys(property)) {
-          return loader.baseGet(property);
-        }
-        return dynamicAttach(property);
-      },
-
-      ownKeys: () => [...VIRTUAL_ENTITY_BASE_KEYS, ...keys],
-
-      // #MARK: set
-      set(_, property: string, value: unknown) {
-        // > common
-        // * state
-        if (property === "state") {
-          loader.setState(value as STATE);
-          return true;
-        }
-        // * attributes
-        if (property === "attributes") {
-          loader.setAttributes(value as ATTRIBUTES);
-          return true;
-        }
-        return false;
-      },
-    });
-
-    // - Add to registry
-    const unique_id = registry.add(proxy, entity);
-
-    // - Initialize value storage
-    const loader = synapse.storage.wrapper<STATE, ATTRIBUTES, CameraConfiguration>({
-      load_keys: [
-        "brand",
-        "frame_interval",
-        "frontend_stream_type",
-        "is_on",
-        "is_recording",
-        "is_streaming",
-        "model",
-        "motion_detection_enabled",
-        "use_stream_for_stills",
-        "supported_features",
-      ],
-      name: entity.name,
-      registry: registry as TRegistry<unknown>,
-      unique_id,
-    });
-
-    // - Attach bus events
-    const { dynamicAttach, staticAttach, keys } = synapse.registry.busTransfer({
-      context,
-      eventName: ["turn_on", "turn_off", "enable_motion_detection", "disable_motion_detection"],
-      unique_id,
-    });
-
-    // - Attach static listener
-    staticAttach(proxy, entity);
-
-    // - Done
-    return proxy;
-  };
+  return <ATTRIBUTES extends object>(
+    options: AddEntityOptions<EntityConfiguration, EntityEvents, ATTRIBUTES>,
+  ) => generate.add_entity(options);
 }
