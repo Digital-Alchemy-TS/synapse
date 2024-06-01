@@ -4,6 +4,5 @@ export * from "./device.extension";
 export * from "./discovery.extension";
 export * from "./domains";
 export * from "./generator.extension";
-export * from "./registry.extension";
+export * from "./socket.extension";
 export * from "./state.extension";
-export * from "./storage.extension";

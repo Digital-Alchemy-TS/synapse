@@ -135,7 +135,13 @@ export function DomainGenerator({
         const unique_id = entity.unique_id;
 
         // * initialize storage
-        const storage = synapse.state.add(entity, load_config_keys);
+        const storage = synapse.state.add({
+          //
+          entity,
+          load_keys: undefined,
+          map_config: undefined,
+          map_state: undefined,
+        });
 
         // * map bus events
         bus_events.forEach(bus_event => {

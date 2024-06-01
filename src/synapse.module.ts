@@ -8,9 +8,8 @@ import {
   DeviceExtension,
   DiscoveryExtension,
   DomainGenerator,
-  Registry,
+  SocketExtension,
   StateExtension,
-  ValueStorage,
   VirtualAlarmControlPanel,
   VirtualBinarySensor,
   VirtualButton,
@@ -126,7 +125,7 @@ export const LIB_SYNAPSE = CreateLibrary({
   },
   depends: [LIB_HASS, LIB_FASTIFY],
   name: "synapse",
-  priorityInit: ["registry", "storage"],
+  priorityInit: ["generator", "state"],
   services: {
     /**
      * internal
@@ -149,16 +148,8 @@ export const LIB_SYNAPSE = CreateLibrary({
     discovery: DiscoveryExtension,
     generator: DomainGenerator,
 
-    /**
-     * internal tools for managing entities
-     */
-    registry: Registry,
-
+    socket: SocketExtension,
     state: StateExtension,
-    /**
-     * Logic for sour
-     */
-    storage: ValueStorage,
     ...DOMAINS,
   },
 });

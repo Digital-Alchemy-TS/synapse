@@ -1,5 +1,5 @@
 import { InternalError, is, TServiceParams } from "@digital-alchemy/core";
-import { domain } from "@digital-alchemy/hass";
+import { domain, TRawDomains } from "@digital-alchemy/hass";
 
 import { EntityConfigCommon, TSynapseId } from "../helpers";
 import { AddEntityOptions } from "./generator.extension";
@@ -20,8 +20,21 @@ type AddStateOptions<CONFIGURATION extends EntityConfigCommon<object>> = {
   map_config?: Extract<keyof CONFIGURATION, string>[];
 };
 
-export function StateExtension({ logger, context, lifecycle, hass }: TServiceParams) {
+export function StateExtension({ logger, context, lifecycle, hass, synapse }: TServiceParams) {
   const registry = new Map<TSynapseId, TSynapseEntityStorage>();
+
+  function dump() {
+    const list = [...registry.keys()];
+    const out = {} as Record<TRawDomains, object[]>;
+    list.forEach(i => {
+      const storage = registry.get(i);
+      const entity = hass.entity.byUniqueId(i);
+      const section = domain(entity);
+      out[section] ??= [];
+      out[section].push(storage.export());
+    });
+    return out;
+  }
 
   function add<CONFIGURATION extends EntityConfigCommon<object>>({
     entity,
@@ -49,8 +62,11 @@ export function StateExtension({ logger, context, lifecycle, hass }: TServicePar
 
     // * storage object
     const storage = {
-      get(key) {
-        return CURRENT_VALUE[key] as CONFIGURATION[typeof key];
+      export: () => ({ ...CURRENT_VALUE }),
+      get: key => CURRENT_VALUE[key],
+      set: (key, value) => {
+        CURRENT_VALUE[key] = value;
+        setImmediate(async () => await synapse.socket.send(entity.unique_id, CURRENT_VALUE));
       },
       unique_id: entity.unique_id,
     } as TSynapseEntityStorage<CONFIGURATION>;
@@ -91,5 +107,5 @@ export function StateExtension({ logger, context, lifecycle, hass }: TServicePar
     return storage;
   }
 
-  return { add, find: (id: TSynapseId) => registry.get(id) };
+  return { add, dump, find: (id: TSynapseId) => registry.get(id) };
 }
