@@ -5,6 +5,7 @@ dictionaries: []
 words:
   - alexa
   - cbar
+  - comms
   - datetime
   - desync
   - endregion
@@ -13,13 +14,13 @@ words:
   - hass
   - homeassistant
   - hvac
-  - programminghorror
   - kbit
   - mbar
   - mbit
-  - sonarjs
+  - programminghorror
   - rgbw
   - rgbww
+  - sonarjs
   - tvshow
   - utcnow
   - zeroconf

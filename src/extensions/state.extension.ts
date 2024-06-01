@@ -1,8 +1,7 @@
 import { InternalError, is, TServiceParams } from "@digital-alchemy/core";
 import { domain, TRawDomains } from "@digital-alchemy/hass";
 
-import { EntityConfigCommon, TSynapseId } from "../helpers";
-import { AddEntityOptions } from "./generator.extension";
+import { AddEntityOptions, EntityConfigCommon, TSynapseId } from "../helpers";
 
 type TSynapseEntityStorage<CONFIGURATION extends object = object> = {
   unique_id: TSynapseId;
@@ -15,9 +14,18 @@ const LATE_READY = -1;
 
 type AddStateOptions<CONFIGURATION extends EntityConfigCommon<object>> = {
   entity: AddEntityOptions<CONFIGURATION>;
-  load_keys: (keyof AddEntityOptions<CONFIGURATION>)[];
-  map_state?: Extract<keyof CONFIGURATION, string>;
-  map_config?: Extract<keyof CONFIGURATION, string>[];
+  /**
+   * initial import from typescript defs
+   */
+  load_config_keys: (keyof AddEntityOptions<CONFIGURATION>)[];
+  /**
+   * when loading data from hass, map `state` to this config property
+   */
+  map_state: Extract<keyof CONFIGURATION, string>;
+  /**
+   * when loading data from hass, import these config properties from entity attributes
+   */
+  map_config: Extract<keyof CONFIGURATION, string>[];
 };
 
 export function StateExtension({ logger, context, lifecycle, hass, synapse }: TServiceParams) {
@@ -38,18 +46,19 @@ export function StateExtension({ logger, context, lifecycle, hass, synapse }: TS
 
   function add<CONFIGURATION extends EntityConfigCommon<object>>({
     entity,
-    load_keys,
+    load_config_keys,
     map_config = [],
     map_state,
   }: AddStateOptions<CONFIGURATION>) {
     if (registry.has(entity.unique_id as TSynapseId)) {
       throw new InternalError(context, `ENTITY_COLLISION`, `${domain} registry already id`);
     }
+    let initialized = false;
 
     // * add
     const CURRENT_VALUE = {} as Record<keyof CONFIGURATION, unknown>;
     const load = [
-      ...load_keys,
+      ...load_config_keys,
       "attributes",
       "entity_category",
       "icon",
@@ -66,7 +75,9 @@ export function StateExtension({ logger, context, lifecycle, hass, synapse }: TS
       get: key => CURRENT_VALUE[key],
       set: (key, value) => {
         CURRENT_VALUE[key] = value;
-        setImmediate(async () => await synapse.socket.send(entity.unique_id, CURRENT_VALUE));
+        if (initialized) {
+          setImmediate(async () => await synapse.socket.send(entity.unique_id, CURRENT_VALUE));
+        }
       },
       unique_id: entity.unique_id,
     } as TSynapseEntityStorage<CONFIGURATION>;
@@ -78,6 +89,7 @@ export function StateExtension({ logger, context, lifecycle, hass, synapse }: TS
         const config = hass.entity.registry.current.find(i => i.unique_id === entity.unique_id);
         if (!config) {
           logger.warn({ options: entity }, "cannot find entity in hass registry");
+          initialized = true;
           return;
         }
         const entity_id = config.entity_id;
@@ -100,6 +112,7 @@ export function StateExtension({ logger, context, lifecycle, hass, synapse }: TS
             ] as CONFIGURATION[typeof map_state],
           );
         });
+        initialized = true;
       }, LATE_READY);
     }
 

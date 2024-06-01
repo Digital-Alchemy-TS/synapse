@@ -1,73 +1,9 @@
 import { TBlackHole, TContext } from "@digital-alchemy/core";
-import { ENTITY_STATE, PICK_ENTITY } from "@digital-alchemy/hass";
+import { TRawDomains } from "@digital-alchemy/hass";
+import { createHash } from "crypto";
 
-export type BaseEntityParams<STATE extends unknown, ATTRIBUTES extends object = object> = {
-  context: TContext;
-  defaultState?: STATE;
-  defaultAttributes?: ATTRIBUTES;
-  name: string;
-  unique_id?: string;
-};
-
-export type UpdateCallback<ENTITY_ID extends PICK_ENTITY> = (
-  callback: (
-    new_state: NonNullable<ENTITY_STATE<ENTITY_ID>>,
-    old_state: NonNullable<ENTITY_STATE<ENTITY_ID>>,
-    remove: () => void,
-  ) => TBlackHole,
-) => { remove: () => void };
-
-export type BaseVirtualEntity<
-  STATE extends unknown,
-  ATTRIBUTES extends object = object,
-  CONFIGURATION extends object = object,
-> = {
-  /**
-   * Do not define attributes that change frequently.
-   * Create new sensors instead
-   */
-  attributes: ATTRIBUTES;
-  configuration: CONFIGURATION;
-  _rawAttributes: ATTRIBUTES;
-  _rawConfiguration: ATTRIBUTES;
-  name: string;
-  /**
-   * look up the entity id, and
-   */
-  onUpdate: UpdateCallback<PICK_ENTITY>;
-  /**
-   * the current state
-   */
-  state: STATE;
-  /**
-   * Used to uniquely identify this entity in home assistant
-   */
-  unique_id: string;
-};
-
-export type BaseEntityKeys =
-  | "name"
-  | "unique_id"
-  | "onUpdate"
-  | "_rawConfiguration"
-  | "_rawAttributes"
-  | "attributes"
-  | "configuration"
-  | "state";
-
-export const isBaseEntityKeys = (key: string): key is BaseEntityKeys =>
-  VIRTUAL_ENTITY_BASE_KEYS.includes(key);
-
-export const VIRTUAL_ENTITY_BASE_KEYS = [
-  "attributes",
-  "configuration",
-  "_rawAttributes",
-  "_rawConfiguration",
-  "name",
-  "state",
-  "onUpdate",
-  "unique_id",
-];
+import { EntityConfigCommon } from "./common-config.helper";
+import { TSynapseId } from "./utility.helper";
 
 export type RemovableCallback<DATA extends unknown = unknown> = (
   data: DATA,
@@ -77,3 +13,75 @@ export type RemovableCallback<DATA extends unknown = unknown> = (
 export type CreateRemovableCallback<DATA extends unknown = unknown> = (
   callback: RemovableCallback<DATA>,
 ) => { remove: () => void };
+
+export type DomainGeneratorOptions<
+  CONFIGURATION extends object,
+  EVENT_MAP extends Record<string, object>,
+> = {
+  /**
+   * The domain to map the code to on the python side
+   */
+  domain: TRawDomains;
+  /**
+   * Context of the synapse extension generating
+   */
+  context: TContext;
+  /**
+   * Bus Transfer events
+   */
+  bus_events?: Extract<keyof EVENT_MAP, string>[];
+  /**
+   * Keys to map from `add_entity` options -> `proxy.configuration`
+   */
+  load_config_keys?: Extract<keyof CONFIGURATION, string>[];
+  /**
+   * What to use instead of `undefined` / `None`
+   */
+  default_config?: Partial<CONFIGURATION>;
+  /**
+   * when loading data from hass, map `state` to this config property
+   *
+   * will automatically use `state` if present in `load_config_keys`
+   */
+  map_state: Extract<keyof CONFIGURATION, string>;
+  /**
+   * when loading data from hass, import these config properties from entity attributes
+   */
+  map_config: Extract<keyof CONFIGURATION, string>[];
+};
+
+export type TEventMap = Record<string, object>;
+
+export type AddEntityOptions<
+  CONFIGURATION extends object,
+  EVENT_MAP extends Record<string, object> = Record<string, object>,
+  ATTRIBUTES extends object = object,
+> = {
+  context: TContext;
+} & EntityConfigCommon<ATTRIBUTES> &
+  CONFIGURATION &
+  Partial<{
+    [EVENT in keyof EVENT_MAP]: RemovableCallback<EVENT_MAP[EVENT]>;
+  }>;
+
+export function generateHash(input: string) {
+  const hash = createHash("sha256");
+  hash.update(input);
+  return hash.digest("hex");
+}
+
+export type BaseEvent = {
+  data: {
+    unique_id: TSynapseId;
+  };
+};
+
+export const formatObjectId = (input: string) =>
+  input
+    .trim()
+    .toLowerCase()
+    .replaceAll(/[^\d_a-z]+/g, "_")
+    .replaceAll(/^_+|_+$/g, "")
+    .replaceAll(/_+/g, "_");
+
+export const LATE_READY = -1;
