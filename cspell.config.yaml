@@ -3,7 +3,26 @@ ignorePaths: []
 dictionaryDefinitions: []
 dictionaries: []
 words:
-  - hass
+  - alexa
+  - cbar
+  - comms
+  - datetime
+  - desync
+  - endregion
+  - gbit
   - gotify
+  - hass
+  - homeassistant
+  - hvac
+  - kbit
+  - mbar
+  - mbit
+  - programminghorror
+  - rgbw
+  - rgbww
+  - sonarjs
+  - tvshow
+  - utcnow
+  - zeroconf
 ignoreWords: []
 import: []

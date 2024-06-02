@@ -42,9 +42,9 @@
         "unicorn/no-empty-file": "off",
         "sonarjs/prefer-single-boolean-return": "off",
         "unicorn/no-array-callback-reference": "off",
+        "@typescript-eslint/unbound-method": "off",
         "unicorn/no-await-expression-member": "off",
         "unicorn/no-useless-undefined": "off",
-        "@typescript-eslint/unbound-method": "error",
         "import/no-extraneous-dependencies": [
           "error",
           {
@@ -72,7 +72,6 @@
         "unicorn/prefer-node-protocol": "off",
         "unicorn/no-array-for-each": "off",
         "unicorn/import-style": "off",
-        "sonarjs/cognitive-complexity": "off",
         "sort-keys-fix/sort-keys-fix": "warn",
         "unicorn/prefer-event-target": "off",
         "simple-import-sort/imports": "warn",

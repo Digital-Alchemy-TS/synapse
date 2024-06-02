@@ -1,76 +1,156 @@
-import { CreateLibrary } from "@digital-alchemy/core";
+import { CreateLibrary, InternalConfig } from "@digital-alchemy/core";
+import { LIB_FASTIFY } from "@digital-alchemy/fastify-extension";
 import { LIB_HASS } from "@digital-alchemy/hass";
 
 import {
-  BinarySensor,
-  Button,
-  Registry,
-  Scene,
-  Sensor,
-  Switch,
+  Configure,
+  Controller,
+  DeviceExtension,
+  DiscoveryExtension,
+  DomainGenerator,
+  SocketExtension,
+  StorageExtension,
+  VirtualAlarmControlPanel,
+  VirtualBinarySensor,
+  VirtualButton,
+  VirtualCamera,
+  VirtualClimate,
+  VirtualCover,
+  VirtualDate,
+  VirtualDateTime,
+  VirtualFan,
+  VirtualImage,
+  VirtualLawnMower,
+  VirtualLight,
+  VirtualLock,
+  VirtualMediaPlayer,
+  VirtualNotify,
+  VirtualNumber,
+  VirtualRemote,
+  VirtualScene,
+  VirtualSelect,
+  VirtualSensor,
+  VirtualSiren,
+  VirtualSwitch,
+  VirtualText,
+  VirtualTime,
+  VirtualTodoList,
+  VirtualUpdate,
+  VirtualVacuum,
+  VirtualValve,
+  VirtualWaterHeater,
 } from "./extensions";
+import { HassDeviceMetadata } from "./helpers";
+
+const DOMAINS = {
+  alarm_control_panel: VirtualAlarmControlPanel,
+  binary_sensor: VirtualBinarySensor,
+  button: VirtualButton,
+  camera: VirtualCamera,
+  climate: VirtualClimate,
+  cover: VirtualCover,
+  date: VirtualDate,
+  datetime: VirtualDateTime,
+  fan: VirtualFan,
+  image: VirtualImage,
+  lawn_mower: VirtualLawnMower,
+  light: VirtualLight,
+  lock: VirtualLock,
+  media_player: VirtualMediaPlayer,
+  notify: VirtualNotify,
+  number: VirtualNumber,
+  remote: VirtualRemote,
+  scene: VirtualScene,
+  select: VirtualSelect,
+  sensor: VirtualSensor,
+  siren: VirtualSiren,
+  switch: VirtualSwitch,
+  text: VirtualText,
+  time: VirtualTime,
+  todo_list: VirtualTodoList,
+  update: VirtualUpdate,
+  vacuum: VirtualVacuum,
+  valve: VirtualValve,
+  water_heater: VirtualWaterHeater,
+};
 
 export const LIB_SYNAPSE = CreateLibrary({
   configuration: {
-    ANNOUNCE_AT_CONNECT: {
-      default: false,
-      description: [
-        "Emit the entity list update every time this application is booted",
-        "digital-alchemy.reload() service available for manual reload",
-      ],
-      type: "boolean",
-    },
-    APPLICATION_IDENTIFIER: {
-      description: [
-        "Used to generate unique ids in home assistant",
-        "Defaults to application name",
-      ],
-      type: "string",
-    },
     EMIT_HEARTBEAT: {
       default: true,
-      description: ["Emit a pulse so the extension knows the service is alive"],
+      description: ["Emit a heartbeat pulse so the extension knows the service is alive"],
       type: "boolean",
+    },
+    EVENT_NAMESPACE: {
+      default: "digital_alchemy",
+      description: [
+        "You almost definitely do not want to change this",
+        "Must be matched on the python integration side",
+      ],
+      type: "string",
     },
     HEARTBEAT_INTERVAL: {
       default: 5,
       description: "Seconds between heartbeats",
       type: "number",
     },
+    METADATA: {
+      description: [
+        "A string to uniquely identify this application",
+        "Should be unique within home assistant, such as a uuid",
+        "Default value calculated from hostname + username + app_name",
+      ],
+      type: "internal",
+    } as InternalConfig<HassDeviceMetadata>,
+    METADATA_HOST: {
+      description: ["Host name to announce as"],
+      type: "string",
+    },
+    METADATA_TITLE: {
+      description: ["Title for the integration provided by this app", "Defaults to app name"],
+      type: "string",
+    },
+    METADATA_UNIQUE_ID: {
+      description: [
+        "A string to uniquely identify this application",
+        "Should be unique within home assistant, such as a uuid",
+        "Default value calculated from hostname + username + app_name",
+      ],
+      type: "string",
+    },
+    PUBLISH_BONJOUR: {
+      default: true,
+      type: "boolean",
+    },
   },
-  depends: [LIB_HASS],
+  depends: [LIB_HASS, LIB_FASTIFY],
   name: "synapse",
-  // everything depends registry
-  priorityInit: ["registry"],
+  priorityInit: ["generator", "storage"],
   services: {
     /**
-     * create `binary_sensor` domain entities
+     * internal
      */
-    binary_sensor: BinarySensor,
+    configure: Configure,
+
     /**
-     * create `button` domain entities
-     *
-     * run callback on activation
+     * fastify bindings
      */
-    button: Button,
+    controller: Controller,
+
     /**
-     * internal tools for managing entities
+     * Internal tools to create the device that registers with entities
      */
-    registry: Registry,
+    device: DeviceExtension,
+
     /**
-     * create `scene` domain entities
-     *
-     * run callback on activation
+     * Zeroconf discovery
      */
-    scene: Scene,
-    /**
-     * create `sensor` domain entities
-     */
-    sensor: Sensor,
-    /**
-     * create `switch` domain entities
-     */
-    switch: Switch,
+    discovery: DiscoveryExtension,
+    generator: DomainGenerator,
+
+    socket: SocketExtension,
+    storage: StorageExtension,
+    ...DOMAINS,
   },
 });
 
