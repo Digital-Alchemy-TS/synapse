@@ -52,10 +52,12 @@ export function Example({ scheduler, context, synapse }: TServiceParams) {
   // create a new phrase
   // taking into consideration the current state of the switch
   const regenerate = () => {
-    sensor.state =
+    sensor.storage.set(
+      "state",
       useHacker.state === "on"
         ? faker.hacker.phrase()
-        : faker.company.catchPhrase();
+        : faker.company.catchPhrase()
+    );
   };
 
   // update sensor every 10 minutes
@@ -72,32 +74,6 @@ export function Example({ scheduler, context, synapse }: TServiceParams) {
   });
 }
 ```
-
-> Names should be unique per domain!
-
-### 🔌 Automatic availability reporting
-
-A `binary_sensor.{app_name}_online` will be created and managed by the extension. This binary sensor will display the connected state of your application and is always available. All other entities owned by this application will have their `availability` state tied to the online state.
-
-When your application disconnects, it emits a "going offline" message to automatically flag entities. Applications also emit a heartbeat that the custom component uses to identify more sudden failures.
-
-### 🔁 Reloading in Home Assistant
-
-By default, applications don't automatically send their current list of entities to Home Assistant. To trigger an update/resync with your application and the custom component, use the `reload` button.
-
-![reload button](./docs//reload.png)
-
-## 🌐 Supported Domains
-
-Current support includes
-
-| Domain          | Notes                                                         |
-| --------------- | ------------------------------------------------------------- |
-| `binary_sensor` | reports an `on`/`off` state, not much else                    |
-| `button`        | create a quick callback to some code on your dashboard        |
-| `sensor`        | report `string`/`number`/`date` states, as well as attributes |
-| `switch`        | create virtual switches to gate logic with                    |
-| `scene`         | slightly different buttons, bring your own scene setting logic|
 
 ## 🤝 Related Projects
 
