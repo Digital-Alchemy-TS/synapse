@@ -23,6 +23,10 @@ type EntityConfiguration = {
    * The value of the text.
    */
   native_value?: string;
+  /**
+   * default: true
+   */
+  managed?: boolean;
 };
 
 type EntityEvents = {
@@ -36,9 +40,17 @@ export function VirtualText({ context, synapse }: TServiceParams) {
     // @ts-expect-error its fine
     domain: "text",
     load_config_keys: ["mode", "native_max", "native_min", "pattern", "native_value"],
+    map_state: "native_value",
   });
 
-  return <ATTRIBUTES extends object>(
-    options: AddEntityOptions<EntityConfiguration, EntityEvents, ATTRIBUTES>,
-  ) => generate.add_entity(options);
+  return function <ATTRIBUTES extends object>({
+    managed = true,
+    ...options
+  }: AddEntityOptions<EntityConfiguration, EntityEvents, ATTRIBUTES>) {
+    const entity = generate.add_entity(options);
+    if (managed) {
+      entity.onSetValue(({ value }) => entity.storage.set("native_value", value));
+    }
+    return entity;
+  };
 }

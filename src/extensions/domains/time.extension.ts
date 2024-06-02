@@ -6,6 +6,11 @@ export type SynapseTimeFormat = `${number}${number}:${number}${number}:${number}
 
 type EntityConfiguration = {
   native_value?: SynapseTimeFormat;
+
+  /**
+   * default: true
+   */
+  managed?: boolean;
 };
 
 type EntityEvents = {
@@ -19,9 +24,17 @@ export function VirtualTime({ context, synapse }: TServiceParams) {
     // @ts-expect-error its fine
     domain: "time",
     load_config_keys: ["native_value"],
+    map_state: "native_value",
   });
 
-  return <ATTRIBUTES extends object>(
-    options: AddEntityOptions<EntityConfiguration, EntityEvents, ATTRIBUTES>,
-  ) => generate.add_entity(options);
+  return function <ATTRIBUTES extends object>({
+    managed = true,
+    ...options
+  }: AddEntityOptions<EntityConfiguration, EntityEvents, ATTRIBUTES>) {
+    const entity = generate.add_entity(options);
+    if (managed) {
+      entity.onSetValue(({ value }) => entity.storage.set("native_value", value));
+    }
+    return entity;
+  };
 }

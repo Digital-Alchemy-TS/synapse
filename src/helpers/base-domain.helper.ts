@@ -2,6 +2,7 @@ import { TBlackHole, TContext } from "@digital-alchemy/core";
 import { TRawDomains } from "@digital-alchemy/hass";
 import { createHash } from "crypto";
 
+import { ConfigMapper } from "../extensions";
 import { EntityConfigCommon } from "./common-config.helper";
 import { TSynapseId } from "./utility.helper";
 
@@ -43,11 +44,11 @@ export type DomainGeneratorOptions<
    *
    * will automatically use `state` if present in `load_config_keys`
    */
-  map_state: Extract<keyof CONFIGURATION, string>;
+  map_state?: Extract<keyof CONFIGURATION, string>;
   /**
    * when loading data from hass, import these config properties from entity attributes
    */
-  map_config: Extract<keyof CONFIGURATION, string>[];
+  map_config?: ConfigMapper<Extract<keyof CONFIGURATION, string>>[];
 };
 
 export type TEventMap = Record<string, object>;

@@ -25,6 +25,10 @@ type EntityConfiguration = SensorDeviceClasses & {
    * The value of the number in the number's native_unit_of_measurement.
    */
   native_value?: number;
+  /**
+   * default: true
+   */
+  managed?: boolean;
 };
 
 type EntityEvents = {
@@ -48,7 +52,14 @@ export function VirtualNumber({ context, synapse }: TServiceParams) {
     ],
   });
 
-  return <ATTRIBUTES extends object>(
-    options: AddEntityOptions<EntityConfiguration, EntityEvents, ATTRIBUTES>,
-  ) => generate.add_entity(options);
+  return function <ATTRIBUTES extends object>({
+    managed = true,
+    ...options
+  }: AddEntityOptions<EntityConfiguration, EntityEvents, ATTRIBUTES>) {
+    const entity = generate.add_entity(options);
+    if (managed) {
+      entity.onSetValue(({ value }) => entity.storage.set("native_value", value));
+    }
+    return entity;
+  };
 }

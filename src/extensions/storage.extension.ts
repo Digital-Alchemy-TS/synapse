@@ -1,5 +1,5 @@
 import { InternalError, is, TServiceParams } from "@digital-alchemy/core";
-import { domain, TRawDomains } from "@digital-alchemy/hass";
+import { ENTITY_STATE, PICK_ENTITY, TRawDomains } from "@digital-alchemy/hass";
 
 import { AddEntityOptions, EntityConfigCommon, TSynapseId } from "../helpers";
 
@@ -13,6 +13,7 @@ type TSynapseEntityStorage<CONFIGURATION extends object = object> = {
 const LATE_READY = -1;
 
 type AddStateOptions<CONFIGURATION extends EntityConfigCommon<object>> = {
+  domain: TRawDomains;
   entity: AddEntityOptions<CONFIGURATION>;
   /**
    * initial import from typescript defs
@@ -25,37 +26,46 @@ type AddStateOptions<CONFIGURATION extends EntityConfigCommon<object>> = {
   /**
    * when loading data from hass, import these config properties from entity attributes
    */
-  map_config: Extract<keyof CONFIGURATION, string>[];
+  map_config: ConfigMapper<Extract<keyof CONFIGURATION, string>>[];
 };
 
-export function StateExtension({ logger, context, lifecycle, hass, synapse }: TServiceParams) {
+export type ConfigMapper<KEY extends string> =
+  | {
+      key: KEY;
+      load<ENTITY extends PICK_ENTITY>(entity: ENTITY_STATE<ENTITY>): unknown;
+    }
+  | KEY;
+
+export function StorageExtension({ logger, context, lifecycle, hass, synapse }: TServiceParams) {
   const registry = new Map<TSynapseId, TSynapseEntityStorage>();
+  const domain_lookup = new Map<string, TRawDomains>();
 
   function dump() {
     const list = [...registry.keys()];
     const out = {} as Record<TRawDomains, object[]>;
     list.forEach(i => {
       const storage = registry.get(i);
-      const entity = hass.entity.byUniqueId(i);
-      const section = domain(entity);
+      const section = domain_lookup.get(i);
       out[section] ??= [];
       out[section].push(storage.export());
     });
     return out;
   }
 
+  // #MARK: add
   function add<CONFIGURATION extends EntityConfigCommon<object>>({
     entity,
     load_config_keys,
     map_config = [],
+    domain,
     map_state,
   }: AddStateOptions<CONFIGURATION>) {
     if (registry.has(entity.unique_id as TSynapseId)) {
       throw new InternalError(context, `ENTITY_COLLISION`, `${domain} registry already id`);
     }
+    domain_lookup.set(entity.unique_id, domain);
     let initialized = false;
 
-    // * add
     const CURRENT_VALUE = {} as Record<keyof CONFIGURATION, unknown>;
     const load = [
       ...load_config_keys,
@@ -105,15 +115,21 @@ export function StateExtension({ logger, context, lifecycle, hass, synapse }: TS
         }
 
         map_config.forEach(config => {
-          storage.set(
-            config,
-            reference.attributes[
-              config as keyof typeof reference.attributes
-            ] as CONFIGURATION[typeof map_state],
-          );
+          if (is.string(config)) {
+            storage.set(
+              config,
+              reference.attributes[
+                config as keyof typeof reference.attributes
+              ] as CONFIGURATION[typeof map_state],
+            );
+            return;
+          }
+          storage.set(config.key, config.load(reference) as CONFIGURATION[typeof map_state]);
         });
         initialized = true;
       }, LATE_READY);
+    } else {
+      initialized = true;
     }
 
     // * done

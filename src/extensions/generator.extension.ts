@@ -1,4 +1,4 @@
-import { is, TBlackHole, TServiceParams } from "@digital-alchemy/core";
+import { is, SINGLE, START, TBlackHole, TServiceParams } from "@digital-alchemy/core";
 import { PICK_ENTITY, TEntityUpdateCallback } from "@digital-alchemy/hass";
 import { CamelCase } from "type-fest";
 
@@ -14,6 +14,7 @@ import {
   RemovableCallback,
   TEventMap,
 } from "../helpers";
+import { ConfigMapper } from "./storage.extension";
 
 export function DomainGenerator({
   logger,
@@ -38,6 +39,8 @@ export function DomainGenerator({
     return { remove };
   }
 
+  const registered = new Set<string>();
+
   // #MARK: create
   function create<CONFIGURATION extends object, EVENT_MAP extends TEventMap>({
     domain,
@@ -49,14 +52,20 @@ export function DomainGenerator({
   }: DomainGeneratorOptions<CONFIGURATION, EVENT_MAP>) {
     logger.trace({ bus_events, context }, "registering domain [%s]", domain);
 
-    bus_events.forEach(name =>
+    bus_events.forEach(name => {
+      // some domains have duplicates
+      // filter those out
+      if (registered.has(name)) {
+        return;
+      }
+      registered.add(name);
       hass.socket.onEvent({
         context,
         event: [config.synapse.EVENT_NAMESPACE, name, getIdentifier()].join("/"),
         // 🚌🚏 Bus transfer
         exec: ({ data }: BaseEvent) => event.emit(`/synapse/${name}/${data.unique_id}`, data),
-      }),
-    );
+      });
+    });
 
     return {
       // #MARK: add_entity
@@ -73,10 +82,13 @@ export function DomainGenerator({
         const unique_id = entity.unique_id;
 
         // * initialize storage
-        const storage = synapse.state.add({
+        const storage = synapse.storage.add<CONFIGURATION & EntityConfigCommon<object>>({
+          domain,
           entity,
           load_config_keys,
-          map_config: map_config as (keyof EntityConfigCommon<object>)[],
+          map_config: map_config as ConfigMapper<
+            Extract<keyof EntityConfigCommon<object>, string>
+          >[],
           map_state: map_state as keyof EntityConfigCommon<object>,
         });
 
@@ -86,15 +98,21 @@ export function DomainGenerator({
             return;
           }
           logger.trace({ bus_event, context, name: entity.name }, `static attach`);
-          removableListener(`synapse/${bus_event}/${unique_id}`, entity[bus_event]);
+          removableListener(`/synapse/${bus_event}/${unique_id}`, entity[bus_event]);
         });
 
         // * build dynamic listeners
         const dynamicAttach = Object.fromEntries(
           bus_events.map(name => [
-            name,
+            `on${name
+              .split("_")
+              .map(i => i.charAt(START).toUpperCase() + i.slice(SINGLE))
+              .join("")}`,
             ((callback: RemovableCallback) =>
-              removableListener(name, callback)) as CreateRemovableCallback,
+              removableListener(
+                `/synapse/${name}/${unique_id}`,
+                callback,
+              )) as CreateRemovableCallback,
           ]),
         );
 

@@ -36,6 +36,10 @@ type EntityConfiguration = {
    */
   is_open?: boolean;
   supported_features?: number;
+  /**
+   * default: true
+   */
+  managed?: boolean;
 };
 
 type EntityEvents = {
@@ -69,7 +73,16 @@ export function VirtualLock({ context, synapse }: TServiceParams) {
     ],
   });
 
-  return <ATTRIBUTES extends object>(
-    options: AddEntityOptions<EntityConfiguration, EntityEvents, ATTRIBUTES>,
-  ) => generate.add_entity(options);
+  return function <ATTRIBUTES extends object>({
+    managed = true,
+    ...options
+  }: AddEntityOptions<EntityConfiguration, EntityEvents, ATTRIBUTES>) {
+    const entity = generate.add_entity(options);
+    if (managed) {
+      entity.onLock(({}) => entity.storage.set("is_locked", true));
+      entity.onUnlock(({}) => entity.storage.set("is_locked", false));
+      entity.onOpen(({}) => entity.storage.set("is_open", true));
+    }
+    return entity;
+  };
 }

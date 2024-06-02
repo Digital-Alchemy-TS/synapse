@@ -31,6 +31,10 @@ type EntityConfiguration = {
    */
   changed_by?: string;
   supported_features?: number;
+  /**
+   * default: true
+   */
+  managed?: boolean;
 };
 
 type EntityEvents = {
@@ -40,7 +44,7 @@ type EntityEvents = {
   arm_night: { code: string };
   arm_away: { code: string };
   arm_home: { code: string };
-  disarm: { code: string };
+  alarm_disarm: { code: string };
 };
 
 export function VirtualAlarmControlPanel({ context, synapse }: TServiceParams) {
@@ -52,7 +56,7 @@ export function VirtualAlarmControlPanel({ context, synapse }: TServiceParams) {
       "arm_night",
       "arm_away",
       "arm_home",
-      "disarm",
+      "alarm_disarm",
     ],
     context,
     // @ts-expect-error its fine
@@ -66,7 +70,20 @@ export function VirtualAlarmControlPanel({ context, synapse }: TServiceParams) {
     ],
   });
 
-  return <ATTRIBUTES extends object>(
-    options: AddEntityOptions<EntityConfiguration, EntityEvents, ATTRIBUTES>,
-  ) => generate.add_entity(options);
+  return function <ATTRIBUTES extends object>({
+    managed = true,
+    ...options
+  }: AddEntityOptions<EntityConfiguration, EntityEvents, ATTRIBUTES>) {
+    const entity = generate.add_entity(options);
+    if (managed) {
+      entity.onArmCustomBypass(() => entity.storage.set("state", "armed_away"));
+      entity.onTrigger(() => entity.storage.set("state", "triggered"));
+      entity.onArmVacation(() => entity.storage.set("state", "armed_vacation"));
+      entity.onArmNight(() => entity.storage.set("state", "armed_night"));
+      entity.onArmAway(() => entity.storage.set("state", "armed_away"));
+      entity.onArmHome(() => entity.storage.set("state", "armed_home"));
+      entity.onAlarmDisarm(() => entity.storage.set("state", "disarmed"));
+    }
+    return entity;
+  };
 }

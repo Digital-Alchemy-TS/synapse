@@ -24,6 +24,7 @@ export function VirtualBinarySensor({ context, synapse }: TServiceParams) {
     default_config: { is_on: false },
     domain: "binary_sensor",
     load_config_keys: ["device_class", "is_on"],
+    map_config: [{ key: "is_on", load: entity => entity.state === "on" }],
   });
 
   return <ATTRIBUTES extends object>(

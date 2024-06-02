@@ -15,7 +15,7 @@ export function Controller({ fastify, config, synapse, logger, internal }: TServ
         title: config.synapse.METADATA_TITLE,
         unique_id: config.synapse.METADATA_UNIQUE_ID,
         username: userInfo().username,
-        ...synapse.state.dump(),
+        ...synapse.storage.dump(),
       };
     });
   });
