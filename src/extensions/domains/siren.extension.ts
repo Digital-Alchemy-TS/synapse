@@ -1,12 +1,12 @@
 import { TServiceParams } from "@digital-alchemy/core";
 
-import { AddEntityOptions } from "../..";
+import { AddEntityOptions, SettableConfiguration } from "../..";
 
 export type SirenConfiguration = {
   /**
    * Whether the device is on or off.
    */
-  is_on?: boolean;
+  is_on?: SettableConfiguration<boolean>;
   /**
    * The list or dictionary of available tones on the device to pass into the turn_on service.
    * If a dictionary is provided, when a user uses the dict value of a tone,

@@ -1,6 +1,6 @@
 import { TServiceParams } from "@digital-alchemy/core";
 
-import { AddEntityOptions, SensorDeviceClasses } from "../..";
+import { AddEntityOptions, SensorDeviceClasses, SettableConfiguration } from "../..";
 
 export type NumberConfiguration = SensorDeviceClasses & {
   /**
@@ -8,7 +8,7 @@ export type NumberConfiguration = SensorDeviceClasses & {
    * It's recommended to use the default `auto`.
    * Can be `box` or `slider` to force a display mode.
    */
-  mode?: "auto" | "slider" | "box";
+  mode?: SettableConfiguration<"auto" | "slider" | "box">;
   /**
    * The maximum accepted value in the number's native_unit_of_measurement (inclusive)
    */
@@ -24,7 +24,7 @@ export type NumberConfiguration = SensorDeviceClasses & {
   /**
    * The value of the number in the number's native_unit_of_measurement.
    */
-  native_value?: number;
+  native_value?: SettableConfiguration<number>;
   /**
    * default: true
    */

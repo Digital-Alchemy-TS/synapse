@@ -1,13 +1,13 @@
 import { TServiceParams } from "@digital-alchemy/core";
 import { HumidifierDeviceClass } from "@digital-alchemy/hass";
 
-import { AddEntityOptions } from "../..";
+import { AddEntityOptions, SettableConfiguration } from "../..";
 
 export type HumidifierConfiguration = {
   /**
    * Returns the current status of the device.
    */
-  action?: string;
+  action?: SettableConfiguration<string>;
   /**
    * The available modes. Requires `SUPPORT_MODES`.
    */
@@ -15,7 +15,7 @@ export type HumidifierConfiguration = {
   /**
    * The current humidity measured by the device.
    */
-  current_humidity?: number;
+  current_humidity?: SettableConfiguration<number>;
   /**
    * Type of hygrostat
    */
@@ -23,23 +23,23 @@ export type HumidifierConfiguration = {
   /**
    * Whether the device is on or off.
    */
-  is_on?: boolean;
+  is_on?: SettableConfiguration<boolean>;
   /**
    * The maximum humidity.
    */
-  max_humidity?: number;
+  max_humidity?: SettableConfiguration<number>;
   /**
    * The minimum humidity.
    */
-  min_humidity?: string;
+  min_humidity?: SettableConfiguration<string>;
   /**
    * The current active mode. Requires `SUPPORT_MODES`.
    */
-  mode?: `${HumidifierModes}`;
+  mode?: SettableConfiguration<`${HumidifierModes}`>;
   /**
    * The target humidity the device is trying to reach.
    */
-  target_humidity?: number;
+  target_humidity?: SettableConfiguration<number>;
 };
 
 export type HumidifierModes =

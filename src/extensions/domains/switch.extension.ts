@@ -1,14 +1,14 @@
 import { TServiceParams } from "@digital-alchemy/core";
 import { SwitchDeviceClass } from "@digital-alchemy/hass";
 
-import { AddEntityOptions } from "../..";
+import { AddEntityOptions, SettableConfiguration } from "../..";
 
 export type SwitchConfiguration = {
   device_class?: `${SwitchDeviceClass}`;
   /**
    * If the switch is currently on or off.
    */
-  is_on?: boolean;
+  is_on?: SettableConfiguration<boolean>;
   /**
    * default: true
    */

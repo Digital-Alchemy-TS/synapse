@@ -1,12 +1,12 @@
 import { TServiceParams } from "@digital-alchemy/core";
 
-import { AddEntityOptions } from "../..";
+import { AddEntityOptions, SettableConfiguration } from "../..";
 
 export type SelectConfiguration = {
   /**
    * The current select option
    */
-  current_option?: string;
+  current_option?: SettableConfiguration<string>;
   /**
    * A list of available options as strings
    */

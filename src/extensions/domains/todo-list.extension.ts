@@ -1,7 +1,7 @@
 import { TServiceParams } from "@digital-alchemy/core";
 import { Dayjs } from "dayjs";
 
-import { AddEntityOptions } from "../..";
+import { AddEntityOptions, SettableConfiguration } from "../..";
 
 export type TodoItem = {
   /**
@@ -33,7 +33,7 @@ export type TodoConfiguration = {
   /**
    * Required. The ordered contents of the To-do list.
    */
-  todo_items: TodoItem[];
+  todo_items: SettableConfiguration<TodoItem[]>;
   supported_features?: number;
 };
 

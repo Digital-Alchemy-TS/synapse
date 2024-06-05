@@ -1,3 +1,5 @@
+import { CronExpression, is, TBlackHole } from "@digital-alchemy/core";
+
 import { TSynapseDeviceId } from "./utility.helper";
 
 export type EntityConfigCommon<ATTRIBUTES extends object> = {
@@ -39,3 +41,39 @@ export type EntityConfigCommon<ATTRIBUTES extends object> = {
   translation_key?: string;
   attributes?: ATTRIBUTES;
 };
+
+export const isCommonConfigKey = <ATTRIBUTES extends object = object>(
+  key: string,
+): key is keyof EntityConfigCommon<ATTRIBUTES> =>
+  [
+    "device_id",
+    "suggested_object_id",
+    "unique_id",
+    "icon",
+    "entity_category",
+    "name",
+    "translation_key",
+    "attributes",
+  ].includes(key);
+
+export type SettableConfiguration<TYPE extends unknown> = TYPE | ReactiveConfig<TYPE>;
+
+export type ReactiveConfig<TYPE extends unknown = unknown> = {
+  /**
+   * Update immediately in response to entity updates
+   */
+  onUpdate?: { onUpdate: (callback: () => TBlackHole) => void }[];
+
+  /**
+   * Every 30s by default
+   */
+  schedule?: CronExpression | string;
+
+  /**
+   * Calculate current value
+   */
+  current(): TYPE;
+};
+
+export const isReactiveConfig = (key: string, value: unknown): value is ReactiveConfig =>
+  is.object(value) && key !== "attributes";

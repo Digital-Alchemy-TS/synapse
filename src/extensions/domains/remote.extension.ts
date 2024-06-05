@@ -1,12 +1,12 @@
 import { TServiceParams } from "@digital-alchemy/core";
 
-import { AddEntityOptions } from "../..";
+import { AddEntityOptions, SettableConfiguration } from "../..";
 
 export type RemoteConfiguration = {
   /**
    * Return the current active activity
    */
-  current_activity?: string;
+  current_activity?: SettableConfiguration<string>;
   /**
    * Return the list of available activities
    */

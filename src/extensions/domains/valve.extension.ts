@@ -1,31 +1,31 @@
 import { TServiceParams } from "@digital-alchemy/core";
 import { ValveDeviceClass } from "@digital-alchemy/hass";
 
-import { AddEntityOptions } from "../..";
+import { AddEntityOptions, SettableConfiguration } from "../..";
 
 export type ValveConfiguration = {
   /**
    * The current position of the valve where 0 means closed and 100 is fully open.
    * This attribute is required on valves with reports_position = True, where it's used to determine state.
    */
-  current_valve_position?: number;
+  current_valve_position?: SettableConfiguration<number>;
   /**
    * If the valve is closed or not. Used to determine state for valves that don't report position.
    */
-  is_closed?: boolean;
+  is_closed?: SettableConfiguration<boolean>;
   /**
    * If the valve is opening or not. Used to determine state.
    */
-  is_opening?: boolean;
+  is_opening?: SettableConfiguration<boolean>;
   /**
    * If the valve knows its position or not.
    */
-  reports_position: boolean;
+  reports_position: SettableConfiguration<boolean>;
   device_class?: `${ValveDeviceClass}`;
   /**
    * If the valve is closing or not. Used to determine state.
    */
-  is_closing?: boolean;
+  is_closing?: SettableConfiguration<boolean>;
   supported_features?: number;
 };
 

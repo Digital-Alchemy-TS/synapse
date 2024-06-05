@@ -1,7 +1,7 @@
 import { TServiceParams } from "@digital-alchemy/core";
 import { Dayjs } from "dayjs";
 
-import { AddEntityOptions } from "../..";
+import { AddEntityOptions, SettableConfiguration } from "../..";
 
 export type DateTimeConfiguration = {
   /**
@@ -9,7 +9,7 @@ export type DateTimeConfiguration = {
    *
    * will translate Dayjs objects to correctly formatted strings
    */
-  native_value?: string | Dayjs;
+  native_value?: SettableConfiguration<string | Dayjs>;
   /**
    * default: true
    */

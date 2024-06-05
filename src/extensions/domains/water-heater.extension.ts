@@ -1,6 +1,6 @@
 import { TServiceParams } from "@digital-alchemy/core";
 
-import { AddEntityOptions } from "../..";
+import { AddEntityOptions, SettableConfiguration } from "../..";
 
 export type WaterHeaterConfiguration = {
   /**
@@ -14,19 +14,19 @@ export type WaterHeaterConfiguration = {
   /**
    * The current temperature.
    */
-  current_temperature?: number;
+  current_temperature?: SettableConfiguration<number>;
   /**
    * The temperature we are trying to reach.
    */
-  target_temperature?: number;
+  target_temperature?: SettableConfiguration<number>;
   /**
    * Upper bound of the temperature we are trying to reach.
    */
-  target_temperature_high?: number;
+  target_temperature_high?: SettableConfiguration<number>;
   /**
    * Lower bound of the temperature we are trying to reach.
    */
-  target_temperature_low?: number;
+  target_temperature_low?: SettableConfiguration<number>;
   /**
    * One of TEMP_CELSIUS, TEMP_FAHRENHEIT, or TEMP_KELVIN.
    */
@@ -34,7 +34,7 @@ export type WaterHeaterConfiguration = {
   /**
    * The current operation mode.
    */
-  current_operation?: string;
+  current_operation?: SettableConfiguration<string>;
   /**
    * List of possible operation modes.
    */
@@ -43,7 +43,7 @@ export type WaterHeaterConfiguration = {
    * List of supported features.
    */
   supported_features?: number;
-  is_away_mode_on?: boolean;
+  is_away_mode_on?: SettableConfiguration<boolean>;
 };
 
 export type WaterHeaterEvents = {

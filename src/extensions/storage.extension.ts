@@ -1,12 +1,21 @@
-import { InternalError, is, TServiceParams } from "@digital-alchemy/core";
+import { CronExpression, InternalError, is, TServiceParams } from "@digital-alchemy/core";
 import { ENTITY_STATE, PICK_ENTITY, TRawDomains } from "@digital-alchemy/hass";
 
-import { AddEntityOptions, EntityConfigCommon, TSynapseId } from "../helpers";
+import {
+  AddEntityOptions,
+  EntityConfigCommon,
+  isCommonConfigKey,
+  isReactiveConfig,
+  ReactiveConfig,
+  SettableConfiguration,
+  TSynapseId,
+} from "../helpers";
 
 export type TSynapseEntityStorage<CONFIGURATION extends object = object> = {
   unique_id: TSynapseId;
   set: <KEY extends keyof CONFIGURATION>(key: KEY, value: CONFIGURATION[KEY]) => void;
   get: <KEY extends keyof CONFIGURATION>(key: KEY) => CONFIGURATION[KEY];
+  isStored(key: string): key is Extract<keyof CONFIGURATION, string>;
   export: () => CONFIGURATION;
 };
 
@@ -29,6 +38,13 @@ type AddStateOptions<CONFIGURATION extends EntityConfigCommon<object>> = {
   map_config: ConfigMapper<Extract<keyof CONFIGURATION, string>>[];
 };
 
+const NO_LIVE_UPDATE = new Set<string>([
+  "unique_id",
+  "suggested_object_id",
+  "entity_category",
+  "translation_key",
+]);
+
 export type ConfigMapper<KEY extends string> =
   | {
       key: KEY;
@@ -36,7 +52,14 @@ export type ConfigMapper<KEY extends string> =
     }
   | KEY;
 
-export function StorageExtension({ logger, context, lifecycle, hass, synapse }: TServiceParams) {
+export function StorageExtension({
+  logger,
+  context,
+  lifecycle,
+  hass,
+  synapse,
+  scheduler,
+}: TServiceParams) {
   const registry = new Map<TSynapseId, TSynapseEntityStorage>();
   const domain_lookup = new Map<string, TRawDomains>();
 
@@ -67,6 +90,25 @@ export function StorageExtension({ logger, context, lifecycle, hass, synapse }: 
     let initialized = false;
 
     const CURRENT_VALUE = {} as Record<keyof CONFIGURATION, unknown>;
+
+    function createSettableConfig(key: keyof CONFIGURATION, config: ReactiveConfig) {
+      const update = () => {
+        const new_value = config.current() as CONFIGURATION[typeof key];
+        const current_value = storage.get(key);
+        if (new_value === current_value) {
+          return;
+        }
+        storage.set(key, new_value);
+      };
+      scheduler.cron({
+        exec: update,
+        schedule: config.schedule || CronExpression.EVERY_30_SECONDS,
+      });
+      if (!is.empty(config.onUpdate)) {
+        config.onUpdate.forEach(entity => entity.onUpdate(update));
+      }
+    }
+
     const load = [
       ...load_config_keys,
       "attributes",
@@ -77,13 +119,24 @@ export function StorageExtension({ logger, context, lifecycle, hass, synapse }: 
       "translation_key",
       "unique_id",
     ] as (keyof EntityConfigCommon<object>)[];
-    load.forEach(key => (CURRENT_VALUE[key] = entity[key]));
+    load.forEach(key => {
+      const value = entity[key];
+      if (isReactiveConfig(key, value)) {
+        createSettableConfig(key, value);
+        return;
+      }
+      CURRENT_VALUE[key] = value;
+    });
 
     // * storage object
     const storage = {
       export: () => ({ ...CURRENT_VALUE }),
       get: key => CURRENT_VALUE[key],
-      set: (key, value) => {
+      isStored: key => isCommonConfigKey(key) || load_config_keys.includes(key),
+      set: (key: Extract<keyof CONFIGURATION, string>, value) => {
+        if (NO_LIVE_UPDATE.has(key)) {
+          throw new InternalError(context, "NO_LIVE_UPDATE", `${key} cannot be updated at runtime`);
+        }
         CURRENT_VALUE[key] = value;
         if (initialized) {
           setImmediate(async () => await synapse.socket.send(entity.unique_id, CURRENT_VALUE));

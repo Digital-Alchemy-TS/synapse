@@ -1,6 +1,6 @@
 import { TServiceParams } from "@digital-alchemy/core";
 
-import { AddEntityOptions } from "../..";
+import { AddEntityOptions, SettableConfiguration } from "../..";
 
 export type TextConfiguration = {
   /**
@@ -18,11 +18,11 @@ export type TextConfiguration = {
   /**
    * A regex pattern that the text value must match to be valid.
    */
-  pattern?: string;
+  pattern?: SettableConfiguration<string>;
   /**
    * The value of the text.
    */
-  native_value?: string;
+  native_value?: SettableConfiguration<string>;
   /**
    * default: true
    */

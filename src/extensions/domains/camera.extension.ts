@@ -1,6 +1,6 @@
 import { TServiceParams } from "@digital-alchemy/core";
 
-import { AddEntityOptions } from "../..";
+import { AddEntityOptions, SettableConfiguration } from "../..";
 
 export type CameraConfiguration = {
   /**
@@ -10,7 +10,7 @@ export type CameraConfiguration = {
   /**
    * The interval between frames of the stream.
    */
-  frame_interval?: number;
+  frame_interval?: SettableConfiguration<number>;
   /**
    * Used with CameraEntityFeature.STREAM to tell the frontend which type of stream to use (StreamType.HLS or StreamType.WEB_RTC)
    */
@@ -18,15 +18,15 @@ export type CameraConfiguration = {
   /**
    * Indication of whether the camera is on.
    */
-  is_on?: boolean;
+  is_on?: SettableConfiguration<boolean>;
   /**
    * Indication of whether the camera is recording. Used to determine state.
    */
-  is_recording?: boolean;
+  is_recording?: SettableConfiguration<boolean>;
   /**
    * Indication of whether the camera is streaming. Used to determine state.
    */
-  is_streaming?: boolean;
+  is_streaming?: SettableConfiguration<boolean>;
   /**
    * The model of the camera.
    */
@@ -34,7 +34,7 @@ export type CameraConfiguration = {
   /**
    * Indication of whether the camera has motion detection enabled.
    */
-  motion_detection_enabled?: boolean;
+  motion_detection_enabled?: SettableConfiguration<boolean>;
   /**
    * Determines whether or not to use the Stream integration to generate still images
    */

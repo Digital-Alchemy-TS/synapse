@@ -1,12 +1,12 @@
 import { TServiceParams } from "@digital-alchemy/core";
 
-import { AddEntityOptions } from "../..";
+import { AddEntityOptions, SettableConfiguration } from "../..";
 
 export type LawnMowerConfiguration = {
   /**
    * Current activity.
    */
-  activity?: "mowing" | "docked" | "paused" | "error";
+  activity?: SettableConfiguration<"mowing" | "docked" | "paused" | "error">;
   supported_features?: number;
 };
 

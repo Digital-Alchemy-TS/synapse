@@ -1,40 +1,40 @@
 import { TServiceParams } from "@digital-alchemy/core";
 
-import { AddEntityOptions } from "../..";
+import { AddEntityOptions, SettableConfiguration } from "../..";
 
 export type LockConfiguration = {
   /**
    * Describes what the last change was triggered by.
    */
-  changed_by?: string;
+  changed_by?: SettableConfiguration<string>;
   /**
    * Regex for code format or None if no code is required.
    */
-  code_format?: string;
+  code_format?: SettableConfiguration<string>;
   /**
    * Indication of whether the lock is currently locked. Used to determine state.
    */
-  is_locked?: boolean;
+  is_locked?: SettableConfiguration<boolean>;
   /**
    * Indication of whether the lock is currently locking. Used to determine state.
    */
-  is_locking?: boolean;
+  is_locking?: SettableConfiguration<boolean>;
   /**
    * Indication of whether the lock is currently unlocking. Used to determine state.
    */
-  is_unlocking?: boolean;
+  is_unlocking?: SettableConfiguration<boolean>;
   /**
    * Indication of whether the lock is currently jammed. Used to determine state.
    */
-  is_jammed?: boolean;
+  is_jammed?: SettableConfiguration<boolean>;
   /**
    * Indication of whether the lock is currently opening. Used to determine state.
    */
-  is_opening?: boolean;
+  is_opening?: SettableConfiguration<boolean>;
   /**
    *
    */
-  is_open?: boolean;
+  is_open?: SettableConfiguration<boolean>;
   supported_features?: number;
   /**
    * default: true

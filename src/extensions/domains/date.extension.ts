@@ -1,6 +1,6 @@
 import { TServiceParams } from "@digital-alchemy/core";
 
-import { AddEntityOptions } from "../..";
+import { AddEntityOptions, SettableConfiguration } from "../..";
 
 type Year = `${number}${number}${number}${number}`;
 type MD = `${number}${number}`;
@@ -10,7 +10,7 @@ type MD = `${number}${number}`;
 export type SynapseDateFormat = `${Year}-${MD}-${MD}`;
 
 export type DateConfiguration = {
-  native_value?: SynapseDateFormat;
+  native_value?: SettableConfiguration<SynapseDateFormat>;
   /**
    * default: true
    */

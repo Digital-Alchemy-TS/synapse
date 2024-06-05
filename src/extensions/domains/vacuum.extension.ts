@@ -1,16 +1,16 @@
 import { TServiceParams } from "@digital-alchemy/core";
 
-import { AddEntityOptions } from "../..";
+import { AddEntityOptions, SettableConfiguration } from "../..";
 
 export type VacuumConfiguration = {
   /**
    * Current battery level.
    */
-  battery_level?: number;
+  battery_level?: SettableConfiguration<number>;
   /**
    * The current fan speed.
    */
-  fan_speed?: string;
+  fan_speed?: SettableConfiguration<string>;
   /**
    * List of available fan speeds.
    */

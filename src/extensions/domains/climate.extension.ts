@@ -1,21 +1,21 @@
 import { TServiceParams } from "@digital-alchemy/core";
 import { HVACAction, HVACMode } from "@digital-alchemy/hass";
 
-import { AddEntityOptions } from "../..";
+import { AddEntityOptions, SettableConfiguration } from "../..";
 
 export type ClimateConfiguration = {
   /**
    * The current humidity.
    */
-  current_humidity?: number;
+  current_humidity?: SettableConfiguration<number>;
   /**
    * The current temperature.
    */
-  current_temperature?: number;
+  current_temperature?: SettableConfiguration<number>;
   /**
    * The current fan mode.
    */
-  fan_mode?: string;
+  fan_mode?: SettableConfiguration<string>;
   /**
    * The list of available fan modes.
    */
@@ -23,11 +23,11 @@ export type ClimateConfiguration = {
   /**
    * The current HVAC action (heating, cooling)
    */
-  hvac_action?: HVACAction;
+  hvac_action?: SettableConfiguration<HVACAction>;
   /**
    * The current operation (e.g. heat, cool, idle). Used to determine state.
    */
-  hvac_mode: HVACMode;
+  hvac_mode: SettableConfiguration<HVACMode>;
   /**
    * List of available operation modes.
    */
@@ -55,7 +55,7 @@ export type ClimateConfiguration = {
   /**
    * The current active preset.
    */
-  preset_mode?: string;
+  preset_mode?: SettableConfiguration<string>;
   /**
    * The available presets.
    */
@@ -63,7 +63,7 @@ export type ClimateConfiguration = {
   /**
    * The swing setting.
    */
-  swing_mode?: string;
+  swing_mode?: SettableConfiguration<string>;
   /**
    * Returns the list of available swing modes.
    */
@@ -71,23 +71,23 @@ export type ClimateConfiguration = {
   /**
    * The target humidity the device is trying to reach.
    */
-  target_humidity?: number;
+  target_humidity?: SettableConfiguration<number>;
   /**
    * The temperature currently set to be reached.
    */
-  target_temperature_high?: number;
+  target_temperature_high?: SettableConfiguration<number>;
   /**
    * The upper bound target temperature
    */
-  target_temperature_low?: number;
+  target_temperature_low?: SettableConfiguration<number>;
   /**
    * The lower bound target temperature
    */
-  target_temperature_step?: number;
+  target_temperature_step?: SettableConfiguration<number>;
   /**
    * The supported step size a target temperature can be increased or decreased
    */
-  target_temperature?: number;
+  target_temperature?: SettableConfiguration<number>;
   /**
    * The unit of temperature measurement for the system (TEMP_CELSIUS or TEMP_FAHRENHEIT).
    */

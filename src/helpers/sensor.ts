@@ -1,6 +1,6 @@
 import { Dayjs } from "dayjs";
 
-import { EntityConfigCommon } from "./common-config.helper";
+import { EntityConfigCommon, SettableConfiguration } from "./common-config.helper";
 
 type DurationSensor = {
   device_class: "duration";
@@ -270,7 +270,7 @@ export type SensorDeviceClasses =
 
 export type SensorConfiguration<ATTRIBUTES extends object> = EntityConfigCommon<ATTRIBUTES> &
   SensorDeviceClasses & {
-    state?: string | number;
+    state?: SettableConfiguration<string | number>;
     /**
      * The number of decimals which should be used in the sensor's state when it's displayed.
      */
@@ -282,7 +282,7 @@ export type SensorConfiguration<ATTRIBUTES extends object> = EntityConfigCommon<
      *
      * Note that the `datetime.datetime` returned by the `last_reset` property will be converted to an ISO 8601-formatted string when the entity's state attributes are updated. When changing `last_reset`, the `state` must be a valid number.
      */
-    last_reset?: Dayjs;
+    last_reset?: SettableConfiguration<Dayjs>;
     /**
      * The unit of measurement to be used for the sensor's state.
      * For sensors with a unique_id, this will be used as the initial unit of measurement, which users can then override.

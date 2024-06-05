@@ -1,28 +1,28 @@
 import { TServiceParams } from "@digital-alchemy/core";
 
-import { AddEntityOptions } from "../..";
+import { AddEntityOptions, SettableConfiguration } from "../..";
 
 export type FanConfiguration = {
   /**
    * The current direction of the fan.
    */
-  current_direction?: string;
+  current_direction?: SettableConfiguration<string>;
   /**
    * True if the fan is on.
    */
-  is_on?: boolean;
+  is_on?: SettableConfiguration<boolean>;
   /**
    * True if the fan is oscillating.
    */
-  oscillating?: boolean;
+  oscillating?: SettableConfiguration<boolean>;
   /**
    * The current speed percentage. Must be a value between 0 (off) and 100.
    */
-  percentage?: number;
+  percentage?: SettableConfiguration<number>;
   /**
    * The current preset_mode. One of the values in preset_modes or None if no preset is active.
    */
-  preset_mode?: string;
+  preset_mode?: SettableConfiguration<string>;
   /**
    * The list of supported preset_modes. This is an arbitrary list of str and should not contain any speeds.
    */

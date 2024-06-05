@@ -1,6 +1,6 @@
 import { TServiceParams } from "@digital-alchemy/core";
 
-import { AddEntityOptions } from "../..";
+import { AddEntityOptions, SettableConfiguration } from "../..";
 
 export type AlarmControlPanelStates =
   | "disarmed"
@@ -15,13 +15,13 @@ export type AlarmControlPanelStates =
   | "triggered";
 
 export type AlarmControlPanelConfiguration = {
-  state?: AlarmControlPanelStates;
+  state?: SettableConfiguration<AlarmControlPanelStates>;
   /**
    * Whether the code is required for arm actions.
    *
    * default: true
    */
-  code_arm_required?: boolean;
+  code_arm_required?: SettableConfiguration<boolean>;
   /**
    * One of the states listed in the code formats section.
    */
@@ -29,7 +29,7 @@ export type AlarmControlPanelConfiguration = {
   /**
    * Last change triggered by.
    */
-  changed_by?: string;
+  changed_by?: SettableConfiguration<string>;
   supported_features?: number;
   /**
    * default: true

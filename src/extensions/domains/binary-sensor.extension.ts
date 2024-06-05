@@ -1,7 +1,7 @@
 import { TServiceParams } from "@digital-alchemy/core";
 import { BinarySensorDeviceClass } from "@digital-alchemy/hass";
 
-import { AddEntityOptions } from "../..";
+import { AddEntityOptions, SettableConfiguration } from "../..";
 
 export type BinarySensorConfiguration = {
   /**
@@ -11,7 +11,7 @@ export type BinarySensorConfiguration = {
   /**
    * If the binary sensor is currently on or off.
    */
-  is_on?: boolean;
+  is_on?: SettableConfiguration<boolean>;
 };
 
 export type BinarySensorEvents = {

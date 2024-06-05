@@ -24,10 +24,14 @@ type CommonMethods<CONFIGURATION extends object> = {
   storage: TSynapseEntityStorage<CONFIGURATION & EntityConfigCommon<object>>;
 };
 
-type SynapseEntityProxy<
+export type SynapseEntityProxy<
   CONFIGURATION extends object,
   EVENT_MAP extends TEventMap,
-> = CommonMethods<CONFIGURATION> & BuildCallbacks<EVENT_MAP> & CONFIGURATION;
+  ATTRIBUTES extends object,
+> = CommonMethods<CONFIGURATION> &
+  BuildCallbacks<EVENT_MAP> &
+  CONFIGURATION &
+  EntityConfigCommon<ATTRIBUTES>;
 
 type BuildCallbacks<EVENT_MAP extends TEventMap> = {
   [EVENT_NAME in Extract<
@@ -138,14 +142,13 @@ export function DomainGenerator({
 
         const getEntity = () => hass.entity.byUniqueId(unique_id);
 
-        return new Proxy({} as SynapseEntityProxy<CONFIGURATION, EVENT_MAP>, {
+        return new Proxy({} as SynapseEntityProxy<CONFIGURATION, EVENT_MAP, ATTRIBUTES>, {
           get(_, property: string) {
             if (!is.undefined(dynamicAttach[property])) {
               return dynamicAttach[property];
             }
-            const config = property as Extract<keyof CONFIGURATION, string>;
-            if (load_config_keys.includes(config)) {
-              return storage.get(config);
+            if (storage.isStored(property)) {
+              return storage.get(property);
             }
             switch (property) {
               case "getEntity": {
@@ -188,10 +191,9 @@ export function DomainGenerator({
             }
             return undefined;
           },
-          set(_, property, newValue) {
-            const config = property as Extract<keyof CONFIGURATION, string>;
-            if (load_config_keys.includes(config)) {
-              storage.set(config, newValue);
+          set(_, property: string, newValue) {
+            if (storage.isStored(property)) {
+              storage.set(property, newValue);
               return true;
             }
             return false;

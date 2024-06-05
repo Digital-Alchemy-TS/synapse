@@ -1,11 +1,11 @@
 import { TServiceParams } from "@digital-alchemy/core";
 
-import { AddEntityOptions } from "../..";
+import { AddEntityOptions, SettableConfiguration } from "../..";
 
 export type SynapseTimeFormat = `${number}${number}:${number}${number}:${number}${number}`;
 
 export type TimeConfiguration = {
-  native_value?: SynapseTimeFormat;
+  native_value?: SettableConfiguration<SynapseTimeFormat>;
 
   /**
    * default: true
