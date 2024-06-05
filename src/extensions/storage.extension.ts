@@ -3,7 +3,7 @@ import { ENTITY_STATE, PICK_ENTITY, TRawDomains } from "@digital-alchemy/hass";
 
 import { AddEntityOptions, EntityConfigCommon, TSynapseId } from "../helpers";
 
-type TSynapseEntityStorage<CONFIGURATION extends object = object> = {
+export type TSynapseEntityStorage<CONFIGURATION extends object = object> = {
   unique_id: TSynapseId;
   set: <KEY extends keyof CONFIGURATION>(key: KEY, value: CONFIGURATION[KEY]) => void;
   get: <KEY extends keyof CONFIGURATION>(key: KEY) => CONFIGURATION[KEY];

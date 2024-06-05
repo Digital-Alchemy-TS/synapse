@@ -1,4 +1,10 @@
+import { TSynapseDeviceId } from "./utility.helper";
+
 export type EntityConfigCommon<ATTRIBUTES extends object> = {
+  /**
+   * Use a different device to register this entity
+   */
+  device_id?: TSynapseDeviceId;
   /**
    * Attempt to create the entity id using this string
    *

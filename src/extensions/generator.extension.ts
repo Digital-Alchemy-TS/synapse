@@ -1,5 +1,5 @@
 import { is, SINGLE, START, TBlackHole, TServiceParams } from "@digital-alchemy/core";
-import { PICK_ENTITY, TEntityUpdateCallback } from "@digital-alchemy/hass";
+import { ByIdProxy, PICK_ENTITY, TEntityUpdateCallback } from "@digital-alchemy/hass";
 import { CamelCase } from "type-fest";
 
 import {
@@ -14,7 +14,27 @@ import {
   RemovableCallback,
   TEventMap,
 } from "../helpers";
-import { ConfigMapper } from "./storage.extension";
+import { ConfigMapper, TSynapseEntityStorage } from "./storage.extension";
+
+type CommonMethods<CONFIGURATION extends object> = {
+  getEntity: () => ByIdProxy<PICK_ENTITY>;
+  onUpdate(callback: TEntityUpdateCallback<PICK_ENTITY>): {
+    remove(): void;
+  };
+  storage: TSynapseEntityStorage<CONFIGURATION & EntityConfigCommon<object>>;
+};
+
+type SynapseEntityProxy<
+  CONFIGURATION extends object,
+  EVENT_MAP extends TEventMap,
+> = CommonMethods<CONFIGURATION> & BuildCallbacks<EVENT_MAP> & CONFIGURATION;
+
+type BuildCallbacks<EVENT_MAP extends TEventMap> = {
+  [EVENT_NAME in Extract<
+    keyof EVENT_MAP,
+    string
+  > as CamelCase<`on-${EVENT_NAME}`>]: CreateRemovableCallback<EVENT_MAP[EVENT_NAME]>;
+};
 
 export function DomainGenerator({
   logger,
@@ -118,69 +138,67 @@ export function DomainGenerator({
 
         const getEntity = () => hass.entity.byUniqueId(unique_id);
 
-        // * final return
-        return {
-          /**
-           * Look up entity proxy in hass entity registry
-           *
-           * > **⚠️ REGISTRY NOT POPULATED BEFORE `onReady`**
-           */
-          getEntity,
-
-          /**
-           * Look up entity in `hass` entity registry, and pass through the `onUpdate` request
-           *
-           * Usable at any lifecycle stage
-           */
-          onUpdate() {
-            return (callback: TEntityUpdateCallback<PICK_ENTITY>) => {
-              let remover: { remove: () => TBlackHole };
-              lifecycle.onReady(() => {
-                const entity = getEntity();
-                if (!entity) {
-                  logger.error(
-                    { entity, name: "onUpdate" },
-                    `event attachment failed, is entity loaded in home assistant?`,
-                  );
-                  return;
-                }
-                remover = entity.onUpdate(callback);
-              }, LATE_READY);
-              return {
-                /**
-                 * can only be used during runtime
-                 */
-                remove() {
-                  if (remover) {
-                    logger.trace(`removing entity update callback`);
-                    remover.remove();
-                    remover = undefined;
-                    return;
-                  }
-                  // too soon / already used
-                  logger.error(`no remover function defined`);
-                },
-              };
-            };
+        return new Proxy({} as SynapseEntityProxy<CONFIGURATION, EVENT_MAP>, {
+          get(_, property: string) {
+            if (!is.undefined(dynamicAttach[property])) {
+              return dynamicAttach[property];
+            }
+            const config = property as Extract<keyof CONFIGURATION, string>;
+            if (load_config_keys.includes(config)) {
+              return storage.get(config);
+            }
+            switch (property) {
+              case "getEntity": {
+                return getEntity;
+              }
+              case "storage": {
+                return storage;
+              }
+              case "onUpdate": {
+                return function (callback: TEntityUpdateCallback<PICK_ENTITY>) {
+                  let remover: { remove: () => TBlackHole };
+                  lifecycle.onReady(() => {
+                    const entity = getEntity();
+                    if (!entity) {
+                      logger.error(
+                        { entity, name: "onUpdate" },
+                        `event attachment failed, is entity loaded in home assistant?`,
+                      );
+                      return;
+                    }
+                    remover = entity.onUpdate(callback);
+                  }, LATE_READY);
+                  return {
+                    /**
+                     * can only be used during runtime
+                     */
+                    remove() {
+                      if (remover) {
+                        logger.trace(`removing entity update callback`);
+                        remover.remove();
+                        remover = undefined;
+                        return;
+                      }
+                      // too soon / already used
+                      logger.error(`no remover function defined`);
+                    },
+                  };
+                };
+              }
+            }
+            return undefined;
           },
-
-          /**
-           * internal storage
-           */
-          storage,
-
-          // - ... and all the callback events
-          ...(dynamicAttach as BuildCallbacks<EVENT_MAP>),
-        };
+          set(_, property, newValue) {
+            const config = property as Extract<keyof CONFIGURATION, string>;
+            if (load_config_keys.includes(config)) {
+              storage.set(config, newValue);
+              return true;
+            }
+            return false;
+          },
+        });
       },
     };
   }
   return { create };
 }
-
-type BuildCallbacks<EVENT_MAP extends TEventMap> = {
-  [EVENT_NAME in Extract<
-    keyof EVENT_MAP,
-    string
-  > as CamelCase<`on-${EVENT_NAME}`>]: CreateRemovableCallback<EVENT_MAP[EVENT_NAME]>;
-};

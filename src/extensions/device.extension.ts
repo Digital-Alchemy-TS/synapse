@@ -2,10 +2,11 @@ import { TServiceParams } from "@digital-alchemy/core";
 import { existsSync, readFileSync } from "fs";
 import { join } from "path";
 
-import { HassDeviceMetadata } from "../helpers";
+import { HassDeviceMetadata, TSynapseDeviceId } from "../helpers";
 
 export function DeviceExtension({ config, lifecycle, logger, internal }: TServiceParams) {
   let synapseVersion: string;
+  const DEVICE_REGISTRY = new Map<string, HassDeviceMetadata>();
 
   lifecycle.onPostConfig(() => {
     const file = join(__dirname, "..", "..", "package.json");
@@ -29,6 +30,17 @@ export function DeviceExtension({ config, lifecycle, logger, internal }: TServic
         sw_version: synapseVersion,
         ...config.synapse.METADATA,
       };
+    },
+    list() {
+      return [...DEVICE_REGISTRY.keys()].map(unique_id => ({
+        ...DEVICE_REGISTRY.get(unique_id),
+        hub_id: config.synapse.METADATA_UNIQUE_ID,
+        unique_id,
+      }));
+    },
+    register(id: string, data: HassDeviceMetadata): TSynapseDeviceId {
+      DEVICE_REGISTRY.set(id, data);
+      return id as TSynapseDeviceId;
     },
   };
 }

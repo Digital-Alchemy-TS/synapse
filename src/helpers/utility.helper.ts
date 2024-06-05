@@ -3,8 +3,12 @@ export type OnOff = "on" | "off" | "unavailable";
 export interface ISynapseBrand {
   _synapse: symbol;
 }
+export interface ISynapseDeviceBrand {
+  _synapse_device: symbol;
+}
 
 export type TSynapseId = string & ISynapseBrand;
+export type TSynapseDeviceId = string & ISynapseDeviceBrand;
 export const STORAGE_BOOTSTRAP_PRIORITY = 1;
 
 export type SynapseDescribeResponse = {
@@ -52,8 +56,4 @@ export type HassDeviceMetadata = {
    * The firmware version of the device.
    */
   sw_version?: string;
-};
-
-export type SynapseStateResponse = {
-  //
 };
