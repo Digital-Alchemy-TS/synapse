@@ -2,7 +2,7 @@ import { TServiceParams } from "@digital-alchemy/core";
 
 import { AddEntityOptions, SettableConfiguration } from "../..";
 
-export type FanConfiguration = {
+export type FanConfiguration<PRESET_MODES extends string = string> = {
   /**
    * The current direction of the fan.
    */
@@ -22,11 +22,11 @@ export type FanConfiguration = {
   /**
    * The current preset_mode. One of the values in preset_modes or None if no preset is active.
    */
-  preset_mode?: SettableConfiguration<string>;
+  preset_mode?: SettableConfiguration<PRESET_MODES>;
   /**
    * The list of supported preset_modes. This is an arbitrary list of str and should not contain any speeds.
    */
-  preset_modes?: string[];
+  preset_modes?: PRESET_MODES[];
   /**
    * The number of speeds the fan supports.
    */

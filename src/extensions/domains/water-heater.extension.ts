@@ -2,7 +2,7 @@ import { TServiceParams } from "@digital-alchemy/core";
 
 import { AddEntityOptions, SettableConfiguration } from "../..";
 
-export type WaterHeaterConfiguration = {
+export type WaterHeaterConfiguration<OPERATIONS extends string = string> = {
   /**
    * The minimum temperature that can be set.
    */
@@ -34,11 +34,11 @@ export type WaterHeaterConfiguration = {
   /**
    * The current operation mode.
    */
-  current_operation?: SettableConfiguration<string>;
+  current_operation?: SettableConfiguration<OPERATIONS>;
   /**
    * List of possible operation modes.
    */
-  operation_list?: string[];
+  operation_list?: OPERATIONS[];
   /**
    * List of supported features.
    */

@@ -25,7 +25,10 @@ enum MediaDeviceClass {
 
 type MediaPlayerEnqueue = "add" | "next" | "play" | "replace";
 
-export type MediaPlayerConfiguration = {
+export type MediaPlayerConfiguration<
+  SOURCES extends string = string,
+  SOUND_MODES extends string = string,
+> = {
   /**
    * ID of the current running app.
    */
@@ -130,19 +133,19 @@ export type MediaPlayerConfiguration = {
   /**
    * The current sound mode of the media player.
    */
-  sound_mode?: SettableConfiguration<string>;
+  sound_mode?: SettableConfiguration<SOUND_MODES>;
   /**
    * Dynamic list of available sound modes.
    */
-  sound_mode_list?: string[];
+  sound_mode_list?: SOUND_MODES[];
   /**
    * The currently selected input source for the media player.
    */
-  source?: SettableConfiguration<string>;
+  source?: SettableConfiguration<SOURCES>;
   /**
    * The list of possible input sources for the media player. (This list should contain human readable names, suitable for frontend display).
    */
-  source_list?: string[];
+  source_list?: SOURCES[];
 
   supported_features?: number;
   /**

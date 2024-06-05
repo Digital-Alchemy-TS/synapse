@@ -3,7 +3,11 @@ import { HVACAction, HVACMode } from "@digital-alchemy/hass";
 
 import { AddEntityOptions, SettableConfiguration } from "../..";
 
-export type ClimateConfiguration = {
+export type ClimateConfiguration<
+  PRESET_MODES extends string = string,
+  SWING_MODES extends string = string,
+  FAN_MODES extends string = string,
+> = {
   /**
    * The current humidity.
    */
@@ -15,11 +19,11 @@ export type ClimateConfiguration = {
   /**
    * The current fan mode.
    */
-  fan_mode?: SettableConfiguration<string>;
+  fan_mode?: SettableConfiguration<FAN_MODES>;
   /**
    * The list of available fan modes.
    */
-  fan_modes?: string[];
+  fan_modes?: FAN_MODES[];
   /**
    * The current HVAC action (heating, cooling)
    */
@@ -55,19 +59,19 @@ export type ClimateConfiguration = {
   /**
    * The current active preset.
    */
-  preset_mode?: SettableConfiguration<string>;
+  preset_mode?: SettableConfiguration<PRESET_MODES>;
   /**
    * The available presets.
    */
-  preset_modes?: string[];
+  preset_modes?: PRESET_MODES[];
   /**
    * The swing setting.
    */
-  swing_mode?: SettableConfiguration<string>;
+  swing_mode?: SettableConfiguration<SWING_MODES>;
   /**
    * Returns the list of available swing modes.
    */
-  swing_modes?: string[];
+  swing_modes?: SWING_MODES[];
   /**
    * The target humidity the device is trying to reach.
    */

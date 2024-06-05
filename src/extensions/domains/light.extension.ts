@@ -2,7 +2,7 @@ import { TServiceParams } from "@digital-alchemy/core";
 
 import { AddEntityOptions, SettableConfiguration } from "../..";
 
-export type LightConfiguration = {
+export type LightConfiguration<COLOR_MODES extends string = string> = {
   /**
    * The brightness of this light between 1..255
    */
@@ -11,7 +11,7 @@ export type LightConfiguration = {
    * The color mode of the light.
    * The returned color mode must be present in the supported_color_modes property unless the light is rendering an effect.
    */
-  color_mode?: SettableConfiguration<string>;
+  color_mode?: SettableConfiguration<COLOR_MODES>;
   /**
    * The CT color value in K.
    * This property will be copied to the light's state attribute when the light's color mode is set to ColorMode.COLOR_TEMP and ignored otherwise.
@@ -64,7 +64,7 @@ export type LightConfiguration = {
   /**
    * Flag supported color modes.
    */
-  supported_color_modes?: string[];
+  supported_color_modes?: COLOR_MODES[];
   supported_features?: number;
   /**
    * The xy color value (float, float).
