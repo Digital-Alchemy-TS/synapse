@@ -12,6 +12,7 @@ import {
   generateHash,
   LATE_READY,
   RemovableCallback,
+  SettableConfiguration,
   TEventMap,
 } from "../helpers";
 import { ConfigMapper, TSynapseEntityStorage } from "./storage.extension";
@@ -30,8 +31,16 @@ export type SynapseEntityProxy<
   ATTRIBUTES extends object,
 > = CommonMethods<CONFIGURATION> &
   BuildCallbacks<EVENT_MAP> &
-  CONFIGURATION &
+  NonReactive<CONFIGURATION> &
   EntityConfigCommon<ATTRIBUTES>;
+
+type NonReactive<CONFIGURATION extends object> = {
+  [KEY in Extract<keyof CONFIGURATION, string>]: CONFIGURATION[KEY] extends SettableConfiguration<
+    infer TYPE
+  >
+    ? TYPE
+    : CONFIGURATION[KEY];
+};
 
 type BuildCallbacks<EVENT_MAP extends TEventMap> = {
   [EVENT_NAME in Extract<

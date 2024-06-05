@@ -7,7 +7,6 @@ import {
   isCommonConfigKey,
   isReactiveConfig,
   ReactiveConfig,
-  SettableConfiguration,
   TSynapseId,
 } from "../helpers";
 
