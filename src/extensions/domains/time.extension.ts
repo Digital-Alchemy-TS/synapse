@@ -4,7 +4,7 @@ import { AddEntityOptions } from "../..";
 
 export type SynapseTimeFormat = `${number}${number}:${number}${number}:${number}${number}`;
 
-type EntityConfiguration = {
+export type TimeConfiguration = {
   native_value?: SynapseTimeFormat;
 
   /**
@@ -13,12 +13,12 @@ type EntityConfiguration = {
   managed?: boolean;
 };
 
-type EntityEvents = {
+export type TimeEvents = {
   set_value: { value: SynapseTimeFormat };
 };
 
 export function VirtualTime({ context, synapse }: TServiceParams) {
-  const generate = synapse.generator.create<EntityConfiguration, EntityEvents>({
+  const generate = synapse.generator.create<TimeConfiguration, TimeEvents>({
     bus_events: ["set_value"],
     context,
     // @ts-expect-error its fine
@@ -30,7 +30,7 @@ export function VirtualTime({ context, synapse }: TServiceParams) {
   return function <ATTRIBUTES extends object>({
     managed = true,
     ...options
-  }: AddEntityOptions<EntityConfiguration, EntityEvents, ATTRIBUTES>) {
+  }: AddEntityOptions<TimeConfiguration, TimeEvents, ATTRIBUTES>) {
     const entity = generate.add_entity(options);
     if (managed) {
       entity.onSetValue(({ value }) => entity.storage.set("native_value", value));

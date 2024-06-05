@@ -2,7 +2,7 @@ import { TServiceParams } from "@digital-alchemy/core";
 
 import { AddEntityOptions } from "../..";
 
-type EntityConfiguration = {
+export type FanConfiguration = {
   /**
    * The current direction of the fan.
    */
@@ -33,7 +33,7 @@ type EntityConfiguration = {
   speed_count?: number;
 };
 
-type EntityEvents = {
+export type FanEvents = {
   set_direction: { direction: string };
   set_preset_mode: { preset_mode: string };
   set_percentage: { percentage: number };
@@ -52,7 +52,7 @@ type EntityEvents = {
 };
 
 export function VirtualFan({ context, synapse }: TServiceParams) {
-  const generate = synapse.generator.create<EntityConfiguration, EntityEvents>({
+  const generate = synapse.generator.create<FanConfiguration, FanEvents>({
     bus_events: [
       "set_direction",
       "set_preset_mode",
@@ -77,6 +77,6 @@ export function VirtualFan({ context, synapse }: TServiceParams) {
   });
 
   return <ATTRIBUTES extends object>(
-    options: AddEntityOptions<EntityConfiguration, EntityEvents, ATTRIBUTES>,
+    options: AddEntityOptions<FanConfiguration, FanEvents, ATTRIBUTES>,
   ) => generate.add_entity(options);
 }

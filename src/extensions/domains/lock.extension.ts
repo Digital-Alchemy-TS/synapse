@@ -2,7 +2,7 @@ import { TServiceParams } from "@digital-alchemy/core";
 
 import { AddEntityOptions } from "../..";
 
-type EntityConfiguration = {
+export type LockConfiguration = {
   /**
    * Describes what the last change was triggered by.
    */
@@ -42,7 +42,7 @@ type EntityConfiguration = {
   managed?: boolean;
 };
 
-type EntityEvents = {
+export type LockEvents = {
   lock: {
     //
   };
@@ -55,7 +55,7 @@ type EntityEvents = {
 };
 
 export function VirtualLock({ context, synapse }: TServiceParams) {
-  const generate = synapse.generator.create<EntityConfiguration, EntityEvents>({
+  const generate = synapse.generator.create<LockConfiguration, LockEvents>({
     bus_events: ["lock", "unlock", "open"],
     context,
     // @ts-expect-error its fine
@@ -76,7 +76,7 @@ export function VirtualLock({ context, synapse }: TServiceParams) {
   return function <ATTRIBUTES extends object>({
     managed = true,
     ...options
-  }: AddEntityOptions<EntityConfiguration, EntityEvents, ATTRIBUTES>) {
+  }: AddEntityOptions<LockConfiguration, LockEvents, ATTRIBUTES>) {
     const entity = generate.add_entity(options);
     if (managed) {
       entity.onLock(({}) => entity.storage.set("is_locked", true));

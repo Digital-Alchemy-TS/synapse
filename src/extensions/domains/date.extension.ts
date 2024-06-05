@@ -9,7 +9,7 @@ type MD = `${number}${number}`;
  */
 export type SynapseDateFormat = `${Year}-${MD}-${MD}`;
 
-type EntityConfiguration = {
+export type DateConfiguration = {
   native_value?: SynapseDateFormat;
   /**
    * default: true
@@ -17,12 +17,12 @@ type EntityConfiguration = {
   managed?: boolean;
 };
 
-type EntityEvents = {
+export type DateEvents = {
   set_value: { value: SynapseDateFormat };
 };
 
 export function VirtualDate({ context, synapse }: TServiceParams) {
-  const generate = synapse.generator.create<EntityConfiguration, EntityEvents>({
+  const generate = synapse.generator.create<DateConfiguration, DateEvents>({
     bus_events: ["set_value"],
     context,
     // @ts-expect-error its fine
@@ -34,7 +34,7 @@ export function VirtualDate({ context, synapse }: TServiceParams) {
   return function <ATTRIBUTES extends object>({
     managed = true,
     ...options
-  }: AddEntityOptions<EntityConfiguration, EntityEvents, ATTRIBUTES>) {
+  }: AddEntityOptions<DateConfiguration, DateEvents, ATTRIBUTES>) {
     const entity = generate.add_entity(options);
     if (managed) {
       entity.onSetValue(({ value }) => entity.storage.set("native_value", value));

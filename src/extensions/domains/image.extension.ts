@@ -3,7 +3,7 @@ import { Dayjs } from "dayjs";
 
 import { AddEntityOptions } from "../..";
 
-type EntityConfiguration = {
+export type ImageConfiguration = {
   /**
    * The content-type of the image, set automatically if the image entity provides a URL.
    */
@@ -18,12 +18,12 @@ type EntityConfiguration = {
   image_url?: string;
 };
 
-type EntityEvents = {
+export type ImageEvents = {
   //
 };
 
 export function VirtualImage({ context, synapse }: TServiceParams) {
-  const generate = synapse.generator.create<EntityConfiguration, EntityEvents>({
+  const generate = synapse.generator.create<ImageConfiguration, ImageEvents>({
     bus_events: [],
     context,
     // @ts-expect-error its fine
@@ -32,6 +32,6 @@ export function VirtualImage({ context, synapse }: TServiceParams) {
   });
 
   return <ATTRIBUTES extends object>(
-    options: AddEntityOptions<EntityConfiguration, EntityEvents, ATTRIBUTES>,
+    options: AddEntityOptions<ImageConfiguration, ImageEvents, ATTRIBUTES>,
   ) => generate.add_entity(options);
 }

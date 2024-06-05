@@ -25,7 +25,7 @@ enum MediaDeviceClass {
 
 type MediaPlayerEnqueue = "add" | "next" | "play" | "replace";
 
-type EntityConfiguration = {
+export type MediaPlayerConfiguration = {
   /**
    * ID of the current running app.
    */
@@ -155,7 +155,7 @@ type EntityConfiguration = {
   volume_step?: string;
 };
 
-type EntityEvents = {
+export type MediaPlayerEvents = {
   select_sound_mode: { source: string };
   select_source: { source: string };
   play_media: {
@@ -167,7 +167,7 @@ type EntityEvents = {
 };
 
 export function VirtualMediaPlayer({ context, synapse }: TServiceParams) {
-  const generate = synapse.generator.create<EntityConfiguration, EntityEvents>({
+  const generate = synapse.generator.create<MediaPlayerConfiguration, MediaPlayerEvents>({
     bus_events: ["select_sound_mode", "select_source", "play_media"],
     context,
     // @ts-expect-error its fine
@@ -209,6 +209,6 @@ export function VirtualMediaPlayer({ context, synapse }: TServiceParams) {
   });
 
   return <ATTRIBUTES extends object>(
-    options: AddEntityOptions<EntityConfiguration, EntityEvents, ATTRIBUTES>,
+    options: AddEntityOptions<MediaPlayerConfiguration, MediaPlayerEvents, ATTRIBUTES>,
   ) => generate.add_entity(options);
 }

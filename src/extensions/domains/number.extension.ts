@@ -2,7 +2,7 @@ import { TServiceParams } from "@digital-alchemy/core";
 
 import { AddEntityOptions, SensorDeviceClasses } from "../..";
 
-type EntityConfiguration = SensorDeviceClasses & {
+export type NumberConfiguration = SensorDeviceClasses & {
   /**
    * Defines how the number should be displayed in the UI.
    * It's recommended to use the default `auto`.
@@ -31,12 +31,12 @@ type EntityConfiguration = SensorDeviceClasses & {
   managed?: boolean;
 };
 
-type EntityEvents = {
+export type NumberEvents = {
   set_value: { value: number };
 };
 
 export function VirtualNumber({ context, synapse }: TServiceParams) {
-  const generate = synapse.generator.create<EntityConfiguration, EntityEvents>({
+  const generate = synapse.generator.create<NumberConfiguration, NumberEvents>({
     bus_events: ["set_value"],
     context,
     // @ts-expect-error its fine
@@ -55,7 +55,7 @@ export function VirtualNumber({ context, synapse }: TServiceParams) {
   return function <ATTRIBUTES extends object>({
     managed = true,
     ...options
-  }: AddEntityOptions<EntityConfiguration, EntityEvents, ATTRIBUTES>) {
+  }: AddEntityOptions<NumberConfiguration, NumberEvents, ATTRIBUTES>) {
     const entity = generate.add_entity(options);
     if (managed) {
       entity.onSetValue(({ value }) => entity.storage.set("native_value", value));

@@ -2,7 +2,7 @@ import { TServiceParams } from "@digital-alchemy/core";
 
 import { AddEntityOptions } from "../..";
 
-type EntityConfiguration = {
+export type UpdateConfiguration = {
   /**
    * The device or service that the entity represents has auto update logic.
    * When this is set to `true` you can not skip updates.
@@ -46,12 +46,12 @@ type EntityConfiguration = {
   title?: string;
 };
 
-type EntityEvents = {
+export type UpdateEvents = {
   install: { backup?: boolean; version?: string };
 };
 
 export function VirtualUpdate({ context, synapse }: TServiceParams) {
-  const generate = synapse.generator.create<EntityConfiguration, EntityEvents>({
+  const generate = synapse.generator.create<UpdateConfiguration, UpdateEvents>({
     bus_events: ["install"],
     context,
     // @ts-expect-error its fine
@@ -71,6 +71,6 @@ export function VirtualUpdate({ context, synapse }: TServiceParams) {
   });
 
   return <ATTRIBUTES extends object>(
-    options: AddEntityOptions<EntityConfiguration, EntityEvents, ATTRIBUTES>,
+    options: AddEntityOptions<UpdateConfiguration, UpdateEvents, ATTRIBUTES>,
   ) => generate.add_entity(options);
 }

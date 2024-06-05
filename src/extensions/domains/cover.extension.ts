@@ -3,7 +3,7 @@ import { CoverDeviceClass } from "@digital-alchemy/hass";
 
 import { AddEntityOptions } from "../..";
 
-type EntityConfiguration = {
+export type CoverConfiguration = {
   /**
    * The current position of cover where 0 means closed and 100 is fully open.
    */
@@ -27,7 +27,7 @@ type EntityConfiguration = {
   is_opening?: boolean;
 };
 
-type EntityEvents = {
+export type CoverEvents = {
   stop_cover_tilt: {
     //
   };
@@ -55,7 +55,7 @@ type EntityEvents = {
 };
 
 export function VirtualCover({ context, synapse }: TServiceParams) {
-  const generate = synapse.generator.create<EntityConfiguration, EntityEvents>({
+  const generate = synapse.generator.create<CoverConfiguration, CoverEvents>({
     bus_events: [
       "stop_cover_tilt",
       "set_cover_tilt_position",
@@ -80,6 +80,6 @@ export function VirtualCover({ context, synapse }: TServiceParams) {
   });
 
   return <ATTRIBUTES extends object>(
-    options: AddEntityOptions<EntityConfiguration, EntityEvents, ATTRIBUTES>,
+    options: AddEntityOptions<CoverConfiguration, CoverEvents, ATTRIBUTES>,
   ) => generate.add_entity(options);
 }

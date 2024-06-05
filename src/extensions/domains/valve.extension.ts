@@ -3,7 +3,7 @@ import { ValveDeviceClass } from "@digital-alchemy/hass";
 
 import { AddEntityOptions } from "../..";
 
-type EntityConfiguration = {
+export type ValveConfiguration = {
   /**
    * The current position of the valve where 0 means closed and 100 is fully open.
    * This attribute is required on valves with reports_position = True, where it's used to determine state.
@@ -29,7 +29,7 @@ type EntityConfiguration = {
   supported_features?: number;
 };
 
-type EntityEvents = {
+export type ValveEvents = {
   open_valve: {
     //
   };
@@ -45,7 +45,7 @@ type EntityEvents = {
 };
 
 export function VirtualValve({ context, synapse }: TServiceParams) {
-  const generate = synapse.generator.create<EntityConfiguration, EntityEvents>({
+  const generate = synapse.generator.create<ValveConfiguration, ValveEvents>({
     bus_events: ["open_valve", "close_valve", "set_valve_position", "stop_valve"],
     context,
     // @ts-expect-error its fine
@@ -62,6 +62,6 @@ export function VirtualValve({ context, synapse }: TServiceParams) {
   });
 
   return <ATTRIBUTES extends object>(
-    options: AddEntityOptions<EntityConfiguration, EntityEvents, ATTRIBUTES>,
+    options: AddEntityOptions<ValveConfiguration, ValveEvents, ATTRIBUTES>,
   ) => generate.add_entity(options);
 }

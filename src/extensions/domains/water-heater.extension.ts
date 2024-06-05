@@ -2,7 +2,7 @@ import { TServiceParams } from "@digital-alchemy/core";
 
 import { AddEntityOptions } from "../..";
 
-type EntityConfiguration = {
+export type WaterHeaterConfiguration = {
   /**
    * The minimum temperature that can be set.
    */
@@ -46,7 +46,7 @@ type EntityConfiguration = {
   is_away_mode_on?: boolean;
 };
 
-type EntityEvents = {
+export type WaterHeaterEvents = {
   set_temperature: {
     //
   };
@@ -68,7 +68,7 @@ type EntityEvents = {
 };
 
 export function VirtualWaterHeater({ context, synapse }: TServiceParams) {
-  const generate = synapse.generator.create<EntityConfiguration, EntityEvents>({
+  const generate = synapse.generator.create<WaterHeaterConfiguration, WaterHeaterEvents>({
     bus_events: [
       "set_temperature",
       "set_operation_mode",
@@ -96,6 +96,6 @@ export function VirtualWaterHeater({ context, synapse }: TServiceParams) {
   });
 
   return <ATTRIBUTES extends object>(
-    options: AddEntityOptions<EntityConfiguration, EntityEvents, ATTRIBUTES>,
+    options: AddEntityOptions<WaterHeaterConfiguration, WaterHeaterEvents, ATTRIBUTES>,
   ) => generate.add_entity(options);
 }

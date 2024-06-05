@@ -2,7 +2,7 @@ import { TServiceParams } from "@digital-alchemy/core";
 
 import { AddEntityOptions } from "../..";
 
-type EntityConfiguration = {
+export type SirenConfiguration = {
   /**
    * Whether the device is on or off.
    */
@@ -17,7 +17,7 @@ type EntityConfiguration = {
   supported_features?: number;
 };
 
-type EntityEvents = {
+export type SirenEvents = {
   turn_on: {
     //
   };
@@ -27,7 +27,7 @@ type EntityEvents = {
 };
 
 export function VirtualSiren({ context, synapse }: TServiceParams) {
-  const generate = synapse.generator.create<EntityConfiguration, EntityEvents>({
+  const generate = synapse.generator.create<SirenConfiguration, SirenEvents>({
     bus_events: ["turn_on", "turn_off"],
     context,
     // @ts-expect-error its fine
@@ -36,6 +36,6 @@ export function VirtualSiren({ context, synapse }: TServiceParams) {
   });
 
   return <ATTRIBUTES extends object>(
-    options: AddEntityOptions<EntityConfiguration, EntityEvents, ATTRIBUTES>,
+    options: AddEntityOptions<SirenConfiguration, SirenEvents, ATTRIBUTES>,
   ) => generate.add_entity(options);
 }

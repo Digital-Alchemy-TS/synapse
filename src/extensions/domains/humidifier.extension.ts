@@ -3,7 +3,7 @@ import { HumidifierDeviceClass } from "@digital-alchemy/hass";
 
 import { AddEntityOptions } from "../..";
 
-type EntityConfiguration = {
+export type HumidifierConfiguration = {
   /**
    * Returns the current status of the device.
    */
@@ -42,7 +42,7 @@ type EntityConfiguration = {
   target_humidity?: number;
 };
 
-type HumidifierModes =
+export type HumidifierModes =
   | "normal"
   | "eco"
   | "away"
@@ -53,7 +53,7 @@ type HumidifierModes =
   | "auto"
   | "baby";
 
-type EntityEvents = {
+export type HumidifierEvents = {
   set_humidity: {
     humidity: number;
   };
@@ -66,7 +66,7 @@ type EntityEvents = {
 };
 
 export function VirtualHumidifier({ context, synapse }: TServiceParams) {
-  const generate = synapse.generator.create<EntityConfiguration, EntityEvents>({
+  const generate = synapse.generator.create<HumidifierConfiguration, HumidifierEvents>({
     bus_events: ["set_humidity", "turn_on", "turn_off"],
     context,
     // @ts-expect-error its fine
@@ -85,6 +85,6 @@ export function VirtualHumidifier({ context, synapse }: TServiceParams) {
   });
 
   return <ATTRIBUTES extends object>(
-    options: AddEntityOptions<EntityConfiguration, EntityEvents, ATTRIBUTES>,
+    options: AddEntityOptions<HumidifierConfiguration, HumidifierEvents, ATTRIBUTES>,
   ) => generate.add_entity(options);
 }

@@ -3,7 +3,7 @@ import { SwitchDeviceClass } from "@digital-alchemy/hass";
 
 import { AddEntityOptions } from "../..";
 
-type EntityConfiguration = {
+export type SwitchConfiguration = {
   device_class?: `${SwitchDeviceClass}`;
   /**
    * If the switch is currently on or off.
@@ -15,7 +15,7 @@ type EntityConfiguration = {
   managed?: boolean;
 };
 
-type EntityEvents = {
+export type SwitchEvents = {
   turn_on: {
     //
   };
@@ -28,7 +28,7 @@ type EntityEvents = {
 };
 
 export function VirtualSwitch({ context, synapse }: TServiceParams) {
-  const generate = synapse.generator.create<EntityConfiguration, EntityEvents>({
+  const generate = synapse.generator.create<SwitchConfiguration, SwitchEvents>({
     bus_events: ["turn_on", "turn_off", "toggle"],
     context,
     domain: "switch",
@@ -39,7 +39,7 @@ export function VirtualSwitch({ context, synapse }: TServiceParams) {
   return function <ATTRIBUTES extends object>({
     managed = true,
     ...options
-  }: AddEntityOptions<EntityConfiguration, EntityEvents, ATTRIBUTES>) {
+  }: AddEntityOptions<SwitchConfiguration, SwitchEvents, ATTRIBUTES>) {
     const entity = generate.add_entity(options);
     if (managed) {
       entity.onToggle(() => entity.storage.set("is_on", !entity.storage.get("is_on")));

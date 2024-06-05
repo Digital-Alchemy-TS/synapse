@@ -2,7 +2,7 @@ import { TServiceParams } from "@digital-alchemy/core";
 
 import { AddEntityOptions } from "../..";
 
-type EntityConfiguration = {
+export type LightConfiguration = {
   /**
    * The brightness of this light between 1..255
    */
@@ -73,7 +73,7 @@ type EntityConfiguration = {
   xy_color?: [number, number];
 };
 
-type EntityEvents = {
+export type LightEvents = {
   turn_on: {
     //
   };
@@ -83,7 +83,7 @@ type EntityEvents = {
 };
 
 export function VirtualLight({ context, synapse }: TServiceParams) {
-  const generate = synapse.generator.create<EntityConfiguration, EntityEvents>({
+  const generate = synapse.generator.create<LightConfiguration, LightEvents>({
     bus_events: ["turn_on", "turn_off"],
     context,
     domain: "light",
@@ -107,6 +107,6 @@ export function VirtualLight({ context, synapse }: TServiceParams) {
   });
 
   return <ATTRIBUTES extends object>(
-    options: AddEntityOptions<EntityConfiguration, EntityEvents, ATTRIBUTES>,
+    options: AddEntityOptions<LightConfiguration, LightEvents, ATTRIBUTES>,
   ) => generate.add_entity(options);
 }

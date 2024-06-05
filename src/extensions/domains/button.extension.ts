@@ -3,18 +3,18 @@ import { ButtonDeviceClass } from "@digital-alchemy/hass";
 
 import { AddEntityOptions } from "../..";
 
-type EntityConfiguration = {
+export type ButtonConfiguration = {
   device_class?: `${ButtonDeviceClass}`;
 };
 
-type EntityEvents = {
+export type ButtonEvents = {
   press: {
     //
   };
 };
 
 export function VirtualButton({ context, synapse }: TServiceParams) {
-  const generate = synapse.generator.create<EntityConfiguration, EntityEvents>({
+  const generate = synapse.generator.create<ButtonConfiguration, ButtonEvents>({
     bus_events: ["press"],
     context,
     // @ts-expect-error its fine
@@ -23,6 +23,6 @@ export function VirtualButton({ context, synapse }: TServiceParams) {
   });
 
   return <ATTRIBUTES extends object>(
-    options: AddEntityOptions<EntityConfiguration, EntityEvents, ATTRIBUTES>,
+    options: AddEntityOptions<ButtonConfiguration, ButtonEvents, ATTRIBUTES>,
   ) => generate.add_entity(options);
 }

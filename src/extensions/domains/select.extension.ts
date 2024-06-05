@@ -2,7 +2,7 @@ import { TServiceParams } from "@digital-alchemy/core";
 
 import { AddEntityOptions } from "../..";
 
-type EntityConfiguration = {
+export type SelectConfiguration = {
   /**
    * The current select option
    */
@@ -17,12 +17,12 @@ type EntityConfiguration = {
   managed?: boolean;
 };
 
-type EntityEvents = {
+export type SelectEvents = {
   select_option: { option: string };
 };
 
 export function VirtualSelect({ context, synapse }: TServiceParams) {
-  const generate = synapse.generator.create<EntityConfiguration, EntityEvents>({
+  const generate = synapse.generator.create<SelectConfiguration, SelectEvents>({
     bus_events: ["select_option"],
     context,
     // @ts-expect-error its fine
@@ -34,7 +34,7 @@ export function VirtualSelect({ context, synapse }: TServiceParams) {
   return function <ATTRIBUTES extends object>({
     managed = true,
     ...options
-  }: AddEntityOptions<EntityConfiguration, EntityEvents, ATTRIBUTES>) {
+  }: AddEntityOptions<SelectConfiguration, SelectEvents, ATTRIBUTES>) {
     const entity = generate.add_entity(options);
     if (managed) {
       entity.onSelectOption(({ option }) => entity.storage.set("current_option", option));

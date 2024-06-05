@@ -3,7 +3,7 @@ import { HVACAction, HVACMode } from "@digital-alchemy/hass";
 
 import { AddEntityOptions } from "../..";
 
-type EntityConfiguration = {
+export type ClimateConfiguration = {
   /**
    * The current humidity.
    */
@@ -94,7 +94,7 @@ type EntityConfiguration = {
   temperature_unit: string;
 };
 
-type EntityEvents = {
+type ClimateEvents = {
   set_hvac_mode: {
     //
   };
@@ -125,7 +125,7 @@ type EntityEvents = {
 };
 
 export function VirtualClimate({ context, synapse }: TServiceParams) {
-  const generate = synapse.generator.create<EntityConfiguration, EntityEvents>({
+  const generate = synapse.generator.create<ClimateConfiguration, ClimateEvents>({
     bus_events: [
       "set_hvac_mode",
       "turn_on",
@@ -167,6 +167,6 @@ export function VirtualClimate({ context, synapse }: TServiceParams) {
   });
 
   return <ATTRIBUTES extends object>(
-    options: AddEntityOptions<EntityConfiguration, EntityEvents, ATTRIBUTES>,
+    options: AddEntityOptions<ClimateConfiguration, ClimateEvents, ATTRIBUTES>,
   ) => generate.add_entity(options);
 }

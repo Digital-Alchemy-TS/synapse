@@ -2,7 +2,7 @@ import { TServiceParams } from "@digital-alchemy/core";
 
 import { AddEntityOptions } from "../..";
 
-type EntityConfiguration = {
+export type VacuumConfiguration = {
   /**
    * Current battery level.
    */
@@ -18,7 +18,7 @@ type EntityConfiguration = {
   supported_features?: number;
 };
 
-type EntityEvents = {
+export type VacuumEvents = {
   clean_spot: {
     //
   };
@@ -46,7 +46,7 @@ type EntityEvents = {
 };
 
 export function VirtualVacuum({ context, synapse }: TServiceParams) {
-  const generate = synapse.generator.create<EntityConfiguration, EntityEvents>({
+  const generate = synapse.generator.create<VacuumConfiguration, VacuumEvents>({
     bus_events: [
       "clean_spot",
       "locate",
@@ -64,6 +64,6 @@ export function VirtualVacuum({ context, synapse }: TServiceParams) {
   });
 
   return <ATTRIBUTES extends object>(
-    options: AddEntityOptions<EntityConfiguration, EntityEvents, ATTRIBUTES>,
+    options: AddEntityOptions<VacuumConfiguration, VacuumEvents, ATTRIBUTES>,
   ) => generate.add_entity(options);
 }

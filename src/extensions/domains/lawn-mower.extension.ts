@@ -2,7 +2,7 @@ import { TServiceParams } from "@digital-alchemy/core";
 
 import { AddEntityOptions } from "../..";
 
-type EntityConfiguration = {
+export type LawnMowerConfiguration = {
   /**
    * Current activity.
    */
@@ -10,7 +10,7 @@ type EntityConfiguration = {
   supported_features?: number;
 };
 
-type EntityEvents = {
+export type LawnMowerEvents = {
   start_mowing: {
     //
   };
@@ -23,7 +23,7 @@ type EntityEvents = {
 };
 
 export function VirtualLawnMower({ context, synapse }: TServiceParams) {
-  const generate = synapse.generator.create<EntityConfiguration, EntityEvents>({
+  const generate = synapse.generator.create<LawnMowerConfiguration, LawnMowerEvents>({
     bus_events: ["start_mowing", "dock", "pause"],
     context,
     // @ts-expect-error its fine
@@ -32,6 +32,6 @@ export function VirtualLawnMower({ context, synapse }: TServiceParams) {
   });
 
   return <ATTRIBUTES extends object>(
-    options: AddEntityOptions<EntityConfiguration, EntityEvents, ATTRIBUTES>,
+    options: AddEntityOptions<LawnMowerConfiguration, LawnMowerEvents, ATTRIBUTES>,
   ) => generate.add_entity(options);
 }

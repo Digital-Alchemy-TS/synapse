@@ -2,7 +2,7 @@ import { TServiceParams } from "@digital-alchemy/core";
 
 import { AddEntityOptions } from "../..";
 
-type EntityConfiguration = {
+export type CameraConfiguration = {
   /**
    * The brand (manufacturer) of the camera.
    */
@@ -42,7 +42,7 @@ type EntityConfiguration = {
   supported_features?: number;
 };
 
-type EntityEvents = {
+export type CameraEvents = {
   turn_on: {
     //
   };
@@ -58,7 +58,7 @@ type EntityEvents = {
 };
 
 export function VirtualCamera({ context, synapse }: TServiceParams) {
-  const generate = synapse.generator.create<EntityConfiguration, EntityEvents>({
+  const generate = synapse.generator.create<CameraConfiguration, CameraEvents>({
     bus_events: ["turn_on", "turn_off", "enable_motion_detection", "disable_motion_detection"],
     context,
     // @ts-expect-error its fine
@@ -78,6 +78,6 @@ export function VirtualCamera({ context, synapse }: TServiceParams) {
   });
 
   return <ATTRIBUTES extends object>(
-    options: AddEntityOptions<EntityConfiguration, EntityEvents, ATTRIBUTES>,
+    options: AddEntityOptions<CameraConfiguration, CameraEvents, ATTRIBUTES>,
   ) => generate.add_entity(options);
 }

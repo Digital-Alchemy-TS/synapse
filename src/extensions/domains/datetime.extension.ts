@@ -3,7 +3,7 @@ import { Dayjs } from "dayjs";
 
 import { AddEntityOptions } from "../..";
 
-type EntityConfiguration = {
+export type DateTimeConfiguration = {
   /**
    * iso date string
    *
@@ -16,12 +16,12 @@ type EntityConfiguration = {
   managed?: boolean;
 };
 
-type EntityEvents = {
+export type DateTimeEvents = {
   set_value: { value: string };
 };
 
 export function VirtualDateTime({ context, synapse }: TServiceParams) {
-  const generate = synapse.generator.create<EntityConfiguration, EntityEvents>({
+  const generate = synapse.generator.create<DateTimeConfiguration, DateTimeEvents>({
     bus_events: ["set_value"],
     context,
     // @ts-expect-error its fine
@@ -33,7 +33,7 @@ export function VirtualDateTime({ context, synapse }: TServiceParams) {
   return function <ATTRIBUTES extends object>({
     managed = true,
     ...options
-  }: AddEntityOptions<EntityConfiguration, EntityEvents, ATTRIBUTES>) {
+  }: AddEntityOptions<DateTimeConfiguration, DateTimeEvents, ATTRIBUTES>) {
     const entity = generate.add_entity(options);
     if (managed) {
       entity.onSetValue(({ value }) => entity.storage.set("native_value", value));

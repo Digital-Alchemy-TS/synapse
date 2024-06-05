@@ -3,7 +3,7 @@ import { Dayjs } from "dayjs";
 
 import { AddEntityOptions } from "../..";
 
-type TodoItem = {
+export type TodoItem = {
   /**
    * A unique identifier for the to-do item. This field is required for updates and the entity state.
    */
@@ -29,7 +29,7 @@ type TodoItem = {
   description?: string;
 };
 
-type EntityConfiguration = {
+export type TodoConfiguration = {
   /**
    * Required. The ordered contents of the To-do list.
    */
@@ -37,14 +37,14 @@ type EntityConfiguration = {
   supported_features?: number;
 };
 
-type EntityEvents = {
+export type TodoEvents = {
   create_todo_item: { item: TodoItem };
   delete_todo_item: { item: TodoItem };
   move_todo_item: { item: TodoItem };
 };
 
 export function VirtualTodoList({ context, synapse }: TServiceParams) {
-  const generate = synapse.generator.create<EntityConfiguration, EntityEvents>({
+  const generate = synapse.generator.create<TodoConfiguration, TodoEvents>({
     bus_events: ["create_todo_item", "delete_todo_item", "move_todo_item"],
     context,
     // @ts-expect-error its fine
@@ -53,6 +53,6 @@ export function VirtualTodoList({ context, synapse }: TServiceParams) {
   });
 
   return <ATTRIBUTES extends object>(
-    options: AddEntityOptions<EntityConfiguration, EntityEvents, ATTRIBUTES>,
+    options: AddEntityOptions<TodoConfiguration, TodoEvents, ATTRIBUTES>,
   ) => generate.add_entity(options);
 }

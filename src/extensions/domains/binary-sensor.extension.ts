@@ -3,7 +3,7 @@ import { BinarySensorDeviceClass } from "@digital-alchemy/hass";
 
 import { AddEntityOptions } from "../..";
 
-type EntityConfiguration = {
+export type BinarySensorConfiguration = {
   /**
    * Type of binary sensor.
    */
@@ -14,12 +14,12 @@ type EntityConfiguration = {
   is_on?: boolean;
 };
 
-type EntityEvents = {
+export type BinarySensorEvents = {
   //
 };
 
 export function VirtualBinarySensor({ context, synapse }: TServiceParams) {
-  const generate = synapse.generator.create<EntityConfiguration, EntityEvents>({
+  const generate = synapse.generator.create<BinarySensorConfiguration, BinarySensorEvents>({
     context,
     default_config: { is_on: false },
     domain: "binary_sensor",
@@ -28,6 +28,6 @@ export function VirtualBinarySensor({ context, synapse }: TServiceParams) {
   });
 
   return <ATTRIBUTES extends object>(
-    options: AddEntityOptions<EntityConfiguration, EntityEvents, ATTRIBUTES>,
+    options: AddEntityOptions<BinarySensorConfiguration, BinarySensorEvents, ATTRIBUTES>,
   ) => generate.add_entity(options);
 }

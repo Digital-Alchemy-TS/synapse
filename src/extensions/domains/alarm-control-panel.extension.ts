@@ -2,7 +2,7 @@ import { TServiceParams } from "@digital-alchemy/core";
 
 import { AddEntityOptions } from "../..";
 
-type AlarmControlPanelStates =
+export type AlarmControlPanelStates =
   | "disarmed"
   | "armed_home"
   | "armed_away"
@@ -14,7 +14,7 @@ type AlarmControlPanelStates =
   | "disarming"
   | "triggered";
 
-type EntityConfiguration = {
+export type AlarmControlPanelConfiguration = {
   state?: AlarmControlPanelStates;
   /**
    * Whether the code is required for arm actions.
@@ -37,7 +37,7 @@ type EntityConfiguration = {
   managed?: boolean;
 };
 
-type EntityEvents = {
+export type AlarmControlPanelEvents = {
   arm_custom_bypass: { code: string };
   trigger: { code: string };
   arm_vacation: { code: string };
@@ -48,7 +48,10 @@ type EntityEvents = {
 };
 
 export function VirtualAlarmControlPanel({ context, synapse }: TServiceParams) {
-  const generate = synapse.generator.create<EntityConfiguration, EntityEvents>({
+  const generate = synapse.generator.create<
+    AlarmControlPanelConfiguration,
+    AlarmControlPanelEvents
+  >({
     bus_events: [
       "arm_custom_bypass",
       "trigger",
@@ -73,7 +76,7 @@ export function VirtualAlarmControlPanel({ context, synapse }: TServiceParams) {
   return function <ATTRIBUTES extends object>({
     managed = true,
     ...options
-  }: AddEntityOptions<EntityConfiguration, EntityEvents, ATTRIBUTES>) {
+  }: AddEntityOptions<AlarmControlPanelConfiguration, AlarmControlPanelEvents, ATTRIBUTES>) {
     const entity = generate.add_entity(options);
     if (managed) {
       entity.onArmCustomBypass(() => entity.storage.set("state", "armed_away"));
