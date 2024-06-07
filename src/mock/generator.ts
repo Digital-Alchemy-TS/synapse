@@ -3,18 +3,24 @@ import dayjs from "dayjs";
 
 export function EntityGenerator({ scheduler, synapse, context, logger }: TServiceParams) {
   try {
+    const subDevice = synapse.device.register("sub_device", {
+      name: "example device",
+      sw_version: "420.69",
+    });
     const sensor = synapse.sensor({
       attributes: {
         destination: "saturn",
       },
       context,
       device_class: "speed",
-      // entity_category: "diagnostic",
+      device_id: subDevice,
       name: "Test the sensor",
-
       state: 20,
       suggested_object_id: "magic_the_sensor",
       unit_of_measurement: "ft/s",
+    });
+    sensor.onUpdate(() => {
+      //
     });
     const binary_sensor = synapse.binary_sensor({
       context,
@@ -53,8 +59,21 @@ export function EntityGenerator({ scheduler, synapse, context, logger }: TServic
     scene.onActivate(() => {
       logger.info("scene activated callback");
     });
+    // const entity = hass.entity.byId("binary_sensor.hass_e2e_online");
     synapse.switch({
       context,
+      icon: {
+        current() {
+          return binary_sensor.is_on ? "mdi:air-filter" : "mdi:account";
+        },
+        onUpdate: [binary_sensor],
+      },
+      is_on: {
+        current() {
+          return !binary_sensor.is_on;
+        },
+        onUpdate: [binary_sensor],
+      },
       name: "Example switch",
     });
     const acp = synapse.alarm_control_panel({

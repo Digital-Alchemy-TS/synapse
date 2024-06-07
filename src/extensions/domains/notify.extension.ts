@@ -2,11 +2,11 @@ import { TServiceParams } from "@digital-alchemy/core";
 
 import { AddEntityOptions } from "../..";
 
-type EntityConfiguration = {
+export type NotifyConfiguration = {
   //
 };
 
-type EntityEvents = {
+export type NotifyEvents = {
   send_message: {
     message: string;
     title?: string;
@@ -14,7 +14,7 @@ type EntityEvents = {
 };
 
 export function VirtualNotify({ context, synapse }: TServiceParams) {
-  const generate = synapse.generator.create<EntityConfiguration, EntityEvents>({
+  const generate = synapse.generator.create<NotifyConfiguration, NotifyEvents>({
     bus_events: ["send_message"],
     context,
     // @ts-expect-error its fine
@@ -23,6 +23,6 @@ export function VirtualNotify({ context, synapse }: TServiceParams) {
   });
 
   return <ATTRIBUTES extends object>(
-    options: AddEntityOptions<EntityConfiguration, EntityEvents, ATTRIBUTES>,
-  ) => generate.add_entity(options);
+    options: AddEntityOptions<NotifyConfiguration, NotifyEvents, ATTRIBUTES>,
+  ) => generate.addEntity(options);
 }

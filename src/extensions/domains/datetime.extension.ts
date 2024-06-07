@@ -1,27 +1,27 @@
 import { TServiceParams } from "@digital-alchemy/core";
 import { Dayjs } from "dayjs";
 
-import { AddEntityOptions } from "../..";
+import { AddEntityOptions, SettableConfiguration } from "../..";
 
-type EntityConfiguration = {
+export type DateTimeConfiguration = {
   /**
    * iso date string
    *
    * will translate Dayjs objects to correctly formatted strings
    */
-  native_value?: string | Dayjs;
+  native_value?: SettableConfiguration<string | Dayjs>;
   /**
    * default: true
    */
   managed?: boolean;
 };
 
-type EntityEvents = {
+export type DateTimeEvents = {
   set_value: { value: string };
 };
 
 export function VirtualDateTime({ context, synapse }: TServiceParams) {
-  const generate = synapse.generator.create<EntityConfiguration, EntityEvents>({
+  const generate = synapse.generator.create<DateTimeConfiguration, DateTimeEvents>({
     bus_events: ["set_value"],
     context,
     // @ts-expect-error its fine
@@ -33,8 +33,8 @@ export function VirtualDateTime({ context, synapse }: TServiceParams) {
   return function <ATTRIBUTES extends object>({
     managed = true,
     ...options
-  }: AddEntityOptions<EntityConfiguration, EntityEvents, ATTRIBUTES>) {
-    const entity = generate.add_entity(options);
+  }: AddEntityOptions<DateTimeConfiguration, DateTimeEvents, ATTRIBUTES>) {
+    const entity = generate.addEntity(options);
     if (managed) {
       entity.onSetValue(({ value }) => entity.storage.set("native_value", value));
     }

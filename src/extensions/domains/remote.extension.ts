@@ -1,12 +1,12 @@
 import { TServiceParams } from "@digital-alchemy/core";
 
-import { AddEntityOptions } from "../..";
+import { AddEntityOptions, SettableConfiguration } from "../..";
 
-type EntityConfiguration = {
+export type RemoteConfiguration = {
   /**
    * Return the current active activity
    */
-  current_activity?: string;
+  current_activity?: SettableConfiguration<string>;
   /**
    * Return the list of available activities
    */
@@ -14,7 +14,7 @@ type EntityConfiguration = {
   supported_features?: number;
 };
 
-type EntityEvents = {
+export type RemoteEvents = {
   turn_on: { activity?: string };
   turn_off: { activity?: string };
   toggle: { activity?: string };
@@ -28,7 +28,7 @@ type EntityEvents = {
 };
 
 export function VirtualRemote({ context, synapse }: TServiceParams) {
-  const generate = synapse.generator.create<EntityConfiguration, EntityEvents>({
+  const generate = synapse.generator.create<RemoteConfiguration, RemoteEvents>({
     bus_events: [
       "turn_on",
       "turn_off",
@@ -44,6 +44,6 @@ export function VirtualRemote({ context, synapse }: TServiceParams) {
   });
 
   return <ATTRIBUTES extends object>(
-    options: AddEntityOptions<EntityConfiguration, EntityEvents, ATTRIBUTES>,
-  ) => generate.add_entity(options);
+    options: AddEntityOptions<RemoteConfiguration, RemoteEvents, ATTRIBUTES>,
+  ) => generate.addEntity(options);
 }

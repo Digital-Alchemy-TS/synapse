@@ -1,8 +1,8 @@
 import { TServiceParams } from "@digital-alchemy/core";
 
-import { AddEntityOptions } from "../..";
+import { AddEntityOptions, SettableConfiguration } from "../..";
 
-type EntityConfiguration = {
+export type WaterHeaterConfiguration<OPERATIONS extends string = string> = {
   /**
    * The minimum temperature that can be set.
    */
@@ -14,19 +14,19 @@ type EntityConfiguration = {
   /**
    * The current temperature.
    */
-  current_temperature?: number;
+  current_temperature?: SettableConfiguration<number>;
   /**
    * The temperature we are trying to reach.
    */
-  target_temperature?: number;
+  target_temperature?: SettableConfiguration<number>;
   /**
    * Upper bound of the temperature we are trying to reach.
    */
-  target_temperature_high?: number;
+  target_temperature_high?: SettableConfiguration<number>;
   /**
    * Lower bound of the temperature we are trying to reach.
    */
-  target_temperature_low?: number;
+  target_temperature_low?: SettableConfiguration<number>;
   /**
    * One of TEMP_CELSIUS, TEMP_FAHRENHEIT, or TEMP_KELVIN.
    */
@@ -34,19 +34,19 @@ type EntityConfiguration = {
   /**
    * The current operation mode.
    */
-  current_operation?: string;
+  current_operation?: SettableConfiguration<OPERATIONS>;
   /**
    * List of possible operation modes.
    */
-  operation_list?: string[];
+  operation_list?: OPERATIONS[];
   /**
    * List of supported features.
    */
   supported_features?: number;
-  is_away_mode_on?: boolean;
+  is_away_mode_on?: SettableConfiguration<boolean>;
 };
 
-type EntityEvents = {
+export type WaterHeaterEvents = {
   set_temperature: {
     //
   };
@@ -68,7 +68,7 @@ type EntityEvents = {
 };
 
 export function VirtualWaterHeater({ context, synapse }: TServiceParams) {
-  const generate = synapse.generator.create<EntityConfiguration, EntityEvents>({
+  const generate = synapse.generator.create<WaterHeaterConfiguration, WaterHeaterEvents>({
     bus_events: [
       "set_temperature",
       "set_operation_mode",
@@ -96,6 +96,6 @@ export function VirtualWaterHeater({ context, synapse }: TServiceParams) {
   });
 
   return <ATTRIBUTES extends object>(
-    options: AddEntityOptions<EntityConfiguration, EntityEvents, ATTRIBUTES>,
-  ) => generate.add_entity(options);
+    options: AddEntityOptions<WaterHeaterConfiguration, WaterHeaterEvents, ATTRIBUTES>,
+  ) => generate.addEntity(options);
 }

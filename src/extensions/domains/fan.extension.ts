@@ -1,39 +1,39 @@
 import { TServiceParams } from "@digital-alchemy/core";
 
-import { AddEntityOptions } from "../..";
+import { AddEntityOptions, SettableConfiguration } from "../..";
 
-type EntityConfiguration = {
+export type FanConfiguration<PRESET_MODES extends string = string> = {
   /**
    * The current direction of the fan.
    */
-  current_direction?: string;
+  current_direction?: SettableConfiguration<string>;
   /**
    * True if the fan is on.
    */
-  is_on?: boolean;
+  is_on?: SettableConfiguration<boolean>;
   /**
    * True if the fan is oscillating.
    */
-  oscillating?: boolean;
+  oscillating?: SettableConfiguration<boolean>;
   /**
    * The current speed percentage. Must be a value between 0 (off) and 100.
    */
-  percentage?: number;
+  percentage?: SettableConfiguration<number>;
   /**
    * The current preset_mode. One of the values in preset_modes or None if no preset is active.
    */
-  preset_mode?: string;
+  preset_mode?: SettableConfiguration<PRESET_MODES>;
   /**
    * The list of supported preset_modes. This is an arbitrary list of str and should not contain any speeds.
    */
-  preset_modes?: string[];
+  preset_modes?: PRESET_MODES[];
   /**
    * The number of speeds the fan supports.
    */
   speed_count?: number;
 };
 
-type EntityEvents = {
+export type FanEvents = {
   set_direction: { direction: string };
   set_preset_mode: { preset_mode: string };
   set_percentage: { percentage: number };
@@ -52,7 +52,7 @@ type EntityEvents = {
 };
 
 export function VirtualFan({ context, synapse }: TServiceParams) {
-  const generate = synapse.generator.create<EntityConfiguration, EntityEvents>({
+  const generate = synapse.generator.create<FanConfiguration, FanEvents>({
     bus_events: [
       "set_direction",
       "set_preset_mode",
@@ -77,6 +77,6 @@ export function VirtualFan({ context, synapse }: TServiceParams) {
   });
 
   return <ATTRIBUTES extends object>(
-    options: AddEntityOptions<EntityConfiguration, EntityEvents, ATTRIBUTES>,
-  ) => generate.add_entity(options);
+    options: AddEntityOptions<FanConfiguration, FanEvents, ATTRIBUTES>,
+  ) => generate.addEntity(options);
 }

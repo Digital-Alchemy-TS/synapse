@@ -1,21 +1,21 @@
 import { TServiceParams } from "@digital-alchemy/core";
-import { SwitchDeviceClass } from "@digital-alchemy/hass";
+import { ENTITY_STATE, PICK_ENTITY, SwitchDeviceClass } from "@digital-alchemy/hass";
 
-import { AddEntityOptions } from "../..";
+import { AddEntityOptions, SettableConfiguration } from "../..";
 
-type EntityConfiguration = {
+export type SwitchConfiguration = {
   device_class?: `${SwitchDeviceClass}`;
   /**
    * If the switch is currently on or off.
    */
-  is_on?: boolean;
+  is_on?: SettableConfiguration<boolean>;
   /**
    * default: true
    */
   managed?: boolean;
 };
 
-type EntityEvents = {
+export type SwitchEvents = {
   turn_on: {
     //
   };
@@ -28,19 +28,21 @@ type EntityEvents = {
 };
 
 export function VirtualSwitch({ context, synapse }: TServiceParams) {
-  const generate = synapse.generator.create<EntityConfiguration, EntityEvents>({
+  const generate = synapse.generator.create<SwitchConfiguration, SwitchEvents>({
     bus_events: ["turn_on", "turn_off", "toggle"],
     context,
     domain: "switch",
     load_config_keys: ["device_class", "is_on"],
-    map_config: [{ key: "is_on", load: entity => entity.state === "on" }],
+    map_config: [
+      { key: "is_on", load: (entity: ENTITY_STATE<PICK_ENTITY>) => entity.state === "on" },
+    ],
   });
 
   return function <ATTRIBUTES extends object>({
     managed = true,
     ...options
-  }: AddEntityOptions<EntityConfiguration, EntityEvents, ATTRIBUTES>) {
-    const entity = generate.add_entity(options);
+  }: AddEntityOptions<SwitchConfiguration, SwitchEvents, ATTRIBUTES>) {
+    const entity = generate.addEntity(options);
     if (managed) {
       entity.onToggle(() => entity.storage.set("is_on", !entity.storage.get("is_on")));
       entity.onTurnOff(() => entity.storage.set("is_on", false));

@@ -1,24 +1,24 @@
 import { TServiceParams } from "@digital-alchemy/core";
 
-import { AddEntityOptions } from "../..";
+import { AddEntityOptions, SettableConfiguration } from "../..";
 
-type EntityConfiguration = {
+export type VacuumConfiguration<FAN_SPEEDS extends string = string> = {
   /**
    * Current battery level.
    */
-  battery_level?: number;
+  battery_level?: SettableConfiguration<number>;
   /**
    * The current fan speed.
    */
-  fan_speed?: string;
+  fan_speed?: SettableConfiguration<FAN_SPEEDS>;
   /**
    * List of available fan speeds.
    */
-  fan_speed_list?: string[];
+  fan_speed_list?: FAN_SPEEDS[];
   supported_features?: number;
 };
 
-type EntityEvents = {
+export type VacuumEvents = {
   clean_spot: {
     //
   };
@@ -46,7 +46,7 @@ type EntityEvents = {
 };
 
 export function VirtualVacuum({ context, synapse }: TServiceParams) {
-  const generate = synapse.generator.create<EntityConfiguration, EntityEvents>({
+  const generate = synapse.generator.create<VacuumConfiguration, VacuumEvents>({
     bus_events: [
       "clean_spot",
       "locate",
@@ -64,6 +64,6 @@ export function VirtualVacuum({ context, synapse }: TServiceParams) {
   });
 
   return <ATTRIBUTES extends object>(
-    options: AddEntityOptions<EntityConfiguration, EntityEvents, ATTRIBUTES>,
-  ) => generate.add_entity(options);
+    options: AddEntityOptions<VacuumConfiguration, VacuumEvents, ATTRIBUTES>,
+  ) => generate.addEntity(options);
 }

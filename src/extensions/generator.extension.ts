@@ -1,20 +1,19 @@
 import { is, SINGLE, START, TBlackHole, TServiceParams } from "@digital-alchemy/core";
 import { PICK_ENTITY, TEntityUpdateCallback } from "@digital-alchemy/hass";
-import { CamelCase } from "type-fest";
 
 import {
   AddEntityOptions,
   BaseEvent,
+  ConfigMapper,
   CreateRemovableCallback,
   DomainGeneratorOptions,
   EntityConfigCommon,
   formatObjectId,
   generateHash,
-  LATE_READY,
   RemovableCallback,
+  SynapseEntityProxy,
   TEventMap,
 } from "../helpers";
-import { ConfigMapper } from "./storage.extension";
 
 export function DomainGenerator({
   logger,
@@ -52,24 +51,24 @@ export function DomainGenerator({
   }: DomainGeneratorOptions<CONFIGURATION, EVENT_MAP>) {
     logger.trace({ bus_events, context }, "registering domain [%s]", domain);
 
+    // 🚌🚏 Bus transfer
     bus_events.forEach(name => {
-      // some domains have duplicates
-      // filter those out
+      // some domains duplicate others
       if (registered.has(name)) {
         return;
       }
+      logger.trace({ name }, "set up bus transfer");
       registered.add(name);
       hass.socket.onEvent({
         context,
         event: [config.synapse.EVENT_NAMESPACE, name, getIdentifier()].join("/"),
-        // 🚌🚏 Bus transfer
         exec: ({ data }: BaseEvent) => event.emit(`/synapse/${name}/${data.unique_id}`, data),
       });
     });
 
     return {
       // #MARK: add_entity
-      add_entity<ATTRIBUTES extends object>(
+      addEntity<ATTRIBUTES extends object>(
         entity: AddEntityOptions<CONFIGURATION, EVENT_MAP, ATTRIBUTES>,
       ) {
         // * defaults
@@ -118,69 +117,66 @@ export function DomainGenerator({
 
         const getEntity = () => hass.entity.byUniqueId(unique_id);
 
-        // * final return
-        return {
-          /**
-           * Look up entity proxy in hass entity registry
-           *
-           * > **⚠️ REGISTRY NOT POPULATED BEFORE `onReady`**
-           */
-          getEntity,
-
-          /**
-           * Look up entity in `hass` entity registry, and pass through the `onUpdate` request
-           *
-           * Usable at any lifecycle stage
-           */
-          onUpdate() {
-            return (callback: TEntityUpdateCallback<PICK_ENTITY>) => {
-              let remover: { remove: () => TBlackHole };
-              lifecycle.onReady(() => {
-                const entity = getEntity();
-                if (!entity) {
-                  logger.error(
-                    { entity, name: "onUpdate" },
-                    `event attachment failed, is entity loaded in home assistant?`,
-                  );
-                  return;
-                }
-                remover = entity.onUpdate(callback);
-              }, LATE_READY);
-              return {
-                /**
-                 * can only be used during runtime
-                 */
-                remove() {
-                  if (remover) {
-                    logger.trace(`removing entity update callback`);
-                    remover.remove();
-                    remover = undefined;
-                    return;
-                  }
-                  // too soon / already used
-                  logger.error(`no remover function defined`);
-                },
-              };
-            };
+        // #MARK: entity proxy
+        return new Proxy({} as SynapseEntityProxy<CONFIGURATION, EVENT_MAP, ATTRIBUTES>, {
+          get(_, property: string) {
+            if (!is.undefined(dynamicAttach[property])) {
+              return dynamicAttach[property];
+            }
+            if (storage.isStored(property)) {
+              return storage.get(property);
+            }
+            switch (property) {
+              case "getEntity": {
+                return getEntity;
+              }
+              case "storage": {
+                return storage;
+              }
+              case "onUpdate": {
+                return function (callback: TEntityUpdateCallback<PICK_ENTITY>) {
+                  let remover: { remove: () => TBlackHole };
+                  lifecycle.onReady(() => {
+                    const found = getEntity();
+                    if (!found) {
+                      logger.error(
+                        { entity: found, name: "onUpdate" },
+                        `event attachment failed, is entity loaded in home assistant?`,
+                      );
+                      return;
+                    }
+                    remover = found.onUpdate(callback);
+                  });
+                  return {
+                    /**
+                     * can only be used during runtime
+                     */
+                    remove() {
+                      if (remover) {
+                        logger.trace(`removing entity update callback`);
+                        remover.remove();
+                        remover = undefined;
+                        return;
+                      }
+                      // too soon / already used
+                      logger.error(`no remover function defined`);
+                    },
+                  };
+                };
+              }
+            }
+            return undefined;
           },
-
-          /**
-           * internal storage
-           */
-          storage,
-
-          // - ... and all the callback events
-          ...(dynamicAttach as BuildCallbacks<EVENT_MAP>),
-        };
+          set(_, property: string, newValue) {
+            if (storage.isStored(property)) {
+              storage.set(property, newValue);
+              return true;
+            }
+            return false;
+          },
+        });
       },
     };
   }
   return { create };
 }
-
-type BuildCallbacks<EVENT_MAP extends TEventMap> = {
-  [EVENT_NAME in Extract<
-    keyof EVENT_MAP,
-    string
-  > as CamelCase<`on-${EVENT_NAME}`>]: CreateRemovableCallback<EVENT_MAP[EVENT_NAME]>;
-};

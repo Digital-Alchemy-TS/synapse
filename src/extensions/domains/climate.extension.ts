@@ -1,33 +1,37 @@
 import { TServiceParams } from "@digital-alchemy/core";
 import { HVACAction, HVACMode } from "@digital-alchemy/hass";
 
-import { AddEntityOptions } from "../..";
+import { AddEntityOptions, SettableConfiguration } from "../..";
 
-type EntityConfiguration = {
+export type ClimateConfiguration<
+  PRESET_MODES extends string = string,
+  SWING_MODES extends string = string,
+  FAN_MODES extends string = string,
+> = {
   /**
    * The current humidity.
    */
-  current_humidity?: number;
+  current_humidity?: SettableConfiguration<number>;
   /**
    * The current temperature.
    */
-  current_temperature?: number;
+  current_temperature?: SettableConfiguration<number>;
   /**
    * The current fan mode.
    */
-  fan_mode?: string;
+  fan_mode?: SettableConfiguration<FAN_MODES>;
   /**
    * The list of available fan modes.
    */
-  fan_modes?: string[];
+  fan_modes?: FAN_MODES[];
   /**
    * The current HVAC action (heating, cooling)
    */
-  hvac_action?: HVACAction;
+  hvac_action?: SettableConfiguration<HVACAction>;
   /**
    * The current operation (e.g. heat, cool, idle). Used to determine state.
    */
-  hvac_mode: HVACMode;
+  hvac_mode: SettableConfiguration<HVACMode>;
   /**
    * List of available operation modes.
    */
@@ -55,46 +59,46 @@ type EntityConfiguration = {
   /**
    * The current active preset.
    */
-  preset_mode?: string;
+  preset_mode?: SettableConfiguration<PRESET_MODES>;
   /**
    * The available presets.
    */
-  preset_modes?: string[];
+  preset_modes?: PRESET_MODES[];
   /**
    * The swing setting.
    */
-  swing_mode?: string;
+  swing_mode?: SettableConfiguration<SWING_MODES>;
   /**
    * Returns the list of available swing modes.
    */
-  swing_modes?: string[];
+  swing_modes?: SWING_MODES[];
   /**
    * The target humidity the device is trying to reach.
    */
-  target_humidity?: number;
+  target_humidity?: SettableConfiguration<number>;
   /**
    * The temperature currently set to be reached.
    */
-  target_temperature_high?: number;
+  target_temperature_high?: SettableConfiguration<number>;
   /**
    * The upper bound target temperature
    */
-  target_temperature_low?: number;
+  target_temperature_low?: SettableConfiguration<number>;
   /**
    * The lower bound target temperature
    */
-  target_temperature_step?: number;
+  target_temperature_step?: SettableConfiguration<number>;
   /**
    * The supported step size a target temperature can be increased or decreased
    */
-  target_temperature?: number;
+  target_temperature?: SettableConfiguration<number>;
   /**
    * The unit of temperature measurement for the system (TEMP_CELSIUS or TEMP_FAHRENHEIT).
    */
   temperature_unit: string;
 };
 
-type EntityEvents = {
+type ClimateEvents = {
   set_hvac_mode: {
     //
   };
@@ -125,7 +129,7 @@ type EntityEvents = {
 };
 
 export function VirtualClimate({ context, synapse }: TServiceParams) {
-  const generate = synapse.generator.create<EntityConfiguration, EntityEvents>({
+  const generate = synapse.generator.create<ClimateConfiguration, ClimateEvents>({
     bus_events: [
       "set_hvac_mode",
       "turn_on",
@@ -167,6 +171,6 @@ export function VirtualClimate({ context, synapse }: TServiceParams) {
   });
 
   return <ATTRIBUTES extends object>(
-    options: AddEntityOptions<EntityConfiguration, EntityEvents, ATTRIBUTES>,
-  ) => generate.add_entity(options);
+    options: AddEntityOptions<ClimateConfiguration, ClimateEvents, ATTRIBUTES>,
+  ) => generate.addEntity(options);
 }

@@ -2,8 +2,8 @@ import { TBlackHole, TContext } from "@digital-alchemy/core";
 import { TRawDomains } from "@digital-alchemy/hass";
 import { createHash } from "crypto";
 
-import { ConfigMapper } from "../extensions";
 import { EntityConfigCommon } from "./common-config.helper";
+import { ConfigMapper } from "./storage";
 import { TSynapseId } from "./utility.helper";
 
 export type RemovableCallback<DATA extends unknown = unknown> = (

@@ -1,9 +1,9 @@
 import { TServiceParams } from "@digital-alchemy/core";
-import { BinarySensorDeviceClass } from "@digital-alchemy/hass";
+import { BinarySensorDeviceClass, ENTITY_STATE, PICK_ENTITY } from "@digital-alchemy/hass";
 
-import { AddEntityOptions } from "../..";
+import { AddEntityOptions, SettableConfiguration } from "../..";
 
-type EntityConfiguration = {
+export type BinarySensorConfiguration = {
   /**
    * Type of binary sensor.
    */
@@ -11,23 +11,25 @@ type EntityConfiguration = {
   /**
    * If the binary sensor is currently on or off.
    */
-  is_on?: boolean;
+  is_on?: SettableConfiguration<boolean>;
 };
 
-type EntityEvents = {
+export type BinarySensorEvents = {
   //
 };
 
 export function VirtualBinarySensor({ context, synapse }: TServiceParams) {
-  const generate = synapse.generator.create<EntityConfiguration, EntityEvents>({
+  const generate = synapse.generator.create<BinarySensorConfiguration, BinarySensorEvents>({
     context,
     default_config: { is_on: false },
     domain: "binary_sensor",
     load_config_keys: ["device_class", "is_on"],
-    map_config: [{ key: "is_on", load: entity => entity.state === "on" }],
+    map_config: [
+      { key: "is_on", load: (entity: ENTITY_STATE<PICK_ENTITY>) => entity.state === "on" },
+    ],
   });
 
   return <ATTRIBUTES extends object>(
-    options: AddEntityOptions<EntityConfiguration, EntityEvents, ATTRIBUTES>,
-  ) => generate.add_entity(options);
+    options: AddEntityOptions<BinarySensorConfiguration, BinarySensorEvents, ATTRIBUTES>,
+  ) => generate.addEntity(options);
 }

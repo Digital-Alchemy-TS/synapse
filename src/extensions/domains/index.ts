@@ -11,7 +11,7 @@ export * from "./image.extension";
 export * from "./lawn-mower.extension";
 export * from "./light.extension";
 export * from "./lock.extension";
-export * from "./media-player";
+export * from "./media-player.extension";
 export * from "./notify.extension";
 export * from "./number.extension";
 export * from "./remote.extension";

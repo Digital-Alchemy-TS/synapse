@@ -1,29 +1,29 @@
 import { TServiceParams } from "@digital-alchemy/core";
 import { Dayjs } from "dayjs";
 
-import { AddEntityOptions } from "../..";
+import { AddEntityOptions, SettableConfiguration } from "../..";
 
-type EntityConfiguration = {
+export type ImageConfiguration = {
   /**
    * The content-type of the image, set automatically if the image entity provides a URL.
    */
-  content_type?: string;
+  content_type?: SettableConfiguration<string>;
   /**
    * Timestamp of when the image was last updated. Used to determine state. Frontend will call image or async_image after this changes.
    */
-  image_last_updated?: Dayjs;
+  image_last_updated?: SettableConfiguration<Dayjs>;
   /**
    * Optional URL from where the image should be fetched.
    */
-  image_url?: string;
+  image_url?: SettableConfiguration<string>;
 };
 
-type EntityEvents = {
+export type ImageEvents = {
   //
 };
 
 export function VirtualImage({ context, synapse }: TServiceParams) {
-  const generate = synapse.generator.create<EntityConfiguration, EntityEvents>({
+  const generate = synapse.generator.create<ImageConfiguration, ImageEvents>({
     bus_events: [],
     context,
     // @ts-expect-error its fine
@@ -32,6 +32,6 @@ export function VirtualImage({ context, synapse }: TServiceParams) {
   });
 
   return <ATTRIBUTES extends object>(
-    options: AddEntityOptions<EntityConfiguration, EntityEvents, ATTRIBUTES>,
-  ) => generate.add_entity(options);
+    options: AddEntityOptions<ImageConfiguration, ImageEvents, ATTRIBUTES>,
+  ) => generate.addEntity(options);
 }

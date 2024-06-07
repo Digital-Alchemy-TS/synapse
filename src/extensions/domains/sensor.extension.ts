@@ -2,14 +2,12 @@ import { TServiceParams } from "@digital-alchemy/core";
 
 import { AddEntityOptions, SensorConfiguration } from "../..";
 
-type EntityConfiguration = SensorConfiguration<object>;
-
-type EntityEvents = {
+export type SensorEvents = {
   //
 };
 
 export function VirtualSensor({ context, synapse }: TServiceParams) {
-  const generate = synapse.generator.create<EntityConfiguration, EntityEvents>({
+  const generate = synapse.generator.create<SensorConfiguration<object>, SensorEvents>({
     context,
     domain: "sensor",
     load_config_keys: [
@@ -23,6 +21,6 @@ export function VirtualSensor({ context, synapse }: TServiceParams) {
   });
 
   return <ATTRIBUTES extends object>(
-    options: AddEntityOptions<SensorConfiguration<ATTRIBUTES>, EntityEvents, ATTRIBUTES>,
-  ) => generate.add_entity<ATTRIBUTES>(options);
+    options: AddEntityOptions<SensorConfiguration<ATTRIBUTES>, SensorEvents, ATTRIBUTES>,
+  ) => generate.addEntity<ATTRIBUTES>(options);
 }

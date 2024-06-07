@@ -1,8 +1,8 @@
 import { TServiceParams } from "@digital-alchemy/core";
 
-import { AddEntityOptions } from "../..";
+import { AddEntityOptions, SettableConfiguration } from "../..";
 
-type EntityConfiguration = {
+export type CameraConfiguration = {
   /**
    * The brand (manufacturer) of the camera.
    */
@@ -10,7 +10,7 @@ type EntityConfiguration = {
   /**
    * The interval between frames of the stream.
    */
-  frame_interval?: number;
+  frame_interval?: SettableConfiguration<number>;
   /**
    * Used with CameraEntityFeature.STREAM to tell the frontend which type of stream to use (StreamType.HLS or StreamType.WEB_RTC)
    */
@@ -18,15 +18,15 @@ type EntityConfiguration = {
   /**
    * Indication of whether the camera is on.
    */
-  is_on?: boolean;
+  is_on?: SettableConfiguration<boolean>;
   /**
    * Indication of whether the camera is recording. Used to determine state.
    */
-  is_recording?: boolean;
+  is_recording?: SettableConfiguration<boolean>;
   /**
    * Indication of whether the camera is streaming. Used to determine state.
    */
-  is_streaming?: boolean;
+  is_streaming?: SettableConfiguration<boolean>;
   /**
    * The model of the camera.
    */
@@ -34,7 +34,7 @@ type EntityConfiguration = {
   /**
    * Indication of whether the camera has motion detection enabled.
    */
-  motion_detection_enabled?: boolean;
+  motion_detection_enabled?: SettableConfiguration<boolean>;
   /**
    * Determines whether or not to use the Stream integration to generate still images
    */
@@ -42,7 +42,7 @@ type EntityConfiguration = {
   supported_features?: number;
 };
 
-type EntityEvents = {
+export type CameraEvents = {
   turn_on: {
     //
   };
@@ -58,7 +58,7 @@ type EntityEvents = {
 };
 
 export function VirtualCamera({ context, synapse }: TServiceParams) {
-  const generate = synapse.generator.create<EntityConfiguration, EntityEvents>({
+  const generate = synapse.generator.create<CameraConfiguration, CameraEvents>({
     bus_events: ["turn_on", "turn_off", "enable_motion_detection", "disable_motion_detection"],
     context,
     // @ts-expect-error its fine
@@ -78,6 +78,6 @@ export function VirtualCamera({ context, synapse }: TServiceParams) {
   });
 
   return <ATTRIBUTES extends object>(
-    options: AddEntityOptions<EntityConfiguration, EntityEvents, ATTRIBUTES>,
-  ) => generate.add_entity(options);
+    options: AddEntityOptions<CameraConfiguration, CameraEvents, ATTRIBUTES>,
+  ) => generate.addEntity(options);
 }

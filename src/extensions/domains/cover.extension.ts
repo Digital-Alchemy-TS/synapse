@@ -1,33 +1,33 @@
 import { TServiceParams } from "@digital-alchemy/core";
 import { CoverDeviceClass } from "@digital-alchemy/hass";
 
-import { AddEntityOptions } from "../..";
+import { AddEntityOptions, SettableConfiguration } from "../..";
 
-type EntityConfiguration = {
+export type CoverConfiguration = {
   /**
    * The current position of cover where 0 means closed and 100 is fully open.
    */
-  current_cover_position?: number;
+  current_cover_position?: SettableConfiguration<number>;
   /**
    * The current tilt position of the cover where 0 means closed/no tilt and 100 means open/maximum tilt.
    */
-  current_cover_tilt_position?: number;
+  current_cover_tilt_position?: SettableConfiguration<number>;
   device_class?: `${CoverDeviceClass}`;
   /**
    * If the cover is closed or not. Used to determine state.
    */
-  is_closed?: boolean;
+  is_closed?: SettableConfiguration<boolean>;
   /**
    * If the cover is closing or not. Used to determine state.
    */
-  is_closing?: boolean;
+  is_closing?: SettableConfiguration<boolean>;
   /**
    * If the cover is opening or not. Used to determine state.
    */
-  is_opening?: boolean;
+  is_opening?: SettableConfiguration<boolean>;
 };
 
-type EntityEvents = {
+export type CoverEvents = {
   stop_cover_tilt: {
     //
   };
@@ -55,7 +55,7 @@ type EntityEvents = {
 };
 
 export function VirtualCover({ context, synapse }: TServiceParams) {
-  const generate = synapse.generator.create<EntityConfiguration, EntityEvents>({
+  const generate = synapse.generator.create<CoverConfiguration, CoverEvents>({
     bus_events: [
       "stop_cover_tilt",
       "set_cover_tilt_position",
@@ -80,6 +80,6 @@ export function VirtualCover({ context, synapse }: TServiceParams) {
   });
 
   return <ATTRIBUTES extends object>(
-    options: AddEntityOptions<EntityConfiguration, EntityEvents, ATTRIBUTES>,
-  ) => generate.add_entity(options);
+    options: AddEntityOptions<CoverConfiguration, CoverEvents, ATTRIBUTES>,
+  ) => generate.addEntity(options);
 }

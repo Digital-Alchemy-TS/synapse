@@ -1,8 +1,8 @@
 import { TServiceParams } from "@digital-alchemy/core";
 
-import { AddEntityOptions } from "../..";
+import { AddEntityOptions, SettableConfiguration } from "../..";
 
-type EntityConfiguration = {
+export type TextConfiguration = {
   /**
    * Defines how the text should be displayed in the UI. Can be text or password.
    */
@@ -18,23 +18,23 @@ type EntityConfiguration = {
   /**
    * A regex pattern that the text value must match to be valid.
    */
-  pattern?: string;
+  pattern?: SettableConfiguration<string>;
   /**
    * The value of the text.
    */
-  native_value?: string;
+  native_value?: SettableConfiguration<string>;
   /**
    * default: true
    */
   managed?: boolean;
 };
 
-type EntityEvents = {
+export type TextEvents = {
   set_value: { value: string };
 };
 
 export function VirtualText({ context, synapse }: TServiceParams) {
-  const generate = synapse.generator.create<EntityConfiguration, EntityEvents>({
+  const generate = synapse.generator.create<TextConfiguration, TextEvents>({
     bus_events: ["set_value"],
     context,
     // @ts-expect-error its fine
@@ -46,8 +46,8 @@ export function VirtualText({ context, synapse }: TServiceParams) {
   return function <ATTRIBUTES extends object>({
     managed = true,
     ...options
-  }: AddEntityOptions<EntityConfiguration, EntityEvents, ATTRIBUTES>) {
-    const entity = generate.add_entity(options);
+  }: AddEntityOptions<TextConfiguration, TextEvents, ATTRIBUTES>) {
+    const entity = generate.addEntity(options);
     if (managed) {
       entity.onSetValue(({ value }) => entity.storage.set("native_value", value));
     }
