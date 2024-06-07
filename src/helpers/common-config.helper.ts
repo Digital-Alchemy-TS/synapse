@@ -101,7 +101,6 @@ export type NON_SETTABLE =
   | "managed"
   | "suggested_object_id"
   | "unique_id"
-  | "name"
   | "device_id"
   | "device_class"
   | "translation_key"
