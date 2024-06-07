@@ -40,7 +40,7 @@ export function VirtualSwitch({ context, synapse }: TServiceParams) {
     managed = true,
     ...options
   }: AddEntityOptions<SwitchConfiguration, SwitchEvents, ATTRIBUTES>) {
-    const entity = generate.add_entity(options);
+    const entity = generate.addEntity(options);
     if (managed) {
       entity.onToggle(() => entity.storage.set("is_on", !entity.storage.get("is_on")));
       entity.onTurnOff(() => entity.storage.set("is_on", false));

@@ -65,5 +65,5 @@ export function VirtualVacuum({ context, synapse }: TServiceParams) {
 
   return <ATTRIBUTES extends object>(
     options: AddEntityOptions<VacuumConfiguration, VacuumEvents, ATTRIBUTES>,
-  ) => generate.add_entity(options);
+  ) => generate.addEntity(options);
 }

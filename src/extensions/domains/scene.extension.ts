@@ -21,5 +21,5 @@ export function VirtualScene({ context, synapse }: TServiceParams) {
 
   return <ATTRIBUTES extends object>(
     options: AddEntityOptions<SceneConfiguration, SceneEvents, ATTRIBUTES>,
-  ) => generate.add_entity(options);
+  ) => generate.addEntity(options);
 }

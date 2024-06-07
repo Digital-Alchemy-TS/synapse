@@ -35,7 +35,7 @@ export function VirtualSelect({ context, synapse }: TServiceParams) {
     managed = true,
     ...options
   }: AddEntityOptions<SelectConfiguration, SelectEvents, ATTRIBUTES>) {
-    const entity = generate.add_entity(options);
+    const entity = generate.addEntity(options);
     if (managed) {
       entity.onSelectOption(({ option }) => entity.storage.set("current_option", option));
     }

@@ -20,9 +20,9 @@ export function EntityGenerator({ scheduler, synapse, context, logger, hass }: T
       suggested_object_id: "magic_the_sensor",
       unit_of_measurement: "ft/s",
     });
-    sensor.onUpdate(() => {
-      //
-    });
+    // sensor.onUpdate(() => {
+    //   //
+    // });
     const binary_sensor = synapse.binary_sensor({
       context,
       device_class: "window",
@@ -67,7 +67,7 @@ export function EntityGenerator({ scheduler, synapse, context, logger, hass }: T
         current() {
           return binary_sensor.is_on;
         },
-        onUpdate: [binary_sensor, entity],
+        onUpdate: [binary_sensor],
       },
       name: "Example switch",
     });

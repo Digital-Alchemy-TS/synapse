@@ -1,10 +1,10 @@
 import { is, SINGLE, START, TBlackHole, TServiceParams } from "@digital-alchemy/core";
-import { ByIdProxy, PICK_ENTITY, TEntityUpdateCallback } from "@digital-alchemy/hass";
-import { CamelCase } from "type-fest";
+import { PICK_ENTITY, TEntityUpdateCallback } from "@digital-alchemy/hass";
 
 import {
   AddEntityOptions,
   BaseEvent,
+  ConfigMapper,
   CreateRemovableCallback,
   DomainGeneratorOptions,
   EntityConfigCommon,
@@ -12,42 +12,9 @@ import {
   generateHash,
   LATE_READY,
   RemovableCallback,
-  SettableConfiguration,
+  SynapseEntityProxy,
   TEventMap,
 } from "../helpers";
-import { ConfigMapper, TSynapseEntityStorage } from "./storage.extension";
-
-type CommonMethods<CONFIGURATION extends object> = {
-  getEntity: () => ByIdProxy<PICK_ENTITY>;
-  onUpdate(callback: TEntityUpdateCallback<PICK_ENTITY>): {
-    remove(): void;
-  };
-  storage: TSynapseEntityStorage<CONFIGURATION & EntityConfigCommon<object>>;
-};
-
-export type SynapseEntityProxy<
-  CONFIGURATION extends object,
-  EVENT_MAP extends TEventMap,
-  ATTRIBUTES extends object,
-> = CommonMethods<CONFIGURATION> &
-  BuildCallbacks<EVENT_MAP> &
-  NonReactive<CONFIGURATION> &
-  EntityConfigCommon<ATTRIBUTES>;
-
-type NonReactive<CONFIGURATION extends object> = {
-  [KEY in Extract<keyof CONFIGURATION, string>]: CONFIGURATION[KEY] extends SettableConfiguration<
-    infer TYPE
-  >
-    ? TYPE
-    : CONFIGURATION[KEY];
-};
-
-type BuildCallbacks<EVENT_MAP extends TEventMap> = {
-  [EVENT_NAME in Extract<
-    keyof EVENT_MAP,
-    string
-  > as CamelCase<`on-${EVENT_NAME}`>]: CreateRemovableCallback<EVENT_MAP[EVENT_NAME]>;
-};
 
 export function DomainGenerator({
   logger,
@@ -85,24 +52,24 @@ export function DomainGenerator({
   }: DomainGeneratorOptions<CONFIGURATION, EVENT_MAP>) {
     logger.trace({ bus_events, context }, "registering domain [%s]", domain);
 
+    // 🚌🚏 Bus transfer
     bus_events.forEach(name => {
-      // some domains have duplicates
-      // filter those out
+      // some domains duplicate others
       if (registered.has(name)) {
         return;
       }
+      logger.trace({ name }, "set up bus transfer");
       registered.add(name);
       hass.socket.onEvent({
         context,
         event: [config.synapse.EVENT_NAMESPACE, name, getIdentifier()].join("/"),
-        // 🚌🚏 Bus transfer
         exec: ({ data }: BaseEvent) => event.emit(`/synapse/${name}/${data.unique_id}`, data),
       });
     });
 
     return {
       // #MARK: add_entity
-      add_entity<ATTRIBUTES extends object>(
+      addEntity<ATTRIBUTES extends object>(
         entity: AddEntityOptions<CONFIGURATION, EVENT_MAP, ATTRIBUTES>,
       ) {
         // * defaults
@@ -151,6 +118,7 @@ export function DomainGenerator({
 
         const getEntity = () => hass.entity.byUniqueId(unique_id);
 
+        // #MARK: entity proxy
         return new Proxy({} as SynapseEntityProxy<CONFIGURATION, EVENT_MAP, ATTRIBUTES>, {
           get(_, property: string) {
             if (!is.undefined(dynamicAttach[property])) {
@@ -169,17 +137,21 @@ export function DomainGenerator({
               case "onUpdate": {
                 return function (callback: TEntityUpdateCallback<PICK_ENTITY>) {
                   let remover: { remove: () => TBlackHole };
+                  console.log(entity, "HIT");
+                  console.trace();
                   lifecycle.onReady(() => {
-                    const entity = getEntity();
-                    if (!entity) {
+                    console.log(entity, "HIT2");
+                    const found = getEntity();
+                    if (!found) {
                       logger.error(
-                        { entity, name: "onUpdate" },
+                        { entity: found, name: "onUpdate" },
                         `event attachment failed, is entity loaded in home assistant?`,
                       );
                       return;
                     }
-                    remover = entity.onUpdate(callback);
-                  }, LATE_READY);
+                    console.log(found.entity_id);
+                    remover = found.onUpdate(callback);
+                  });
                   return {
                     /**
                      * can only be used during runtime

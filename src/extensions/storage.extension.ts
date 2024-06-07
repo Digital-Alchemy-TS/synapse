@@ -1,55 +1,19 @@
 import { CronExpression, InternalError, is, TServiceParams } from "@digital-alchemy/core";
-import { ENTITY_STATE, PICK_ENTITY, TRawDomains } from "@digital-alchemy/hass";
+import { TRawDomains } from "@digital-alchemy/hass";
 
 import {
-  AddEntityOptions,
+  AddStateOptions,
+  COMMON_CONFIG_KEYS,
   EntityConfigCommon,
   isCommonConfigKey,
   isReactiveConfig,
+  NO_LIVE_UPDATE,
   ReactiveConfig,
+  TSynapseEntityStorage,
   TSynapseId,
 } from "../helpers";
 
-export type TSynapseEntityStorage<CONFIGURATION extends object = object> = {
-  unique_id: TSynapseId;
-  set: <KEY extends keyof CONFIGURATION>(key: KEY, value: CONFIGURATION[KEY]) => void;
-  get: <KEY extends keyof CONFIGURATION>(key: KEY) => CONFIGURATION[KEY];
-  isStored(key: string): key is Extract<keyof CONFIGURATION, string>;
-  export: () => CONFIGURATION;
-};
-
 const LATE_READY = -1;
-
-type AddStateOptions<CONFIGURATION extends EntityConfigCommon<object>> = {
-  domain: TRawDomains;
-  entity: AddEntityOptions<CONFIGURATION>;
-  /**
-   * initial import from typescript defs
-   */
-  load_config_keys: (keyof AddEntityOptions<CONFIGURATION>)[];
-  /**
-   * when loading data from hass, map `state` to this config property
-   */
-  map_state: Extract<keyof CONFIGURATION, string>;
-  /**
-   * when loading data from hass, import these config properties from entity attributes
-   */
-  map_config: ConfigMapper<Extract<keyof CONFIGURATION, string>>[];
-};
-
-const NO_LIVE_UPDATE = new Set<string>([
-  "unique_id",
-  "suggested_object_id",
-  "entity_category",
-  "translation_key",
-]);
-
-export type ConfigMapper<KEY extends string> =
-  | {
-      key: KEY;
-      load<ENTITY extends PICK_ENTITY>(entity: ENTITY_STATE<ENTITY>): unknown;
-    }
-  | KEY;
 
 export function StorageExtension({
   logger,
@@ -90,6 +54,7 @@ export function StorageExtension({
 
     const CURRENT_VALUE = {} as Record<keyof CONFIGURATION, unknown>;
 
+    // * update settable config
     function createSettableConfig(key: keyof CONFIGURATION, config: ReactiveConfig) {
       const update = () => {
         const new_value = config.current() as CONFIGURATION[typeof key];
@@ -99,24 +64,27 @@ export function StorageExtension({
         }
         storage.set(key, new_value);
       };
-      scheduler.cron({
-        exec: update,
-        schedule: config.schedule || CronExpression.EVERY_30_SECONDS,
+      lifecycle.onReady(() => {
+        scheduler.cron({
+          exec: update,
+          schedule: config.schedule || CronExpression.EVERY_30_SECONDS,
+        });
+        if (!is.empty(config.onUpdate)) {
+          config.onUpdate.forEach(entity =>
+            entity.onUpdate(() => {
+              console.log("hit");
+              update();
+            }),
+          );
+        }
+        setImmediate(() => update());
       });
-      if (!is.empty(config.onUpdate)) {
-        config.onUpdate.forEach(entity => entity.onUpdate(update));
-      }
     }
 
+    // * import
     const load = [
       ...load_config_keys,
-      "attributes",
-      "entity_category",
-      "icon",
-      "name",
-      "suggested_object_id",
-      "translation_key",
-      "unique_id",
+      ...COMMON_CONFIG_KEYS.values(),
     ] as (keyof EntityConfigCommon<object>)[];
     load.forEach(key => {
       const value = entity[key];

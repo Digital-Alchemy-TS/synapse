@@ -33,5 +33,5 @@ export function VirtualLawnMower({ context, synapse }: TServiceParams) {
 
   return <ATTRIBUTES extends object>(
     options: AddEntityOptions<LawnMowerConfiguration, LawnMowerEvents, ATTRIBUTES>,
-  ) => generate.add_entity(options);
+  ) => generate.addEntity(options);
 }

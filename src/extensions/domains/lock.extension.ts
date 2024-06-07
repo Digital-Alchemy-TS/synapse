@@ -77,7 +77,7 @@ export function VirtualLock({ context, synapse }: TServiceParams) {
     managed = true,
     ...options
   }: AddEntityOptions<LockConfiguration, LockEvents, ATTRIBUTES>) {
-    const entity = generate.add_entity(options);
+    const entity = generate.addEntity(options);
     if (managed) {
       entity.onLock(({}) => entity.storage.set("is_locked", true));
       entity.onUnlock(({}) => entity.storage.set("is_locked", false));

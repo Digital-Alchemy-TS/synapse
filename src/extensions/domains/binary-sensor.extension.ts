@@ -29,5 +29,5 @@ export function VirtualBinarySensor({ context, synapse }: TServiceParams) {
 
   return <ATTRIBUTES extends object>(
     options: AddEntityOptions<BinarySensorConfiguration, BinarySensorEvents, ATTRIBUTES>,
-  ) => generate.add_entity(options);
+  ) => generate.addEntity(options);
 }

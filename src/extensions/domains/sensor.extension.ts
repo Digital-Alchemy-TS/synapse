@@ -22,5 +22,5 @@ export function VirtualSensor({ context, synapse }: TServiceParams) {
 
   return <ATTRIBUTES extends object>(
     options: AddEntityOptions<SensorConfiguration<ATTRIBUTES>, SensorEvents, ATTRIBUTES>,
-  ) => generate.add_entity<ATTRIBUTES>(options);
+  ) => generate.addEntity<ATTRIBUTES>(options);
 }
