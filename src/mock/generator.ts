@@ -1,7 +1,7 @@
 import { SECOND, TServiceParams } from "@digital-alchemy/core";
 import dayjs from "dayjs";
 
-export function EntityGenerator({ scheduler, synapse, context, logger, hass }: TServiceParams) {
+export function EntityGenerator({ scheduler, synapse, context, logger }: TServiceParams) {
   try {
     const subDevice = synapse.device.register("sub_device", {
       name: "example device",
@@ -59,8 +59,8 @@ export function EntityGenerator({ scheduler, synapse, context, logger, hass }: T
     scene.onActivate(() => {
       logger.info("scene activated callback");
     });
-    const entity = hass.entity.byId("binary_sensor.hass_e2e_online");
-    const virtualSwitch = synapse.switch({
+    // const entity = hass.entity.byId("binary_sensor.hass_e2e_online");
+    synapse.switch({
       context,
       icon: {
         current() {
