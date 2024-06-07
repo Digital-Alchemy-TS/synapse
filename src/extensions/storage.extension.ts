@@ -64,21 +64,14 @@ export function StorageExtension({
         }
         storage.set(key, new_value);
       };
-      lifecycle.onReady(() => {
-        scheduler.cron({
-          exec: update,
-          schedule: config.schedule || CronExpression.EVERY_30_SECONDS,
-        });
-        if (!is.empty(config.onUpdate)) {
-          config.onUpdate.forEach(entity =>
-            entity.onUpdate(() => {
-              console.log("hit");
-              update();
-            }),
-          );
-        }
-        setImmediate(() => update());
+      scheduler.cron({
+        exec: update,
+        schedule: config.schedule || CronExpression.EVERY_30_SECONDS,
       });
+      if (!is.empty(config.onUpdate)) {
+        config.onUpdate.forEach(entity => entity.onUpdate(update));
+      }
+      setImmediate(() => update());
     }
 
     // * import

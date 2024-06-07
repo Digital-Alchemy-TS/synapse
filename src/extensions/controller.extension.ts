@@ -12,6 +12,7 @@ export function Controller({ fastify, config, synapse, logger, internal }: TServ
         device: synapse.device.getInfo(),
         host: config.synapse.METADATA_HOST,
         hostname: hostname(),
+        secondary_devices: synapse.device.list(),
         title: config.synapse.METADATA_TITLE,
         unique_id: config.synapse.METADATA_UNIQUE_ID,
         username: userInfo().username,

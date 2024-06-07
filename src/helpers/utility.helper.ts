@@ -17,6 +17,7 @@ export type SynapseDescribeResponse = {
   title: string;
   app: string;
   device: HassDeviceMetadata;
+  secondary_devices: HassDeviceMetadata[];
   unique_id: string;
   username: string;
 };

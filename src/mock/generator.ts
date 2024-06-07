@@ -14,15 +14,14 @@ export function EntityGenerator({ scheduler, synapse, context, logger, hass }: T
       context,
       device_class: "speed",
       device_id: subDevice,
-      // entity_category: "diagnostic",
       name: "Test the sensor",
       state: 20,
       suggested_object_id: "magic_the_sensor",
       unit_of_measurement: "ft/s",
     });
-    // sensor.onUpdate(() => {
-    //   //
-    // });
+    sensor.onUpdate(() => {
+      //
+    });
     const binary_sensor = synapse.binary_sensor({
       context,
       device_class: "window",
@@ -63,9 +62,15 @@ export function EntityGenerator({ scheduler, synapse, context, logger, hass }: T
     const entity = hass.entity.byId("binary_sensor.hass_e2e_online");
     const virtualSwitch = synapse.switch({
       context,
+      icon: {
+        current() {
+          return binary_sensor.is_on ? "mdi:air-filter" : "mdi:account";
+        },
+        onUpdate: [binary_sensor],
+      },
       is_on: {
         current() {
-          return binary_sensor.is_on;
+          return !binary_sensor.is_on;
         },
         onUpdate: [binary_sensor],
       },

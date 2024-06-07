@@ -10,7 +10,6 @@ import {
   EntityConfigCommon,
   formatObjectId,
   generateHash,
-  LATE_READY,
   RemovableCallback,
   SynapseEntityProxy,
   TEventMap,
@@ -137,10 +136,7 @@ export function DomainGenerator({
               case "onUpdate": {
                 return function (callback: TEntityUpdateCallback<PICK_ENTITY>) {
                   let remover: { remove: () => TBlackHole };
-                  console.log(entity, "HIT");
-                  console.trace();
                   lifecycle.onReady(() => {
-                    console.log(entity, "HIT2");
                     const found = getEntity();
                     if (!found) {
                       logger.error(
@@ -149,7 +145,6 @@ export function DomainGenerator({
                       );
                       return;
                     }
-                    console.log(found.entity_id);
                     remover = found.onUpdate(callback);
                   });
                   return {
