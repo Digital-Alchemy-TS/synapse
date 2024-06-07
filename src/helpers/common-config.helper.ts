@@ -2,8 +2,8 @@ import { CronExpression, is, TBlackHole } from "@digital-alchemy/core";
 import { ByIdProxy, PICK_ENTITY, TEntityUpdateCallback } from "@digital-alchemy/hass";
 import { CamelCase, Except } from "type-fest";
 
-import { TSynapseEntityStorage } from "../extensions";
 import { CreateRemovableCallback, TEventMap } from "./base-domain.helper";
+import { TSynapseEntityStorage } from "./storage";
 import { TSynapseDeviceId } from "./utility.helper";
 
 export type EntityConfigCommon<ATTRIBUTES extends object> = {
@@ -131,8 +131,8 @@ type ProxyBase<
   EVENT_MAP extends TEventMap,
   ATTRIBUTES extends object,
 > = CommonMethods<CONFIGURATION> &
-  BuildCallbacks<EVENT_MAP> &
   NonReactive<CONFIGURATION> &
+  BuildCallbacks<EVENT_MAP> &
   EntityConfigCommon<ATTRIBUTES>;
 
 /**
