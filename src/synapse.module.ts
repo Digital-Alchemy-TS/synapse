@@ -95,11 +95,7 @@ export const LIB_SYNAPSE = CreateLibrary({
       type: "number",
     },
     METADATA: {
-      description: [
-        "A string to uniquely identify this application",
-        "Should be unique within home assistant, such as a uuid",
-        "Default value calculated from hostname + username + app_name",
-      ],
+      description: "Extra data to describe the app + build default device from",
       type: "internal",
     } as InternalConfig<HassDeviceMetadata>,
     METADATA_HOST: {
@@ -120,6 +116,7 @@ export const LIB_SYNAPSE = CreateLibrary({
     },
     PUBLISH_BONJOUR: {
       default: true,
+      description: "Publish mDNS discovery topics to allow zeroconf discovery",
       type: "boolean",
     },
   },

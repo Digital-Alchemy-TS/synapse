@@ -2,7 +2,7 @@
   "name": "@digital-alchemy/synapse",
   "repository": "https://github.com/Digital-Alchemy-TS/synapse",
   "homepage": "https://docs.digital-alchemy.app/Synapse",
-  "version": "0.3.8",
+  "version": "24.06.1",
   "scripts": {
     "build": "rm -rf dist; tsc",
     "test": "./scripts/test.sh",
@@ -25,9 +25,9 @@
   },
   "license": "MIT",
   "dependencies": {
-    "@digital-alchemy/core": "^0.3.17",
-    "@digital-alchemy/fastify-extension": "^0.3.3",
-    "@digital-alchemy/hass": "^0.3.31",
+    "@digital-alchemy/core": "^24.6.1",
+    "@digital-alchemy/fastify-extension": "^24.6.1",
+    "@digital-alchemy/hass": "^24.6.2",
     "bonjour": "^3.5.0",
     "dayjs": "^1.11.11"
   },

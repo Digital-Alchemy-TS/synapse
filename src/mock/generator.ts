@@ -19,9 +19,11 @@ export function EntityGenerator({ scheduler, synapse, context, logger }: TServic
       suggested_object_id: "magic_the_sensor",
       unit_of_measurement: "ft/s",
     });
+
     sensor.onUpdate(() => {
       //
     });
+
     const binary_sensor = synapse.binary_sensor({
       context,
       device_class: "window",
