@@ -4,7 +4,7 @@ Welcome to `@digital-alchemy/synapse`!
 
 This project builds on the functions provided by `@digital-alchemy/hass` to provide the ability to generate entities within your Home Assistant install. With the help of a [custom component](https://github.com/Digital-Alchemy-TS/synapse-extension), you can gate logic behind switches, report states with sensors, attach functions to buttons, and more!
 
-- [Extended docs](https://docs.digital-alchemy.app/Synapse)
+- [Extended docs](https://docs.digital-alchemy.app)
 - [Discord](https://discord.gg/JkZ35Gv97Y)
 
 ## 💾 Install
@@ -21,10 +21,11 @@ Then add to your application / library
 ```typescript
 import { LIB_SYNAPSE } from "@digital-alchemy/synapse";
 import { LIB_HASS } from "@digital-alchemy/hass";
+import { LIB_FASTIFY } from "@digital-alchemy/fastify-extension";
 
 // application
 const MY_APP = CreateApplication({
-  libraries: [LIB_SYNAPSE, LIB_HASS],
+  libraries: [LIB_SYNAPSE, LIB_HASS, LIB_FASTIFY],
   name: "home_automation",
 })
 
