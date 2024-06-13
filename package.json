@@ -25,9 +25,9 @@
   },
   "license": "MIT",
   "dependencies": {
-    "@digital-alchemy/core": "^0.3.17",
+    "@digital-alchemy/core": "^24.6.1",
     "@digital-alchemy/fastify-extension": "^0.3.3",
-    "@digital-alchemy/hass": "^0.3.31",
+    "@digital-alchemy/hass": "^24.6.2",
     "bonjour": "^3.5.0",
     "dayjs": "^1.11.11"
   },
