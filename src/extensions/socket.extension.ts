@@ -46,10 +46,8 @@ export function SocketExtension({
       logger.debug({ name: "send" }, `socket connection isn't active, not sending update event`);
       return;
     }
-    await hass.socket.fireEvent(name("update"), {
-      data,
-      unique_id,
-    });
+    logger.trace({ data, unique_id }, `update`);
+    await hass.socket.fireEvent(name("update"), { data, unique_id });
   }
 
   return { send };
