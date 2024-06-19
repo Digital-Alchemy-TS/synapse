@@ -2,7 +2,7 @@
   "name": "@digital-alchemy/synapse",
   "repository": "https://github.com/Digital-Alchemy-TS/synapse",
   "homepage": "https://docs.digital-alchemy.app/Synapse",
-  "version": "24.06.2",
+  "version": "24.06.3",
   "scripts": {
     "build": "rm -rf dist; tsc",
     "test": "./scripts/test.sh",
