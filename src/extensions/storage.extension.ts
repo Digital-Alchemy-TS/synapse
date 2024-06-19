@@ -1,5 +1,5 @@
 import { CronExpression, InternalError, is, TServiceParams } from "@digital-alchemy/core";
-import { TRawDomains } from "@digital-alchemy/hass";
+import { TRawDomains, TUniqueId } from "@digital-alchemy/hass";
 
 import {
   AddStateOptions,
@@ -20,6 +20,7 @@ export function StorageExtension({
   context,
   lifecycle,
   hass,
+  internal,
   synapse,
   scheduler,
 }: TServiceParams) {
@@ -100,6 +101,9 @@ export function StorageExtension({
         CURRENT_VALUE[key] = value;
         if (initialized) {
           setImmediate(async () => await synapse.socket.send(entity.unique_id, CURRENT_VALUE));
+        } else if (internal.boot.completedLifecycleEvents.has("Ready")) {
+          const entity_id = hass.idBy.unique_id(entity.unique_id as TUniqueId);
+          logger.warn({ name: entity_id, unique_id: entity.unique_id }, `not initialized`);
         }
       },
       unique_id: entity.unique_id,
@@ -108,7 +112,7 @@ export function StorageExtension({
 
     // * value loading
     if (!is.empty(map_state) || !is.empty(map_config)) {
-      lifecycle.onReady(async () => {
+      lifecycle.onReady(() => {
         const config = hass.entity.registry.current.find(i => i.unique_id === entity.unique_id);
         if (!config) {
           logger.warn({ options: entity }, "cannot find entity in hass registry");
@@ -116,30 +120,32 @@ export function StorageExtension({
           return;
         }
         const entity_id = config.entity_id;
-        const reference = hass.entity.byId(entity_id);
-        if (reference.state === "unavailable") {
-          logger.trace({ name: entity_id, state: reference.state }, `waiting for initial value`);
-          await reference.nextState();
-          logger.trace({ name: entity_id }, "received");
-        }
-
-        if (!is.empty(map_state)) {
-          storage.set(map_state, reference.state as CONFIGURATION[typeof map_state]);
-        }
-
-        map_config.forEach(config => {
-          if (is.string(config)) {
-            storage.set(
-              config,
-              reference.attributes[
-                config as keyof typeof reference.attributes
-              ] as CONFIGURATION[typeof map_state],
-            );
-            return;
+        const reference = hass.refBy.id(entity_id);
+        setImmediate(async () => {
+          if (reference.state === "unavailable") {
+            logger.trace({ name: entity_id, state: reference.state }, `waiting for initial value`);
+            await reference.nextState();
+            logger.trace({ name: entity_id }, "received");
           }
-          storage.set(config.key, config.load(reference) as CONFIGURATION[typeof map_state]);
+
+          if (!is.empty(map_state)) {
+            storage.set(map_state, reference.state as CONFIGURATION[typeof map_state]);
+          }
+
+          map_config.forEach(config => {
+            if (is.string(config)) {
+              storage.set(
+                config,
+                reference.attributes[
+                  config as keyof typeof reference.attributes
+                ] as CONFIGURATION[typeof map_state],
+              );
+              return;
+            }
+            storage.set(config.key, config.load(reference) as CONFIGURATION[typeof map_state]);
+          });
+          initialized = true;
         });
-        initialized = true;
       }, LATE_READY);
     } else {
       initialized = true;
