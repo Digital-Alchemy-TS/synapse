@@ -20,7 +20,6 @@ export function DomainGenerator({
   internal,
   synapse,
   event,
-  lifecycle,
   hass,
   config,
 }: TServiceParams) {
