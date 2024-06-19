@@ -1,12 +1,5 @@
-import { is, SINGLE, START, TAnyFunction, TBlackHole, TServiceParams } from "@digital-alchemy/core";
-import {
-  ANY_ENTITY,
-  ENTITY_STATE,
-  PICK_ENTITY,
-  TEntityUpdateCallback,
-  TUniqueId,
-  TUniqueIDMapping,
-} from "@digital-alchemy/hass";
+import { is, SINGLE, START, TAnyFunction, TServiceParams } from "@digital-alchemy/core";
+import { ANY_ENTITY, ENTITY_STATE, TUniqueId, TUniqueIDMapping } from "@digital-alchemy/hass";
 
 import {
   AddEntityOptions,
