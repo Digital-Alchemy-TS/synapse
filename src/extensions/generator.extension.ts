@@ -1,5 +1,5 @@
-import { is, SINGLE, START, TBlackHole, TServiceParams } from "@digital-alchemy/core";
-import { PICK_ENTITY, TEntityUpdateCallback } from "@digital-alchemy/hass";
+import { is, SINGLE, START, TAnyFunction, TServiceParams } from "@digital-alchemy/core";
+import { ANY_ENTITY, ENTITY_STATE, TUniqueId, TUniqueIDMapping } from "@digital-alchemy/hass";
 
 import {
   AddEntityOptions,
@@ -20,7 +20,6 @@ export function DomainGenerator({
   internal,
   synapse,
   event,
-  lifecycle,
   hass,
   config,
 }: TServiceParams) {
@@ -62,7 +61,10 @@ export function DomainGenerator({
       hass.socket.onEvent({
         context,
         event: [config.synapse.EVENT_NAMESPACE, name, getIdentifier()].join("/"),
-        exec: ({ data }: BaseEvent) => event.emit(`/synapse/${name}/${data.unique_id}`, data),
+        exec: ({ data }: BaseEvent) => {
+          logger.trace({ data, name }, `receive`);
+          event.emit(`/synapse/${name}/${data.unique_id}`, data);
+        },
       });
     });
 
@@ -78,7 +80,7 @@ export function DomainGenerator({
           : entity.unique_id;
         // - suggested_object_id - required on python side due to the way the code is set up
         entity.suggested_object_id ??= formatObjectId(entity.name);
-        const unique_id = entity.unique_id;
+        const unique_id = entity.unique_id as TUniqueId;
 
         // * initialize storage
         const storage = synapse.storage.add<CONFIGURATION & EntityConfigCommon<object>>({
@@ -115,7 +117,7 @@ export function DomainGenerator({
           ]),
         );
 
-        const getEntity = () => hass.entity.byUniqueId(unique_id);
+        const getEntity = () => hass.refBy.unique_id(unique_id);
 
         // #MARK: entity proxy
         return new Proxy({} as SynapseEntityProxy<CONFIGURATION, EVENT_MAP, ATTRIBUTES>, {
@@ -134,34 +136,17 @@ export function DomainGenerator({
                 return storage;
               }
               case "onUpdate": {
-                return function (callback: TEntityUpdateCallback<PICK_ENTITY>) {
-                  let remover: { remove: () => TBlackHole };
-                  lifecycle.onReady(() => {
-                    const found = getEntity();
-                    if (!found) {
-                      logger.error(
-                        { entity: found, name: "onUpdate" },
-                        `event attachment failed, is entity loaded in home assistant?`,
-                      );
-                      return;
-                    }
-                    remover = found.onUpdate(callback);
-                  });
-                  return {
-                    /**
-                     * can only be used during runtime
-                     */
-                    remove() {
-                      if (remover) {
-                        logger.trace(`removing entity update callback`);
-                        remover.remove();
-                        remover = undefined;
-                        return;
-                      }
-                      // too soon / already used
-                      logger.error(`no remover function defined`);
-                    },
-                  };
+                type ENTITY_ID = Extract<TUniqueIDMapping[typeof unique_id], ANY_ENTITY>;
+                return function (callback: TAnyFunction) {
+                  const removableCallback = async (
+                    a: ENTITY_STATE<ENTITY_ID>,
+                    b: ENTITY_STATE<ENTITY_ID>,
+                  ) => await internal.safeExec(async () => callback(a, b, remove));
+                  function remove() {
+                    event.removeListener(unique_id, removableCallback);
+                  }
+                  event.on(unique_id, removableCallback);
+                  return { remove };
                 };
               }
             }
