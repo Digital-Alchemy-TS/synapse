@@ -1,4 +1,5 @@
 import { SECOND, TServiceParams } from "@digital-alchemy/core";
+import { TUniqueId } from "@digital-alchemy/hass";
 
 export function SocketExtension({
   logger,
@@ -37,7 +38,7 @@ export function SocketExtension({
     if (!config.synapse.EMIT_HEARTBEAT) {
       return;
     }
-    logger.debug({ name: "onPreShutdown" }, `notifying synapse extension of shutdown`);
+    logger.debug({ name: "onPreShutdown" }, `sending shutdown notification`);
     await hass.socket.fireEvent(name("shutdown"));
   });
 
@@ -46,7 +47,12 @@ export function SocketExtension({
       logger.debug({ name: "send" }, `socket connection isn't active, not sending update event`);
       return;
     }
-    logger.trace({ data, unique_id }, `update`);
+    const entity_id = hass.idBy.unique_id(unique_id as TUniqueId);
+    if (entity_id) {
+      logger.trace({ name: entity_id }, `update`);
+    } else {
+      logger.warn({ data, unique_id }, `updating unregistered entity`);
+    }
     await hass.socket.fireEvent(name("update"), { data, unique_id });
   }
 
