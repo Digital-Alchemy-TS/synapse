@@ -1,6 +1,8 @@
 import { CreateLibrary, InternalConfig } from "@digital-alchemy/core";
 import { LIB_FASTIFY } from "@digital-alchemy/fastify-extension";
 import { LIB_HASS } from "@digital-alchemy/hass";
+import { join } from "path";
+import { cwd } from "process";
 
 import {
   Configure,
@@ -118,6 +120,11 @@ export const LIB_SYNAPSE = CreateLibrary({
       default: true,
       description: "Publish mDNS discovery topics to allow zeroconf discovery",
       type: "boolean",
+    },
+    SQLITE_DB: {
+      default: join(cwd(), "synapse_storage.db"),
+      description: "",
+      type: "string",
     },
   },
   depends: [LIB_HASS, LIB_FASTIFY],

@@ -1,5 +1,6 @@
 import { CronExpression, InternalError, is, TServiceParams } from "@digital-alchemy/core";
 import { TRawDomains, TUniqueId } from "@digital-alchemy/hass";
+import { PrismaClient } from "@prisma/client";
 
 import {
   AddStateOptions,
@@ -13,10 +14,9 @@ import {
   TSynapseId,
 } from "../helpers";
 
-const LATE_READY = -1;
-
 export function StorageExtension({
   logger,
+  config,
   context,
   lifecycle,
   hass,
@@ -26,6 +26,54 @@ export function StorageExtension({
 }: TServiceParams) {
   const registry = new Map<TSynapseId, TSynapseEntityStorage>();
   const domain_lookup = new Map<string, TRawDomains>();
+  let prisma: PrismaClient;
+
+  // * init prisma
+  lifecycle.onPostConfig(async () => {
+    const url = config.synapse.SQLITE_DB.startsWith("file")
+      ? config.synapse.SQLITE_DB
+      : `file:${config.synapse.SQLITE_DB}`;
+    prisma = new PrismaClient({ datasources: { db: { url } } });
+    prisma.$connect();
+    await prisma.$executeRaw`CREATE TABLE IF NOT EXISTS HomeAssistantEntity (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      unique_id TEXT NOT NULL UNIQUE,
+      entity_id TEXT NOT NULL,
+      state_json TEXT NOT NULL,
+      first_observed DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      last_reported DATETIME NOT NULL,
+      last_modified DATETIME NOT NULL,
+      application_name TEXT NOT NULL
+    )`;
+  });
+
+  // * teardown prisma
+  lifecycle.onShutdownStart(() => prisma.$disconnect());
+
+  async function update(unique_id: TSynapseId) {
+    const content = registry.get(unique_id);
+    const state_json = JSON.stringify(content.export());
+    const now = new Date();
+    await prisma.homeAssistantEntity.upsert({
+      create: {
+        application_name: internal.boot.application.name,
+        entity_id: hass.idBy.unique_id(unique_id as TUniqueId),
+        first_observed: now,
+        last_modified: now,
+        last_reported: now,
+        state_json,
+        unique_id,
+      },
+      update: {
+        entity_id: hass.idBy.unique_id(unique_id as TUniqueId),
+        last_modified: now,
+        last_reported: now,
+        state_json,
+        unique_id,
+      },
+      where: { unique_id },
+    });
+  }
 
   function dump() {
     const list = [...registry.keys()];
@@ -43,9 +91,7 @@ export function StorageExtension({
   function add<CONFIGURATION extends EntityConfigCommon<object>>({
     entity,
     load_config_keys,
-    map_config = [],
     domain,
-    map_state,
   }: AddStateOptions<CONFIGURATION>) {
     if (registry.has(entity.unique_id as TSynapseId)) {
       throw new InternalError(context, `ENTITY_COLLISION`, `${domain} registry already id`);
@@ -53,7 +99,7 @@ export function StorageExtension({
     domain_lookup.set(entity.unique_id, domain);
     let initialized = false;
 
-    const CURRENT_VALUE = {} as Record<keyof CONFIGURATION, unknown>;
+    let CURRENT_VALUE = {} as Record<keyof CONFIGURATION, unknown>;
 
     // * update settable config
     function createSettableConfig(key: keyof CONFIGURATION, config: ReactiveConfig) {
@@ -100,10 +146,12 @@ export function StorageExtension({
         }
         CURRENT_VALUE[key] = value;
         if (initialized) {
-          setImmediate(async () => await synapse.socket.send(entity.unique_id, CURRENT_VALUE));
-        } else if (internal.boot.completedLifecycleEvents.has("Ready")) {
-          const entity_id = hass.idBy.unique_id(entity.unique_id as TUniqueId);
-          logger.warn({ name: entity_id, unique_id: entity.unique_id }, `not initialized`);
+          setImmediate(async () => {
+            await update(entity.unique_id as TSynapseId);
+            if (hass.socket.connectionState === "connected") {
+              await synapse.socket.send(entity.unique_id, CURRENT_VALUE);
+            }
+          });
         }
       },
       unique_id: entity.unique_id,
@@ -111,45 +159,20 @@ export function StorageExtension({
     registry.set(entity.unique_id as TSynapseId, storage as unknown as TSynapseEntityStorage);
 
     // * value loading
-    if (!is.empty(map_state) || !is.empty(map_config)) {
-      lifecycle.onReady(() => {
-        const config = hass.entity.registry.current.find(i => i.unique_id === entity.unique_id);
-        if (!config) {
-          logger.warn({ options: entity }, "cannot find entity in hass registry");
-          initialized = true;
-          return;
-        }
-        const entity_id = config.entity_id;
-        const reference = hass.refBy.id(entity_id);
-        setImmediate(async () => {
-          if (reference.state === "unavailable") {
-            logger.trace({ name: entity_id, state: reference.state }, `waiting for initial value`);
-            await reference.nextState();
-            logger.trace({ name: entity_id }, "received");
-          }
-
-          if (!is.empty(map_state)) {
-            storage.set(map_state, reference.state as CONFIGURATION[typeof map_state]);
-          }
-
-          map_config.forEach(config => {
-            if (is.string(config)) {
-              storage.set(
-                config,
-                reference.attributes[
-                  config as keyof typeof reference.attributes
-                ] as CONFIGURATION[typeof map_state],
-              );
-              return;
-            }
-            storage.set(config.key, config.load(reference) as CONFIGURATION[typeof map_state]);
-          });
-          initialized = true;
-        });
-      }, LATE_READY);
-    } else {
+    lifecycle.onBootstrap(async () => {
+      const data = await prisma.homeAssistantEntity.findFirst({
+        where: { unique_id: entity.unique_id },
+      });
+      if (!data) {
+        logger.warn(`first observation of entity`);
+        await update(entity.unique_id as TSynapseId);
+        initialized = true;
+        return;
+      }
+      logger.debug({ name: data.entity_id }, `importing value`);
+      CURRENT_VALUE = JSON.parse(data.state_json);
       initialized = true;
-    }
+    });
 
     // * done
     return storage;

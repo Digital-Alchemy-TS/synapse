@@ -1,5 +1,5 @@
 import { TServiceParams } from "@digital-alchemy/core";
-import { ENTITY_STATE, PICK_ENTITY, SwitchDeviceClass } from "@digital-alchemy/hass";
+import { SwitchDeviceClass } from "@digital-alchemy/hass";
 
 import { AddEntityOptions, SettableConfiguration } from "../..";
 
@@ -33,9 +33,6 @@ export function VirtualSwitch({ context, synapse }: TServiceParams) {
     context,
     domain: "switch",
     load_config_keys: ["device_class", "is_on"],
-    map_config: [
-      { key: "is_on", load: (entity: ENTITY_STATE<PICK_ENTITY>) => entity.state === "on" },
-    ],
   });
 
   return function <ATTRIBUTES extends object>({

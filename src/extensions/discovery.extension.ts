@@ -1,10 +1,9 @@
 import { is, TServiceParams } from "@digital-alchemy/core";
-import Bonjour from "bonjour";
 import { createHash } from "crypto";
 import { hostname, userInfo } from "os";
 
 export function DiscoveryExtension({ config, lifecycle, logger, internal }: TServiceParams) {
-  let bonjour: Bonjour.Bonjour;
+  // let bonjour: Bonjour.Bonjour;
   function uniqueProperties(): string[] {
     return [hostname(), userInfo().username, internal.boot.application.name];
   }
@@ -39,7 +38,7 @@ export function DiscoveryExtension({ config, lifecycle, logger, internal }: TSer
     // });
   });
 
-  lifecycle.onShutdownStart(() => {
-    bonjour?.destroy();
-  });
+  // lifecycle.onShutdownStart(() => {
+  //   bonjour?.destroy();
+  // });
 }

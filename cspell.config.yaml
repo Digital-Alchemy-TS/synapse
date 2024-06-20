@@ -20,9 +20,11 @@ words:
   - programminghorror
   - rgbw
   - rgbww
+  - datasources
   - sonarjs
   - tvshow
   - utcnow
   - zeroconf
+  - autoincrement
 ignoreWords: []
 import: []

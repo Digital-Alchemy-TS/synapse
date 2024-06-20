@@ -4,7 +4,6 @@ import { ANY_ENTITY, ENTITY_STATE, TUniqueId, TUniqueIDMapping } from "@digital-
 import {
   AddEntityOptions,
   BaseEvent,
-  ConfigMapper,
   CreateRemovableCallback,
   DomainGeneratorOptions,
   EntityConfigCommon,
@@ -45,8 +44,6 @@ export function DomainGenerator({
     context,
     bus_events = [],
     load_config_keys = [],
-    map_state,
-    map_config = [],
   }: DomainGeneratorOptions<CONFIGURATION, EVENT_MAP>) {
     logger.trace({ bus_events, context }, "registering domain [%s]", domain);
 
@@ -87,10 +84,6 @@ export function DomainGenerator({
           domain,
           entity,
           load_config_keys,
-          map_config: map_config as ConfigMapper<
-            Extract<keyof EntityConfigCommon<object>, string>
-          >[],
-          map_state: map_state as keyof EntityConfigCommon<object>,
         });
 
         // * map bus events
