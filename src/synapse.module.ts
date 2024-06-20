@@ -42,6 +42,7 @@ import {
   VirtualValve,
   VirtualWaterHeater,
 } from "./extensions";
+import { SQLite } from "./extensions/sqlite.extension";
 import { HassDeviceMetadata } from "./helpers";
 
 const DOMAINS = {
@@ -153,6 +154,7 @@ export const LIB_SYNAPSE = CreateLibrary({
     generator: DomainGenerator,
 
     socket: SocketExtension,
+    sqlite: SQLite,
     storage: StorageExtension,
     ...DOMAINS,
   },
