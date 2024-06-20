@@ -70,13 +70,15 @@ export function SQLite({ lifecycle, config, logger, hass, internal }: TServicePa
 
   function load(unique_id: TSynapseId, defaults: object) {
     const data = database
-      .prepare(`SELECT * FROM HomeAssistantEntity WHERE unique_id = ?`)
-      .get(unique_id) as HomeAssistantEntityRow;
+      .prepare(`SELECT * FROM HomeAssistantEntity WHERE unique_id = ? AND application_name = ?`)
+      .get(unique_id, application_name) as HomeAssistantEntityRow;
     if (data) {
       return data;
     }
     update(unique_id, defaults);
-    return data;
+    return database
+      .prepare(`SELECT * FROM HomeAssistantEntity WHERE unique_id = ? AND application_name = ?`)
+      .get(unique_id, application_name) as HomeAssistantEntityRow;
   }
 
   return { load, update };
