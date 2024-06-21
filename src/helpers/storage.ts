@@ -19,14 +19,6 @@ export type AddStateOptions<CONFIGURATION extends EntityConfigCommon<object>> = 
    * initial import from typescript defs
    */
   load_config_keys: (keyof AddEntityOptions<CONFIGURATION>)[];
-  /**
-   * when loading data from hass, map `state` to this config property
-   */
-  map_state: Extract<keyof CONFIGURATION, string>;
-  /**
-   * when loading data from hass, import these config properties from entity attributes
-   */
-  map_config: ConfigMapper<Extract<keyof CONFIGURATION, string>>[];
 };
 
 export type ConfigMapper<KEY extends string> =

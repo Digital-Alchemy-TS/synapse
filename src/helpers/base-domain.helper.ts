@@ -3,7 +3,6 @@ import { TRawDomains } from "@digital-alchemy/hass";
 import { createHash } from "crypto";
 
 import { EntityConfigCommon } from "./common-config.helper";
-import { ConfigMapper } from "./storage";
 import { TSynapseId } from "./utility.helper";
 
 export type RemovableCallback<DATA extends unknown = unknown> = (
@@ -39,16 +38,6 @@ export type DomainGeneratorOptions<
    * What to use instead of `undefined` / `None`
    */
   default_config?: Partial<CONFIGURATION>;
-  /**
-   * when loading data from hass, map `state` to this config property
-   *
-   * will automatically use `state` if present in `load_config_keys`
-   */
-  map_state?: Extract<keyof CONFIGURATION, string>;
-  /**
-   * when loading data from hass, import these config properties from entity attributes
-   */
-  map_config?: ConfigMapper<Extract<keyof CONFIGURATION, string>>[];
 };
 
 export type TEventMap = Record<string, object>;

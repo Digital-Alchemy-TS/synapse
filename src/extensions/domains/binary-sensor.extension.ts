@@ -1,5 +1,5 @@
 import { TServiceParams } from "@digital-alchemy/core";
-import { BinarySensorDeviceClass, ENTITY_STATE, PICK_ENTITY } from "@digital-alchemy/hass";
+import { BinarySensorDeviceClass } from "@digital-alchemy/hass";
 
 import { AddEntityOptions, SettableConfiguration } from "../..";
 
@@ -24,9 +24,6 @@ export function VirtualBinarySensor({ context, synapse }: TServiceParams) {
     default_config: { is_on: false },
     domain: "binary_sensor",
     load_config_keys: ["device_class", "is_on"],
-    map_config: [
-      { key: "is_on", load: (entity: ENTITY_STATE<PICK_ENTITY>) => entity.state === "on" },
-    ],
   });
 
   return <ATTRIBUTES extends object>(
