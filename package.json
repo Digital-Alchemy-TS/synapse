@@ -4,6 +4,7 @@
   "homepage": "https://docs.digital-alchemy.app/Synapse",
   "version": "24.6.4",
   "scripts": {
+    "mock": "tsx src/mock/main.ts",
     "build": "rm -rf dist; tsc",
     "test": "./scripts/test.sh",
     "lint": "eslint src",
@@ -26,8 +27,8 @@
   "license": "MIT",
   "dependencies": {
     "better-sqlite3": "^11.0.0",
-    "bonjour": "^3.5.0",
-    "dayjs": "^1.11.11"
+    "dayjs": "^1.11.11",
+    "node-ssdp": "^4.0.1"
   },
   "peerDependencies": {
     "@digital-alchemy/core": "*",
@@ -36,9 +37,9 @@
   },
   "devDependencies": {
     "@cspell/eslint-plugin": "^8.8.1",
-    "@digital-alchemy/core": "^24.6.3",
+    "@digital-alchemy/core": "^24.6.4",
     "@digital-alchemy/fastify-extension": "^24.6.1",
-    "@digital-alchemy/hass": "^24.6.8",
+    "@digital-alchemy/hass": "^24.6.9",
     "@types/better-sqlite3": "^7.6.10",
     "@types/figlet": "^1.5.8",
     "@types/jest": "^29.5.12",
@@ -46,6 +47,7 @@
     "@types/minimist": "^1.2.5",
     "@types/mute-stream": "^0.0.4",
     "@types/node": "^20.12.12",
+    "@types/node-ssdp": "^4.0.4",
     "@types/uuid": "^9.0.8",
     "@types/ws": "^8.5.10",
     "@typescript-eslint/eslint-plugin": "7.9.0",
@@ -70,5 +72,6 @@
     "tsx": "^4.10.3",
     "type-fest": "^4.18.2",
     "typescript": "^5.4.5"
-  }
+  },
+  "packageManager": "yarn@4.3.1"
 }

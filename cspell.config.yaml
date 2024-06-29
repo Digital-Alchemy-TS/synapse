@@ -17,6 +17,7 @@ words:
   - kbit
   - mbar
   - mbit
+  - upnp
   - programminghorror
   - rgbw
   - rgbww
@@ -26,5 +27,6 @@ words:
   - utcnow
   - zeroconf
   - autoincrement
+  - ssdp
 ignoreWords: []
 import: []
