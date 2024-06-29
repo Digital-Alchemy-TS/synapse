@@ -6,7 +6,6 @@ import { cwd } from "process";
 
 import {
   Configure,
-  Controller,
   DeviceExtension,
   DiscoveryExtension,
   DomainGenerator,
@@ -137,11 +136,6 @@ export const LIB_SYNAPSE = CreateLibrary({
      * internal
      */
     configure: Configure,
-
-    /**
-     * fastify bindings
-     */
-    controller: Controller,
 
     /**
      * Internal tools to create the device that registers with entities

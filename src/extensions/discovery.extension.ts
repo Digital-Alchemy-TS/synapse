@@ -1,5 +1,6 @@
 import { TServiceParams } from "@digital-alchemy/core";
 import { Server } from "node-ssdp";
+import { hostname, userInfo } from "os";
 import { gzipSync } from "zlib";
 
 import { md5ToUUID } from "../helpers";
@@ -9,13 +10,26 @@ export function DiscoveryExtension({
   lifecycle,
   logger,
   context,
+  internal,
   hass,
   fastify,
   synapse,
 }: TServiceParams) {
   let ssdp: Server;
 
-  const payload = () => gzipSync(JSON.stringify(synapse.controller.metadata())).toString("hex");
+  const APP_METADATA = () => ({
+    app: internal.boot.application.name,
+    device: synapse.device.getInfo(),
+    host: config.synapse.METADATA_HOST,
+    hostname: hostname(),
+    secondary_devices: synapse.device.list(),
+    title: config.synapse.METADATA_TITLE,
+    unique_id: config.synapse.METADATA_UNIQUE_ID,
+    username: userInfo().username,
+    ...synapse.storage.dump(),
+  });
+
+  const payload = () => gzipSync(JSON.stringify(APP_METADATA())).toString("hex");
 
   if (fastify) {
     fastify.routes(server => {
