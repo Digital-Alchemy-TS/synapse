@@ -79,6 +79,10 @@ const DOMAINS = {
 
 export const LIB_SYNAPSE = CreateLibrary({
   configuration: {
+    DEVICE_TYPE: {
+      default: "urn:schemas-upnp-org:device:Basic:1",
+      type: "string",
+    },
     EMIT_HEARTBEAT: {
       default: true,
       description: ["Emit a heartbeat pulse so the extension knows the service is alive"],
@@ -110,26 +114,23 @@ export const LIB_SYNAPSE = CreateLibrary({
       type: "string",
     },
     METADATA_UNIQUE_ID: {
-      description: [
-        "A string to uniquely identify this application",
-        "Should be unique within home assistant, such as a uuid",
-        "Default value calculated from hostname + username + app_name",
-      ],
+      description: ["A string to uniquely identify this application", "Should be uuid or md5 sum"],
       type: "string",
-    },
-    PUBLISH_BONJOUR: {
-      default: true,
-      description: "Publish mDNS discovery topics to allow zeroconf discovery",
-      type: "boolean",
     },
     SQLITE_DB: {
       default: join(cwd(), "synapse_storage.db"),
-      description: "",
+      description: "Location to persist entity state at",
+      type: "string",
+    },
+    SSDP_PATH: {
+      default: "/description.xml",
+      description: "Route to advertise ssdp xml data at",
       type: "string",
     },
   },
-  depends: [LIB_HASS, LIB_FASTIFY],
+  depends: [LIB_HASS],
   name: "synapse",
+  optionalDepends: [LIB_FASTIFY],
   priorityInit: ["generator", "storage"],
   services: {
     /**

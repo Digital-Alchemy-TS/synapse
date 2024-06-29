@@ -30,14 +30,14 @@ export function EntityGenerator({ scheduler, synapse, context, logger }: TServic
       name: "blinkey",
       suggested_object_id: "blinkey_the_binary_sensor",
     });
-    scheduler.interval({
-      exec() {
-        const number = Math.floor(Math.random() * 1000);
-        sensor.storage.set("state", number);
-        binary_sensor.storage.set("is_on", !binary_sensor.storage.get("is_on"));
-      },
-      interval: SECOND,
-    });
+    // scheduler.interval({
+    //   exec() {
+    //     const number = Math.floor(Math.random() * 1000);
+    //     sensor.storage.set("state", number);
+    //     binary_sensor.storage.set("is_on", !binary_sensor.storage.get("is_on"));
+    //   },
+    //   interval: SECOND,
+    // });
     const button = synapse.button({
       context,
       device_class: "identify",

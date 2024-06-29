@@ -1,5 +1,6 @@
 import { is, TServiceParams } from "@digital-alchemy/core";
-import { networkInterfaces } from "os";
+import { createHash } from "crypto";
+import { hostname, networkInterfaces, userInfo } from "os";
 
 const EXTRA_EARLY = 1000;
 
@@ -18,13 +19,31 @@ function getLocalIPAddress(): string | undefined {
   return undefined;
 }
 
-export function Configure({ lifecycle, config, logger, internal }: TServiceParams) {
+export function Configure({ lifecycle, config, logger, internal, hass }: TServiceParams) {
+  function uniqueProperties(): string[] {
+    return [hostname(), userInfo().username, internal.boot.application.name];
+  }
+
+  function isRegistered() {
+    return hass.device.current.some(
+      // eslint-disable-next-line @typescript-eslint/no-magic-numbers
+      device => String(device.identifiers[0][1]) === config.synapse.METADATA_UNIQUE_ID,
+    );
+  }
+
   // setting up the default that can't be declared at the module level
   lifecycle.onPreInit(() => {
     if (is.empty(config.synapse.METADATA_TITLE)) {
       const { name } = internal.boot.application;
       logger.debug({ METADATA_TITLE: name, name: "onPreInit" }, `updating [METADATA_TITLE]`);
       internal.boilerplate.configuration.set("synapse", "METADATA_TITLE", name);
+    }
+    if (is.empty(config.synapse.METADATA_UNIQUE_ID)) {
+      const METADATA_UNIQUE_ID = createHash("md5")
+        .update(uniqueProperties().join("-"))
+        .digest("hex");
+      logger.debug({ METADATA_UNIQUE_ID, name: "onPreInit" }, `updating [METADATA_UNIQUE_ID]`);
+      internal.boilerplate.configuration.set("synapse", "METADATA_UNIQUE_ID", METADATA_UNIQUE_ID);
     }
   });
 
@@ -37,4 +56,6 @@ export function Configure({ lifecycle, config, logger, internal }: TServiceParam
       internal.boilerplate.configuration.set("synapse", "METADATA_HOST", METADATA_HOST);
     }
   }, EXTRA_EARLY);
+
+  return { isRegistered };
 }
