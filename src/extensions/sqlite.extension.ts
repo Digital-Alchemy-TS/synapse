@@ -1,5 +1,4 @@
 import { is, TServiceParams } from "@digital-alchemy/core";
-import { TUniqueId } from "@digital-alchemy/hass";
 import DB, { Database } from "better-sqlite3";
 
 import { TSynapseId } from "../helpers";
