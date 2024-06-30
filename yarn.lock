@@ -918,9 +918,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@digital-alchemy/core@npm:^24.6.1, @digital-alchemy/core@npm:^24.6.4":
-  version: 24.6.5
-  resolution: "@digital-alchemy/core@npm:24.6.5"
+"@digital-alchemy/core@npm:^24.6.1, @digital-alchemy/core@npm:^24.6.6":
+  version: 24.6.6
+  resolution: "@digital-alchemy/core@npm:24.6.6"
   dependencies:
     chalk: "npm:^5.3.0"
     dayjs: "npm:^1.11.11"
@@ -935,7 +935,7 @@ __metadata:
   dependenciesMeta:
     redis:
       optional: true
-  checksum: 10/4433840d22bb4460675dfd55136251b2efc6f98dc09d37dab1cd682305b5e43c567ebac9ef864dd97fa1b6215b62e3e4d7fc0c23b10fe5e5d60b66f75cee41bb
+  checksum: 10/e8b4ed60ebb6170403450da8e1d1c5e285c04a3223c6c7aff5b5c6da05774d029087303fa356b7194912ff8f4626bcb7126f024d535217e9c3b14c57a141fd09
   languageName: node
   linkType: hard
 
@@ -975,7 +975,7 @@ __metadata:
   resolution: "@digital-alchemy/synapse@workspace:."
   dependencies:
     "@cspell/eslint-plugin": "npm:^8.8.1"
-    "@digital-alchemy/core": "npm:^24.6.4"
+    "@digital-alchemy/core": "npm:^24.6.6"
     "@digital-alchemy/fastify-extension": "npm:^24.6.1"
     "@digital-alchemy/hass": "npm:^24.6.9"
     "@types/better-sqlite3": "npm:^7.6.10"

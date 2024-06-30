@@ -19,7 +19,15 @@ function getLocalIPAddress(): string | undefined {
   return undefined;
 }
 
-export function Configure({ lifecycle, config, logger, internal, hass }: TServiceParams) {
+export function Configure({
+  lifecycle,
+  config,
+  logger,
+  internal,
+  hass,
+  fastify,
+  synapse,
+}: TServiceParams) {
   function uniqueProperties(): string[] {
     return [hostname(), userInfo().username, internal.boot.application.name];
   }
@@ -30,6 +38,12 @@ export function Configure({ lifecycle, config, logger, internal, hass }: TServic
       device => String(device.identifiers[0][1]) === config.synapse.METADATA_UNIQUE_ID,
     );
   }
+
+  lifecycle.onReady(() => {
+    if (!synapse.configure.isRegistered()) {
+      logger.warn({ name: "onReady" }, `application is not registered in hass`);
+    }
+  });
 
   // setting up the default that can't be declared at the module level
   lifecycle.onPreInit(() => {
@@ -50,7 +64,7 @@ export function Configure({ lifecycle, config, logger, internal, hass }: TServic
   // Mental note:
   // This needs to happen in the `onPostConfig` step because the fastify port may change
   lifecycle.onPostConfig(() => {
-    if (is.empty(config.synapse.METADATA_HOST)) {
+    if (!is.undefined(fastify) && is.empty(config.synapse.METADATA_HOST)) {
       const METADATA_HOST = `${getLocalIPAddress()}:${config.fastify.PORT}`;
       logger.debug({ METADATA_HOST, name: "onPostConfig" }, `updating [METADATA_HOST]`);
       internal.boilerplate.configuration.set("synapse", "METADATA_HOST", METADATA_HOST);

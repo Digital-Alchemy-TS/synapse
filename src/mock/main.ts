@@ -18,7 +18,7 @@ dayjs.extend(utc);
 dayjs.extend(timezone);
 
 export const ENTITY_GENERATOR = CreateApplication({
-  libraries: [LIB_HASS, LIB_SYNAPSE],
+  libraries: [LIB_HASS, LIB_SYNAPSE /*, LIB_FASTIFY */],
   name: "entity_generator",
   services: {
     generator: EntityGenerator,

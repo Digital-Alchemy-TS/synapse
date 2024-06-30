@@ -17,6 +17,7 @@ export function DiscoveryExtension({
 }: TServiceParams) {
   let ssdp: Server;
 
+  // * Raw data payload
   const APP_METADATA = () => ({
     app: internal.boot.application.name,
     device: synapse.device.getInfo(),
@@ -29,8 +30,10 @@ export function DiscoveryExtension({
     ...synapse.storage.dump(),
   });
 
+  // * Build the compressed version
   const payload = () => gzipSync(JSON.stringify(APP_METADATA())).toString("hex");
 
+  // * If fastify is provided, set up a response with SSDP xml
   if (fastify) {
     fastify.routes(server => {
       const { METADATA } = config.synapse;
@@ -57,37 +60,56 @@ export function DiscoveryExtension({
     });
   }
 
+  // * Set up event listeners for hass reloads
   lifecycle.onPostConfig(() => {
     const { EVENT_NAMESPACE } = config.synapse;
+    const { name } = internal.boot.application;
+    // * Discover all
     hass.socket.onEvent({
       context,
-      event: `${EVENT_NAMESPACE}/reload`,
+      event: `${EVENT_NAMESPACE}/discovery`,
       exec() {
-        logger.info({ name: "reload" }, `received config reload request`);
-        hass.socket.fireEvent(`${EVENT_NAMESPACE}/configuration_reply`, {
+        if (synapse.configure.isRegistered()) {
+          logger.debug({ name: "discovery" }, `received global discovery request, ignoring`);
+          return;
+        }
+        logger.info({ name: "discovery" }, `global discovery`);
+        hass.socket.fireEvent(`${EVENT_NAMESPACE}/identify`, {
+          compressed: payload(),
+        });
+      },
+    });
+
+    // * Specific identify
+    hass.socket.onEvent({
+      context,
+      event: `${EVENT_NAMESPACE}/discovery/${name}`,
+      exec() {
+        logger.info({ name: "discovery" }, `app discovery`);
+        hass.socket.fireEvent(`${EVENT_NAMESPACE}/identify/${name}`, {
           compressed: payload(),
         });
       },
     });
   });
 
+  // * SSDP announcements
   lifecycle.onReady(() => {
     if (synapse.configure.isRegistered()) {
       logger.debug({ name: "onReady" }, `skipping ssdp announcements, already configured`);
       return;
     }
     if (!fastify) {
-      logger.info({ name: "onReady" }, `fastify not provided, not starting ssdp`);
+      logger.debug({ name: "onReady" }, `fastify not provided, not starting ssdp`);
       return;
     }
     logger.info({ name: "onReady" }, `starting ssdp announcements`);
-    ssdp = new Server({
-      location: { path: config.synapse.SSDP_PATH, port: config.fastify.PORT },
-    });
+    ssdp = new Server({ location: { path: config.synapse.SSDP_PATH, port: config.fastify.PORT } });
     ssdp.addUSN(config.synapse.DEVICE_TYPE);
     ssdp.start();
   });
 
+  // * Shutdown
   lifecycle.onShutdownStart(() => {
     if (ssdp) {
       logger.debug({ name: "onShutdownStart" }, `stopping ssdp announcements`);

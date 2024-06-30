@@ -39,7 +39,7 @@
   },
   "devDependencies": {
     "@cspell/eslint-plugin": "^8.8.1",
-    "@digital-alchemy/core": "^24.6.4",
+    "@digital-alchemy/core": "^24.6.6",
     "@digital-alchemy/fastify-extension": "^24.6.1",
     "@digital-alchemy/hass": "^24.6.9",
     "@types/better-sqlite3": "^7.6.10",
