@@ -1,5 +1,4 @@
 import { CreateApplication } from "@digital-alchemy/core";
-import { LIB_FASTIFY } from "@digital-alchemy/fastify-extension";
 import { LIB_HASS } from "@digital-alchemy/hass";
 import dayjs from "dayjs";
 import advancedFormat from "dayjs/plugin/advancedFormat";
