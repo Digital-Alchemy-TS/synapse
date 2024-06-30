@@ -35,7 +35,7 @@ export function Configure({
   function isRegistered() {
     return hass.device.current.some(
       // eslint-disable-next-line @typescript-eslint/no-magic-numbers
-      device => String(device.identifiers[0][1]) === config.synapse.METADATA_UNIQUE_ID,
+      device => String(device?.identifiers?.[0]?.[1]) === config.synapse.METADATA_UNIQUE_ID,
     );
   }
 
