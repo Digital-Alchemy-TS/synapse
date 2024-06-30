@@ -1,5 +1,4 @@
 import { is, TServiceParams } from "@digital-alchemy/core";
-import { TUniqueId } from "@digital-alchemy/hass";
 import DB, { Database } from "better-sqlite3";
 
 import { TSynapseId } from "../helpers";
@@ -37,7 +36,7 @@ export type HomeAssistantEntityRow = {
   application_name: string;
 };
 
-export function SQLite({ lifecycle, config, logger, hass, internal }: TServiceParams) {
+export function SQLite({ lifecycle, config, logger, hass, internal, synapse }: TServiceParams) {
   let database: Database;
   const application_name = internal.boot.application.name;
 
@@ -49,9 +48,11 @@ export function SQLite({ lifecycle, config, logger, hass, internal }: TServicePa
   lifecycle.onShutdownStart(() => database.close());
 
   function update(unique_id: TSynapseId, content: object) {
-    const entity_id = hass.idBy.unique_id(unique_id as TUniqueId);
+    const entity_id = hass.entity.registry.current.find(i => i.unique_id === unique_id)?.entity_id;
     if (is.empty(entity_id)) {
-      logger.warn({ unique_id }, `not exists`);
+      if (synapse.configure.isRegistered()) {
+        logger.warn({ name: update, unique_id }, `not exists`);
+      }
       return;
     }
     const state_json = JSON.stringify(content);

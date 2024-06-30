@@ -1,5 +1,4 @@
 import { CreateApplication } from "@digital-alchemy/core";
-import { LIB_FASTIFY } from "@digital-alchemy/fastify-extension";
 import { LIB_HASS } from "@digital-alchemy/hass";
 import dayjs from "dayjs";
 import advancedFormat from "dayjs/plugin/advancedFormat";
@@ -18,7 +17,7 @@ dayjs.extend(utc);
 dayjs.extend(timezone);
 
 export const ENTITY_GENERATOR = CreateApplication({
-  libraries: [LIB_HASS, LIB_SYNAPSE, LIB_FASTIFY],
+  libraries: [LIB_HASS, LIB_SYNAPSE /*, LIB_FASTIFY */],
   name: "entity_generator",
   services: {
     generator: EntityGenerator,
