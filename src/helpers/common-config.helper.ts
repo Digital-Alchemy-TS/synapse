@@ -67,7 +67,7 @@ export type ReactiveConfig<TYPE extends unknown = unknown> = {
   /**
    * Calculate current value
    */
-  current(current: unknown): TYPE;
+  current(): TYPE;
 };
 
 export const isReactiveConfig = (key: string, value: unknown): value is ReactiveConfig =>
