@@ -17,7 +17,6 @@ export function VirtualButton({ context, synapse }: TServiceParams) {
   const generate = synapse.generator.create<ButtonConfiguration, ButtonEvents>({
     bus_events: ["press"],
     context,
-    // @ts-expect-error its fine
     domain: "button",
     load_config_keys: ["device_class"],
   });
