@@ -1,8 +1,13 @@
-import { TServiceParams } from "@digital-alchemy/core";
+import { is, TServiceParams } from "@digital-alchemy/core";
+import { createHash } from "crypto";
 import { existsSync, readFileSync } from "fs";
+import { hostname } from "os";
 import { join } from "path";
+import { cwd } from "process";
 
-import { HassDeviceMetadata, TSynapseDeviceId } from "../helpers";
+import { HassDeviceMetadata, md5ToUUID, TSynapseDeviceId } from "../helpers";
+
+const host = hostname();
 
 export function DeviceExtension({ config, lifecycle, logger, internal }: TServiceParams) {
   let synapseVersion: string;
@@ -30,6 +35,24 @@ export function DeviceExtension({ config, lifecycle, logger, internal }: TServic
         sw_version: synapseVersion,
         ...config.synapse.METADATA,
       };
+    },
+    /**
+     * Create a stable UUID to uniquely identify this app.
+     *
+     * source data defaults to:
+     * - hostname
+     * - app name
+     * - cwd
+     *
+     * alternate data can be provided via param
+     */
+    id(data?: string[] | string) {
+      data ??= [host, internal.boot.application.name, cwd()];
+      return md5ToUUID(
+        createHash("md5")
+          .update(is.string(data) ? data : data.join("-"))
+          .digest("hex"),
+      );
     },
     list() {
       return [...DEVICE_REGISTRY.keys()].map(unique_id => ({
