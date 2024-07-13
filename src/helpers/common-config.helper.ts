@@ -27,6 +27,7 @@ export type EntityConfigCommon<ATTRIBUTES extends object> = {
    * This ID uniquely identifies the entity, through `entity_id` renames
    */
   unique_id?: string;
+  disabled?: SettableConfiguration<boolean>;
   icon?: SettableConfiguration<string>;
   /**
    * An entity with a category will:
@@ -66,7 +67,7 @@ export type ReactiveConfig<TYPE extends unknown = unknown> = {
   /**
    * Calculate current value
    */
-  current(): TYPE;
+  current(current: unknown): TYPE;
 };
 
 export const isReactiveConfig = (key: string, value: unknown): value is ReactiveConfig =>
@@ -91,6 +92,7 @@ export const COMMON_CONFIG_KEYS = new Set([
   "device_id",
   "entity_category",
   "icon",
+  "disabled",
   "name",
   "suggested_object_id",
   "translation_key",

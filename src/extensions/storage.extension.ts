@@ -55,8 +55,8 @@ export function StorageExtension({
     // * update settable config
     function createSettableConfig(key: keyof CONFIGURATION, config: ReactiveConfig) {
       const update = () => {
-        const new_value = config.current() as CONFIGURATION[typeof key];
         const current_value = storage.get(key);
+        const new_value = config.current(current_value) as CONFIGURATION[typeof key];
         if (new_value === current_value) {
           return;
         }

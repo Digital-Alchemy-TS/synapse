@@ -32,7 +32,7 @@ export function EntityGenerator({ scheduler, synapse, context, logger }: TServic
     });
     scheduler.interval({
       exec() {
-        const number = Math.floor(Math.random() * 1000);
+        const number = Math.floor(Math.random() * SECOND);
         sensor.storage.set("state", number);
         binary_sensor.storage.set("is_on", !binary_sensor.storage.get("is_on"));
       },
