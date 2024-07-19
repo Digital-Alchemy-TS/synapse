@@ -9,7 +9,7 @@
     "test": "./scripts/test.sh",
     "lint": "eslint src",
     "prepublishOnly": "npm run build",
-    "upgrade": "ncu -u -f '@digital-alchemy/*'; npm i"
+    "upgrade": "yarn upgrade '@digital-alchemy/*'"
   },
   "author": {
     "url": "https://github.com/zoe-codez",
