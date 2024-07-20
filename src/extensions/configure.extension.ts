@@ -1,4 +1,4 @@
-import { is, TServiceParams } from "@digital-alchemy/core";
+import { is, MINUTE, sleep, TServiceParams } from "@digital-alchemy/core";
 import { createHash } from "crypto";
 import { hostname, networkInterfaces, userInfo } from "os";
 
@@ -28,22 +28,21 @@ export function Configure({
   fastify,
   synapse,
 }: TServiceParams) {
+  let extensionInstalled = false;
+
   function uniqueProperties(): string[] {
     return [hostname(), userInfo().username, internal.boot.application.name];
   }
 
   function isRegistered() {
-    return hass.device.current.some(
-      // eslint-disable-next-line @typescript-eslint/no-magic-numbers
-      device => String(device?.identifiers?.[0]?.[1]) === config.synapse.METADATA_UNIQUE_ID,
+    return (
+      extensionInstalled &&
+      hass.device.current.some(
+        // eslint-disable-next-line @typescript-eslint/no-magic-numbers
+        device => String(device?.identifiers?.[0]?.[1]) === config.synapse.METADATA_UNIQUE_ID,
+      )
     );
   }
-
-  lifecycle.onReady(() => {
-    if (!synapse.configure.isRegistered()) {
-      logger.warn({ name: "onReady" }, `application is not registered in hass`);
-    }
-  });
 
   // setting up the default that can't be declared at the module level
   lifecycle.onPreInit(() => {
@@ -70,6 +69,32 @@ export function Configure({
       internal.boilerplate.configuration.set("synapse", "METADATA_HOST", METADATA_HOST);
     }
   }, EXTRA_EARLY);
+
+  /**
+   * keep bothering user until they install the extension or remove the lib
+   * kinda pointless otherwise
+   */
+  async function doCheck() {
+    const config = await hass.fetch.getConfig();
+    const installed = config.components.some(i => i.startsWith("synapse"));
+    if (installed) {
+      logger.debug("extension is installed!");
+      extensionInstalled = true;
+      return;
+    }
+    logger.error(`synapse extension is not installed`);
+    await sleep(MINUTE);
+    return doCheck();
+  }
+
+  // make sure it doesn't accidentally get attached to lifecycle
+  lifecycle.onBootstrap(() => setImmediate(async () => await doCheck()));
+
+  lifecycle.onReady(() => {
+    if (!synapse.configure.isRegistered()) {
+      logger.warn({ name: "onReady" }, `application is not registered in hass`);
+    }
+  });
 
   return { isRegistered };
 }
