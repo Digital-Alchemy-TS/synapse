@@ -73,10 +73,15 @@ export function VirtualAlarmControlPanel({ context, synapse }: TServiceParams) {
     ],
   });
 
-  return function <ATTRIBUTES extends object>({
+  return function <ATTRIBUTES extends object, LOCALS extends object>({
     managed = true,
     ...options
-  }: AddEntityOptions<AlarmControlPanelConfiguration, AlarmControlPanelEvents, ATTRIBUTES>) {
+  }: AddEntityOptions<
+    AlarmControlPanelConfiguration,
+    AlarmControlPanelEvents,
+    ATTRIBUTES,
+    LOCALS
+  >) {
     const entity = generate.addEntity(options);
     if (managed) {
       entity.onArmCustomBypass(() => entity.storage.set("state", "armed_away"));

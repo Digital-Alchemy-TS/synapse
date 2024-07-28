@@ -31,10 +31,10 @@ export function VirtualSelect({ context, synapse }: TServiceParams) {
     map_state: "current_option",
   });
 
-  return function <ATTRIBUTES extends object>({
+  return function <ATTRIBUTES extends object, LOCALS extends object>({
     managed = true,
     ...options
-  }: AddEntityOptions<SelectConfiguration, SelectEvents, ATTRIBUTES>) {
+  }: AddEntityOptions<SelectConfiguration, SelectEvents, ATTRIBUTES, LOCALS>) {
     const entity = generate.addEntity(options);
     if (managed) {
       entity.onSelectOption(({ option }) => entity.storage.set("current_option", option));

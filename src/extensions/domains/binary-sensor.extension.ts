@@ -26,7 +26,7 @@ export function VirtualBinarySensor({ context, synapse }: TServiceParams) {
     load_config_keys: ["device_class", "is_on"],
   });
 
-  return <ATTRIBUTES extends object>(
-    options: AddEntityOptions<BinarySensorConfiguration, BinarySensorEvents, ATTRIBUTES>,
+  return <ATTRIBUTES extends object, LOCALS extends object>(
+    options: AddEntityOptions<BinarySensorConfiguration, BinarySensorEvents, ATTRIBUTES, LOCALS>,
   ) => generate.addEntity(options);
 }

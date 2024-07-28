@@ -67,8 +67,8 @@ export function DomainGenerator({
 
     return {
       // #MARK: add_entity
-      addEntity<ATTRIBUTES extends object>(
-        entity: AddEntityOptions<CONFIGURATION, EVENT_MAP, ATTRIBUTES>,
+      addEntity<ATTRIBUTES extends object, LOCALS extends object>(
+        entity: AddEntityOptions<CONFIGURATION, EVENT_MAP, ATTRIBUTES, LOCALS>,
       ) {
         // * defaults
         // - unique_id - required for comms
@@ -80,7 +80,11 @@ export function DomainGenerator({
         const unique_id = entity.unique_id as TUniqueId;
 
         // * initialize storage
-        const storage = synapse.storage.add<CONFIGURATION & EntityConfigCommon<object>>({
+        const storage = synapse.storage.add<
+          LOCALS,
+          ATTRIBUTES,
+          CONFIGURATION & EntityConfigCommon<ATTRIBUTES, LOCALS>
+        >({
           domain,
           entity,
           load_config_keys,
@@ -113,7 +117,7 @@ export function DomainGenerator({
         const getEntity = () => hass.refBy.unique_id(unique_id);
 
         // #MARK: entity proxy
-        return new Proxy({} as SynapseEntityProxy<CONFIGURATION, EVENT_MAP, ATTRIBUTES>, {
+        return new Proxy({} as SynapseEntityProxy<CONFIGURATION, EVENT_MAP, ATTRIBUTES, LOCALS>, {
           get(_, property: string) {
             if (!is.undefined(dynamicAttach[property])) {
               return dynamicAttach[property];

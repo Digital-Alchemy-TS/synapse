@@ -7,7 +7,7 @@ export type SensorEvents = {
 };
 
 export function VirtualSensor({ context, synapse }: TServiceParams) {
-  const generate = synapse.generator.create<SensorConfiguration<object>, SensorEvents>({
+  const generate = synapse.generator.create<SensorConfiguration<object, object>, SensorEvents>({
     context,
     domain: "sensor",
     load_config_keys: [
@@ -20,7 +20,12 @@ export function VirtualSensor({ context, synapse }: TServiceParams) {
     ],
   });
 
-  return <ATTRIBUTES extends object>(
-    options: AddEntityOptions<SensorConfiguration<ATTRIBUTES>, SensorEvents, ATTRIBUTES>,
-  ) => generate.addEntity<ATTRIBUTES>(options);
+  return <ATTRIBUTES extends object, LOCALS extends object>(
+    options: AddEntityOptions<
+      SensorConfiguration<ATTRIBUTES, LOCALS>,
+      SensorEvents,
+      ATTRIBUTES,
+      LOCALS
+    >,
+  ) => generate.addEntity<ATTRIBUTES, LOCALS>(options);
 }

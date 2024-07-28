@@ -12,13 +12,22 @@ export type TSynapseEntityStorage<CONFIGURATION extends object = object> = {
   export: () => CONFIGURATION;
 };
 
-export type AddStateOptions<CONFIGURATION extends EntityConfigCommon<object>> = {
+export type AddStateOptions<
+  ATTRIBUTES extends object,
+  LOCALS extends object,
+  CONFIGURATION extends EntityConfigCommon<ATTRIBUTES, LOCALS>,
+> = {
   domain: TRawDomains;
-  entity: AddEntityOptions<CONFIGURATION>;
+  entity: AddEntityOptions<CONFIGURATION, Record<string, object>, ATTRIBUTES, LOCALS>;
   /**
    * initial import from typescript defs
    */
-  load_config_keys: (keyof AddEntityOptions<CONFIGURATION>)[];
+  load_config_keys: (keyof AddEntityOptions<
+    CONFIGURATION,
+    Record<string, object>,
+    ATTRIBUTES,
+    LOCALS
+  >)[];
 };
 
 export type ConfigMapper<KEY extends string> =

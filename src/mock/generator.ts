@@ -1,19 +1,32 @@
 import { SECOND, TServiceParams } from "@digital-alchemy/core";
 import dayjs from "dayjs";
 
+type LocalData = {
+  foo: number;
+  bar: boolean;
+};
+
+type Attributes = {
+  destination: string;
+};
+
 export function EntityGenerator({ scheduler, synapse, context, logger }: TServiceParams) {
   try {
     const subDevice = synapse.device.register("sub_device", {
       name: "example device",
       sw_version: "420.69",
     });
-    const sensor = synapse.sensor({
+    const sensor = synapse.sensor<Attributes, LocalData>({
       attributes: {
         destination: "saturn",
       },
       context,
       device_class: "speed",
       device_id: subDevice,
+      locals: {
+        bar: false,
+        foo: 5,
+      },
       name: "Test the sensor",
       state: 20,
       suggested_object_id: "magic_the_sensor",

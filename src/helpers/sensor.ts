@@ -268,7 +268,10 @@ export type SensorDeviceClasses =
   | AtmosphericPressureSensor
   | DefaultSensor;
 
-export type SensorConfiguration<ATTRIBUTES extends object> = EntityConfigCommon<ATTRIBUTES> &
+export type SensorConfiguration<
+  ATTRIBUTES extends object,
+  LOCALS extends object,
+> = EntityConfigCommon<ATTRIBUTES, LOCALS> &
   SensorDeviceClasses & {
     state?: SettableConfiguration<string | number>;
     /**

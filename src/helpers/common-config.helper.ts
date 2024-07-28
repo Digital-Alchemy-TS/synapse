@@ -6,7 +6,7 @@ import { CreateRemovableCallback, TEventMap } from "./base-domain.helper";
 import { TSynapseEntityStorage } from "./storage";
 import { TSynapseDeviceId } from "./utility.helper";
 
-export type EntityConfigCommon<ATTRIBUTES extends object> = {
+export type EntityConfigCommon<ATTRIBUTES extends object, LOCALS extends object> = {
   /**
    * Use a different device to register this entity
    */
@@ -44,12 +44,23 @@ export type EntityConfigCommon<ATTRIBUTES extends object> = {
    */
   name: string;
   translation_key?: string;
+  /**
+   * passed through as extra entity attributes to home assistant
+   *
+   * > consider creating sensor entities instead
+   */
   attributes?: ATTRIBUTES;
+  /**
+   * local state data, not sent to home assistant
+   *
+   * can be used as a sqlite backed cache for entity specific data
+   */
+  locals?: LOCALS;
 };
 
-export const isCommonConfigKey = <ATTRIBUTES extends object = object>(
+export const isCommonConfigKey = <ATTRIBUTES extends object, LOCALS extends object>(
   key: string,
-): key is keyof EntityConfigCommon<ATTRIBUTES> => COMMON_CONFIG_KEYS.has(key);
+): key is keyof EntityConfigCommon<ATTRIBUTES, LOCALS> => COMMON_CONFIG_KEYS.has(key);
 
 export type SettableConfiguration<TYPE extends unknown> = TYPE | ReactiveConfig<TYPE>;
 
@@ -116,12 +127,12 @@ export type NonReactive<CONFIGURATION extends object> = {
     : CONFIGURATION[KEY];
 };
 
-export type CommonMethods<CONFIGURATION extends object> = {
+export type CommonMethods<CONFIGURATION extends object, LOCALS extends object> = {
   getEntity: () => ByIdProxy<PICK_ENTITY>;
   onUpdate(callback: TEntityUpdateCallback<PICK_ENTITY>): {
     remove(): void;
   };
-  storage: TSynapseEntityStorage<CONFIGURATION & EntityConfigCommon<object>>;
+  storage: TSynapseEntityStorage<CONFIGURATION & EntityConfigCommon<object, LOCALS>>;
 };
 
 /**
@@ -131,10 +142,11 @@ type ProxyBase<
   CONFIGURATION extends object,
   EVENT_MAP extends TEventMap,
   ATTRIBUTES extends object,
-> = CommonMethods<CONFIGURATION> &
+  LOCALS extends object,
+> = CommonMethods<CONFIGURATION, LOCALS> &
   NonReactive<CONFIGURATION> &
   BuildCallbacks<EVENT_MAP> &
-  EntityConfigCommon<ATTRIBUTES>;
+  EntityConfigCommon<ATTRIBUTES, LOCALS>;
 
 /**
  * The combination of all properties that went in, minus those that don't play well with runtime updates
@@ -145,7 +157,8 @@ export type SynapseEntityProxy<
   CONFIGURATION extends object,
   EVENT_MAP extends TEventMap,
   ATTRIBUTES extends object,
-  PROXY = ProxyBase<CONFIGURATION, EVENT_MAP, ATTRIBUTES>,
+  LOCALS extends object,
+  PROXY = ProxyBase<CONFIGURATION, EVENT_MAP, ATTRIBUTES, LOCALS>,
 > = Except<PROXY, Extract<keyof PROXY, NON_SETTABLE>>;
 
 export type BuildCallbacks<EVENT_MAP extends TEventMap> = {

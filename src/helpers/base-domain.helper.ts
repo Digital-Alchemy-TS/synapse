@@ -44,11 +44,12 @@ export type TEventMap = Record<string, object>;
 
 export type AddEntityOptions<
   CONFIGURATION extends object,
-  EVENT_MAP extends Record<string, object> = Record<string, object>,
-  ATTRIBUTES extends object = object,
+  EVENT_MAP extends Record<string, object>,
+  ATTRIBUTES extends object,
+  LOCALS extends object,
 > = {
   context: TContext;
-} & EntityConfigCommon<ATTRIBUTES> &
+} & EntityConfigCommon<ATTRIBUTES, LOCALS> &
   CONFIGURATION &
   Partial<{
     [EVENT in keyof EVENT_MAP]: RemovableCallback<EVENT_MAP[EVENT]>;

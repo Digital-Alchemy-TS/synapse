@@ -84,7 +84,7 @@ export function VirtualHumidifier({ context, synapse }: TServiceParams) {
     ],
   });
 
-  return <ATTRIBUTES extends object>(
-    options: AddEntityOptions<HumidifierConfiguration, HumidifierEvents, ATTRIBUTES>,
+  return <ATTRIBUTES extends object, LOCALS extends object>(
+    options: AddEntityOptions<HumidifierConfiguration, HumidifierEvents, ATTRIBUTES, LOCALS>,
   ) => generate.addEntity(options);
 }

@@ -39,11 +39,11 @@ export function StorageExtension({
   }
 
   // #MARK: add
-  function add<CONFIGURATION extends EntityConfigCommon<object>>({
-    entity,
-    load_config_keys,
-    domain,
-  }: AddStateOptions<CONFIGURATION>) {
+  function add<
+    LOCALS extends object,
+    ATTRIBUTES extends object,
+    CONFIGURATION extends EntityConfigCommon<ATTRIBUTES, LOCALS>,
+  >({ entity, load_config_keys, domain }: AddStateOptions<ATTRIBUTES, LOCALS, CONFIGURATION>) {
     if (registry.has(entity.unique_id as TSynapseId)) {
       throw new InternalError(context, `ENTITY_COLLISION`, `${domain} registry already id`);
     }
@@ -73,10 +73,10 @@ export function StorageExtension({
     }
 
     // * import
-    const load = [
-      ...load_config_keys,
-      ...COMMON_CONFIG_KEYS.values(),
-    ] as (keyof EntityConfigCommon<object>)[];
+    const load = [...load_config_keys, ...COMMON_CONFIG_KEYS.values()] as (keyof EntityConfigCommon<
+      ATTRIBUTES,
+      LOCALS
+    >)[];
     load.forEach(key => {
       const value = entity[key];
       if (isReactiveConfig(key, value)) {
