@@ -118,7 +118,7 @@ export function StorageExtension({
         initialized = true;
         return;
       }
-      logger.debug({ name: data.entity_id }, `importing value`);
+      logger.trace({ name: data.entity_id }, `importing value`);
       CURRENT_VALUE = JSON.parse(data.state_json);
       initialized = true;
     }, LATE_POST_CONFIG);
