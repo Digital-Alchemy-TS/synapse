@@ -211,7 +211,7 @@ export function VirtualMediaPlayer({ context, synapse }: TServiceParams) {
     ],
   });
 
-  return <ATTRIBUTES extends object>(
-    options: AddEntityOptions<MediaPlayerConfiguration, MediaPlayerEvents, ATTRIBUTES>,
+  return <ATTRIBUTES extends object, LOCALS extends object>(
+    options: AddEntityOptions<MediaPlayerConfiguration, MediaPlayerEvents, ATTRIBUTES, LOCALS>,
   ) => generate.addEntity(options);
 }

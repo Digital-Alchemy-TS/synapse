@@ -96,11 +96,11 @@ export function DiscoveryExtension({
   // * SSDP announcements
   lifecycle.onReady(() => {
     if (synapse.configure.isRegistered()) {
-      logger.debug({ name: "onReady" }, `skipping ssdp announcements, already configured`);
+      logger.trace({ name: "onReady" }, `skipping ssdp announcements, already configured`);
       return;
     }
     if (!fastify) {
-      logger.debug({ name: "onReady" }, `fastify not provided, not starting ssdp`);
+      logger.trace({ name: "onReady" }, `fastify not provided, not starting ssdp`);
       return;
     }
     logger.info({ name: "onReady" }, `starting ssdp announcements`);

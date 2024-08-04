@@ -52,7 +52,7 @@ export function VirtualTodoList({ context, synapse }: TServiceParams) {
     load_config_keys: ["todo_items", "supported_features"],
   });
 
-  return <ATTRIBUTES extends object>(
-    options: AddEntityOptions<TodoConfiguration, TodoEvents, ATTRIBUTES>,
+  return <ATTRIBUTES extends object, LOCALS extends object>(
+    options: AddEntityOptions<TodoConfiguration, TodoEvents, ATTRIBUTES, LOCALS>,
   ) => generate.addEntity(options);
 }

@@ -95,7 +95,7 @@ export function VirtualWaterHeater({ context, synapse }: TServiceParams) {
     ],
   });
 
-  return <ATTRIBUTES extends object>(
-    options: AddEntityOptions<WaterHeaterConfiguration, WaterHeaterEvents, ATTRIBUTES>,
+  return <ATTRIBUTES extends object, LOCALS extends object>(
+    options: AddEntityOptions<WaterHeaterConfiguration, WaterHeaterEvents, ATTRIBUTES, LOCALS>,
   ) => generate.addEntity(options);
 }

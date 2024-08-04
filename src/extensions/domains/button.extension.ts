@@ -21,7 +21,7 @@ export function VirtualButton({ context, synapse }: TServiceParams) {
     load_config_keys: ["device_class"],
   });
 
-  return <ATTRIBUTES extends object>(
-    options: AddEntityOptions<ButtonConfiguration, ButtonEvents, ATTRIBUTES>,
+  return <ATTRIBUTES extends object, LOCALS extends object>(
+    options: AddEntityOptions<ButtonConfiguration, ButtonEvents, ATTRIBUTES, LOCALS>,
   ) => generate.addEntity(options);
 }
