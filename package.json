@@ -2,7 +2,7 @@
   "name": "@digital-alchemy/synapse",
   "repository": "https://github.com/Digital-Alchemy-TS/synapse",
   "homepage": "https://docs.digital-alchemy.app/Synapse",
-  "version": "24.7.2",
+  "version": "24.8.1",
   "scripts": {
     "mock": "tsx src/mock/main.ts",
     "build": "rm -rf dist; tsc",

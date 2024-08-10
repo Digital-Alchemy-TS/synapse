@@ -36,12 +36,22 @@ export type HomeAssistantEntityRow = {
   application_name: string;
 };
 
-export function SQLite({ lifecycle, config, logger, hass, internal, synapse }: TServiceParams) {
+type TDriver = typeof DB;
+
+export function SQLite({
+  lifecycle,
+  config,
+  logger,
+  hass,
+  internal,
+  synapse,
+}: TServiceParams): SynapseSqlite {
   let database: Database;
   const application_name = internal.boot.application.name;
+  let Driver: TDriver = DB;
 
   lifecycle.onPostConfig(() => {
-    database = new DB(config.synapse.SQLITE_DB);
+    database = new Driver(config.synapse.SQLITE_DB);
     database.prepare(CREATE).run();
   });
 
@@ -82,5 +92,15 @@ export function SQLite({ lifecycle, config, logger, hass, internal, synapse }: T
       .get(unique_id, application_name) as HomeAssistantEntityRow;
   }
 
-  return { load, update };
+  return {
+    load,
+    setDriver: (driver: TDriver) => (Driver = driver),
+    update,
+  };
 }
+
+type SynapseSqlite = {
+  load: (unique_id: TSynapseId, defaults: object) => HomeAssistantEntityRow;
+  setDriver: (driver: TDriver) => void;
+  update: (unique_id: TSynapseId, content: object) => void;
+};
