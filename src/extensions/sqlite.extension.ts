@@ -1,5 +1,5 @@
 import { is, TServiceParams } from "@digital-alchemy/core";
-import DB, { Database } from "better-sqlite3";
+import SqliteDriver, { Database } from "better-sqlite3";
 
 import { TSynapseId } from "../helpers";
 
@@ -36,7 +36,7 @@ export type HomeAssistantEntityRow = {
   application_name: string;
 };
 
-export type SynapseSqliteDriver = typeof DB;
+export type SynapseSqliteDriver = typeof SqliteDriver;
 
 export function SQLite({
   lifecycle,
@@ -48,7 +48,7 @@ export function SQLite({
 }: TServiceParams): SynapseSqlite {
   let database: Database;
   const application_name = internal.boot.application.name;
-  let Driver: SynapseSqliteDriver = DB;
+  let Driver: SynapseSqliteDriver = SqliteDriver;
 
   lifecycle.onPostConfig(() => {
     database = new Driver(config.synapse.SQLITE_DB);
