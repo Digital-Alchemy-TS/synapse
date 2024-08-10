@@ -34,7 +34,7 @@ export function EntityGenerator({ scheduler, synapse, context, logger }: TServic
     });
 
     sensor.onUpdate(() => {
-      //
+      // sensor.locals.bar
     });
 
     const binary_sensor = synapse.binary_sensor({

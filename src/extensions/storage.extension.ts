@@ -52,31 +52,46 @@ export function StorageExtension({
 
     let CURRENT_VALUE = {} as Record<keyof CONFIGURATION, unknown>;
 
-    // * update settable config
+    function localsProxy<LOCALS extends object>(id: TSynapseId) {
+      return new Proxy({} as LOCALS, {
+        get(_, key) {
+          //
+        },
+        set(_, key: string, value: unknown) {
+          synapse.sqlite.updateLocal(id, key, value);
+          return true;
+        },
+      });
+    }
+    // #MARK: createSettableConfig
     function createSettableConfig(key: keyof CONFIGURATION, config: ReactiveConfig) {
-      const update = () => {
+      function updateSettableConfig() {
         const current_value = storage.get(key);
         const new_value = config.current() as CONFIGURATION[typeof key];
         if (new_value === current_value) {
           return;
         }
+        logger.trace(
+          { key, name: updateSettableConfig, unique_id: entity.unique_id },
+          `setting new value`,
+        );
         storage.set(key, new_value);
-      };
+      }
       scheduler.cron({
-        exec: update,
+        exec: updateSettableConfig,
         schedule: config.schedule || CronExpression.EVERY_30_SECONDS,
       });
       if (!is.empty(config.onUpdate)) {
-        config.onUpdate.forEach(entity => entity.onUpdate(update));
+        config.onUpdate.forEach(entity => entity.onUpdate(updateSettableConfig));
       }
-      setImmediate(() => update());
+      lifecycle.onReady(() => updateSettableConfig());
     }
 
+    type LoadKeys = keyof EntityConfigCommon<ATTRIBUTES, LOCALS>;
+
     // * import
-    const load = [...load_config_keys, ...COMMON_CONFIG_KEYS.values()] as (keyof EntityConfigCommon<
-      ATTRIBUTES,
-      LOCALS
-    >)[];
+    const load = [...load_config_keys, ...COMMON_CONFIG_KEYS.values()] as LoadKeys[];
+
     load.forEach(key => {
       const value = entity[key];
       if (isReactiveConfig(key, value)) {
@@ -86,7 +101,7 @@ export function StorageExtension({
       CURRENT_VALUE[key] = value;
     });
 
-    // * storage object
+    // #MARK: storage
     const storage = {
       export: () => ({ ...CURRENT_VALUE }),
       get: key => CURRENT_VALUE[key],
@@ -111,14 +126,20 @@ export function StorageExtension({
     registry.set(entity.unique_id as TSynapseId, storage as unknown as TSynapseEntityStorage);
 
     // * value loading
-    lifecycle.onPostConfig(() => {
+    lifecycle.onPostConfig(function onPostConfig() {
+      // - identify id
       const unique_id = entity.unique_id as TSynapseId;
-      const data = synapse.sqlite.load(unique_id, registry.get(unique_id).export());
-      if (!data || is.empty(data.state_json)) {
+
+      // - ??
+      const data = synapse.sqlite.load(unique_id, CURRENT_VALUE);
+
+      if (is.empty(data?.state_json)) {
         initialized = true;
         return;
       }
-      logger.trace({ name: data.entity_id }, `importing value`);
+
+      // - load previous value
+      logger.trace({ entity_id: data.entity_id, name: onPostConfig }, `importing value`);
       CURRENT_VALUE = JSON.parse(data.state_json);
       initialized = true;
     }, LATE_POST_CONFIG);

@@ -7,17 +7,18 @@ export function SocketExtension({
   hass,
   scheduler,
   config,
+  synapse,
   internal,
 }: TServiceParams) {
   const getIdentifier = () => internal.boot.application.name;
   const name = (a: string) => [config.synapse.EVENT_NAMESPACE, a, getIdentifier()].join("/");
 
   // * onPostConfig
-  lifecycle.onPostConfig(async () => {
+  lifecycle.onPostConfig(async function onPostConfig() {
     if (!config.synapse.EMIT_HEARTBEAT) {
       return;
     }
-    logger.trace({ name: "onPostConfig" }, `starting heartbeat`);
+    logger.trace({ name: onPostConfig }, `starting heartbeat`);
     scheduler.interval({
       exec: async () => await hass.socket.fireEvent(name("heartbeat")),
       interval: config.synapse.HEARTBEAT_INTERVAL * SECOND,
@@ -25,11 +26,11 @@ export function SocketExtension({
   });
 
   // * onConnect
-  hass.socket.onConnect(async () => {
+  hass.socket.onConnect(async function onConnect() {
     if (!config.synapse.EMIT_HEARTBEAT) {
       return;
     }
-    logger.debug({ name: "onConnect" }, `reconnect heartbeat`);
+    logger.debug({ name: onConnect }, `reconnect heartbeat`);
     await hass.socket.fireEvent(name("heartbeat"));
   });
 
@@ -44,14 +45,18 @@ export function SocketExtension({
 
   async function send(unique_id: string, data: object): Promise<void> {
     if (hass.socket.connectionState !== "connected") {
-      logger.debug({ name: "send" }, `socket connection isn't active, not sending update event`);
+      logger.debug({ name: send }, `socket connection isn't active, not sending update event`);
+      return;
+    }
+    if (!synapse.configure.isRegistered()) {
+      logger.trace({ data, name: send, unique_id }, `skipping update: not registered`);
       return;
     }
     const entity_id = hass.idBy.unique_id(unique_id as TUniqueId);
     if (entity_id) {
-      logger.trace({ name: entity_id }, `update`);
+      logger.trace({ entity_id, name: send }, `update`);
     } else {
-      logger.warn({ data, unique_id }, `updating unregistered entity`);
+      logger.warn({ data, name: send, unique_id }, `updating unregistered entity`);
     }
     await hass.socket.fireEvent(name("update"), { data, unique_id });
   }

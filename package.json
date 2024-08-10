@@ -4,7 +4,7 @@
   "homepage": "https://docs.digital-alchemy.app/Synapse",
   "version": "24.7.2",
   "scripts": {
-    "mock": "tsx src/mock/main.ts",
+    "start:mock": "tsx src/mock/main.ts",
     "build": "rm -rf dist; tsc",
     "test": "./scripts/test.sh",
     "lint": "eslint src",

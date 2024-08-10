@@ -1,4 +1,5 @@
 import { is, TServiceParams } from "@digital-alchemy/core";
+import { PICK_ENTITY } from "@digital-alchemy/hass";
 import DB, { Database } from "better-sqlite3";
 
 import { TSynapseId } from "../helpers";
@@ -16,7 +17,7 @@ const ENTITY_CREATE = `CREATE TABLE IF NOT EXISTS HomeAssistantEntity (
 
 const LOCALS_CREATE = `CREATE TABLE IF NOT EXISTS HomeAssistantEntityLocals (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
-  entity_id INTEGER NOT NULL,
+  unique_id INTEGER NOT NULL,
   key TEXT NOT NULL,
   value_json TEXT NOT NULL,
   last_modified DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -36,10 +37,10 @@ const ENTITY_UPSERT = `INSERT INTO HomeAssistantEntity (
   application_name = excluded.application_name`;
 
 const ENTITY_LOCALS_UPSERT = `INSERT INTO HomeAssistantEntityLocals (
-  entity_id, key, value_json, last_modified
+  unique_id, key, value_json, last_modified
 ) VALUES (
-  @entity_id, @key, @value_json, @last_modified
-) ON CONFLICT(entity_id, key) DO UPDATE SET
+  @unique_id, @key, @value_json, @last_modified
+) ON CONFLICT(unique_id, key) DO UPDATE SET
   value_json = excluded.value_json,
   last_modified = excluded.last_modified`;
 
@@ -49,7 +50,7 @@ const SELECT_QUERY = `SELECT *
 
 const SELECT_LOCALS_QUERY = `SELECT *
   FROM HomeAssistantEntityLocals
-  WHERE entity_id = ?`;
+  WHERE unique_id = ?`;
 
 export type HomeAssistantEntityLocalRow = {
   id?: number;
@@ -62,7 +63,7 @@ export type HomeAssistantEntityLocalRow = {
 export type HomeAssistantEntityRow<LOCALS extends object = object> = {
   id?: number;
   unique_id: string;
-  entity_id: string;
+  entity_id: PICK_ENTITY;
   state_json: string;
   first_observed: string;
   last_reported: string;
@@ -84,7 +85,7 @@ export function SQLite({ lifecycle, config, logger, hass, internal, synapse }: T
   lifecycle.onShutdownStart(() => database.close());
 
   // #MARK: updateLocal
-  function updateLocal(unique_id: TSynapseId, key: string, content: object) {
+  function updateLocal(unique_id: TSynapseId, key: string, content: unknown) {
     const entity = database
       .prepare(`SELECT id FROM HomeAssistantEntity WHERE unique_id = ?`)
       .get(unique_id) as HomeAssistantEntityRow;
@@ -138,7 +139,9 @@ export function SQLite({ lifecycle, config, logger, hass, internal, synapse }: T
       return undefined;
     }
 
-    const locals = database.prepare<[], HomeAssistantEntityLocalRow>(SELECT_LOCALS_QUERY).all();
+    const locals = database
+      .prepare<[PICK_ENTITY], HomeAssistantEntityLocalRow>(SELECT_LOCALS_QUERY)
+      .all(row.entity_id);
     row.locals = Object.fromEntries(locals.map(i => [i.key, JSON.parse(i.value_json)])) as LOCALS;
 
     return row;
@@ -149,12 +152,15 @@ export function SQLite({ lifecycle, config, logger, hass, internal, synapse }: T
     unique_id: TSynapseId,
     defaults: object,
   ): HomeAssistantEntityRow<LOCALS> {
+    // - if exists, return existing data
     const data = loadRow<LOCALS>(unique_id);
     if (data) {
       return data;
     }
+    // - if new: insert then try again
+    logger.debug({ name: load, unique_id }, `creating new sqlite entry`);
     update(unique_id, defaults);
-    return loadRow(unique_id);
+    return loadRow<LOCALS>(unique_id);
   }
 
   return { load, update, updateLocal };

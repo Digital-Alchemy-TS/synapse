@@ -74,9 +74,7 @@ export function DiscoveryExtension({
           return;
         }
         logger.info({ name: "discovery" }, `global discovery`);
-        hass.socket.fireEvent(`${EVENT_NAMESPACE}/identify`, {
-          compressed: payload(),
-        });
+        hass.socket.fireEvent(`${EVENT_NAMESPACE}/identify`, { compressed: payload() });
       },
     });
 
@@ -94,25 +92,25 @@ export function DiscoveryExtension({
   });
 
   // * SSDP announcements
-  lifecycle.onReady(() => {
+  lifecycle.onReady(function onReady() {
     if (synapse.configure.isRegistered()) {
-      logger.trace({ name: "onReady" }, `skipping ssdp announcements, already configured`);
+      logger.trace({ name: onReady }, `skipping ssdp announcements, already configured`);
       return;
     }
     if (!fastify) {
-      logger.trace({ name: "onReady" }, `fastify not provided, not starting ssdp`);
+      logger.trace({ name: onReady }, `fastify not provided, not starting ssdp`);
       return;
     }
-    logger.info({ name: "onReady" }, `starting ssdp announcements`);
+    logger.info({ name: onReady }, `starting ssdp announcements`);
     ssdp = new Server({ location: { path: config.synapse.SSDP_PATH, port: config.fastify.PORT } });
     ssdp.addUSN(config.synapse.DEVICE_TYPE);
     ssdp.start();
   });
 
   // * Shutdown
-  lifecycle.onShutdownStart(() => {
+  lifecycle.onShutdownStart(function onShutdownStart() {
     if (ssdp) {
-      logger.debug({ name: "onShutdownStart" }, `stopping ssdp announcements`);
+      logger.debug({ name: onShutdownStart }, `stopping ssdp announcements`);
       ssdp.stop();
     }
   });
