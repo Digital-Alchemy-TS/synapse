@@ -2,14 +2,14 @@
   "name": "@digital-alchemy/synapse",
   "repository": "https://github.com/Digital-Alchemy-TS/synapse",
   "homepage": "https://docs.digital-alchemy.app/Synapse",
-  "version": "24.8.1",
+  "version": "24.8.2",
   "scripts": {
     "mock": "tsx src/mock/main.ts",
     "build": "rm -rf dist; tsc",
     "test": "./scripts/test.sh",
     "lint": "eslint src",
     "prepublishOnly": "npm run build",
-    "upgrade": "yarn upgrade '@digital-alchemy/*'"
+    "upgrade": "yarn up '@digital-alchemy/*'"
   },
   "author": {
     "url": "https://github.com/zoe-codez",
@@ -31,7 +31,7 @@
     "node-ssdp": "^4.0.1"
   },
   "optionalDependencies": {
-    "@digital-alchemy/fastify-extension": "*"
+    "@digital-alchemy/fastify-extension": "^24.8.1"
   },
   "peerDependencies": {
     "@digital-alchemy/core": "*",
@@ -39,9 +39,9 @@
   },
   "devDependencies": {
     "@cspell/eslint-plugin": "^8.8.1",
-    "@digital-alchemy/core": "^24.7.2",
-    "@digital-alchemy/fastify-extension": "^24.6.1",
-    "@digital-alchemy/hass": "^24.7.6",
+    "@digital-alchemy/core": "^24.8.4",
+    "@digital-alchemy/fastify-extension": "^24.8.1",
+    "@digital-alchemy/hass": "^24.8.1",
     "@types/better-sqlite3": "^7.6.10",
     "@types/jest": "^29.5.12",
     "@types/minimist": "^1.2.5",

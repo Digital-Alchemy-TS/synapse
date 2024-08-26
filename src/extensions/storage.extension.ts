@@ -21,6 +21,7 @@ export function StorageExtension({
   lifecycle,
   hass,
   synapse,
+  event,
   scheduler,
 }: TServiceParams) {
   const registry = new Map<TSynapseId, TSynapseEntityStorage>();
@@ -69,6 +70,7 @@ export function StorageExtension({
       if (!is.empty(config.onUpdate)) {
         config.onUpdate.forEach(entity => entity.onUpdate(update));
       }
+      event.on(entity.unique_id, update);
       setImmediate(() => update());
     }
 
