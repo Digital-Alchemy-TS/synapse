@@ -63,7 +63,7 @@ export function VirtualVacuum({ context, synapse }: TServiceParams) {
     load_config_keys: ["battery_level", "fan_speed", "fan_speed_list", "supported_features"],
   });
 
-  return <LOCALS extends object, ATTRIBUTES extends object>(
+  return <LOCALS extends object = object, ATTRIBUTES extends object = object>(
     options: AddEntityOptions<VacuumConfiguration, VacuumEvents, ATTRIBUTES, LOCALS>,
   ) => generate.addEntity(options);
 }

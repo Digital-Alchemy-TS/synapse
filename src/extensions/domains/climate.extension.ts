@@ -170,7 +170,7 @@ export function VirtualClimate({ context, synapse }: TServiceParams) {
     ],
   });
 
-  return <LOCALS extends object, ATTRIBUTES extends object>(
+  return <LOCALS extends object = object, ATTRIBUTES extends object = object>(
     options: AddEntityOptions<ClimateConfiguration, ClimateEvents, ATTRIBUTES, LOCALS>,
   ) => generate.addEntity(options);
 }

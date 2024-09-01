@@ -31,7 +31,7 @@ export function VirtualImage({ context, synapse }: TServiceParams) {
     load_config_keys: ["content_type", "image_last_updated", "image_url"],
   });
 
-  return <LOCALS extends object, ATTRIBUTES extends object>(
+  return <LOCALS extends object = object, ATTRIBUTES extends object = object>(
     options: AddEntityOptions<ImageConfiguration, ImageEvents, ATTRIBUTES, LOCALS>,
   ) => generate.addEntity(options);
 }

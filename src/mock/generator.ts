@@ -16,7 +16,7 @@ export function EntityGenerator({ scheduler, synapse, context, logger }: TServic
       name: "example device",
       sw_version: "420.69",
     });
-    const sensor = synapse.sensor({
+    const sensor = synapse.sensor<number, LocalData, Attributes>({
       attributes: {
         destination: "saturn",
       },

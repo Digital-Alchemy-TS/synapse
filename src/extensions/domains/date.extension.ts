@@ -31,7 +31,7 @@ export function VirtualDate({ context, synapse }: TServiceParams) {
     map_state: "native_value",
   });
 
-  return function <LOCALS extends object, ATTRIBUTES extends object>({
+  return function <LOCALS extends object = object, ATTRIBUTES extends object = object>({
     managed = true,
     ...options
   }: AddEntityOptions<DateConfiguration, DateEvents, ATTRIBUTES, LOCALS>) {

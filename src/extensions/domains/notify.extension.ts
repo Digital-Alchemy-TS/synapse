@@ -22,7 +22,7 @@ export function VirtualNotify({ context, synapse }: TServiceParams) {
     load_config_keys: [],
   });
 
-  return <LOCALS extends object, ATTRIBUTES extends object>(
+  return <LOCALS extends object = object, ATTRIBUTES extends object = object>(
     options: AddEntityOptions<NotifyConfiguration, NotifyEvents, ATTRIBUTES, LOCALS>,
   ) => generate.addEntity(options);
 }

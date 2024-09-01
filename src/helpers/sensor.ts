@@ -271,9 +271,10 @@ export type SensorDeviceClasses =
 export type SensorConfiguration<
   ATTRIBUTES extends object,
   LOCALS extends object,
+  STATE_TYPE extends string | number,
 > = EntityConfigCommon<ATTRIBUTES, LOCALS> &
   SensorDeviceClasses & {
-    state?: SettableConfiguration<string | number>;
+    state?: SettableConfiguration<STATE_TYPE>;
     /**
      * The number of decimals which should be used in the sensor's state when it's displayed.
      */

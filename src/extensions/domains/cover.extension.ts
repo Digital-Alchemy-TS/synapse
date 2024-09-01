@@ -79,7 +79,7 @@ export function VirtualCover({ context, synapse }: TServiceParams) {
     ],
   });
 
-  return <LOCALS extends object, ATTRIBUTES extends object>(
+  return <LOCALS extends object = object, ATTRIBUTES extends object = object>(
     options: AddEntityOptions<CoverConfiguration, CoverEvents, ATTRIBUTES, LOCALS>,
   ) => generate.addEntity(options);
 }

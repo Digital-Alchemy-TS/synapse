@@ -35,7 +35,7 @@ export function VirtualSwitch({ context, synapse }: TServiceParams) {
     load_config_keys: ["device_class", "is_on"],
   });
 
-  return function <LOCALS extends object, ATTRIBUTES extends object>({
+  return function <LOCALS extends object = object, ATTRIBUTES extends object = object>({
     managed = true,
     ...options
   }: AddEntityOptions<SwitchConfiguration, SwitchEvents, ATTRIBUTES, LOCALS>) {

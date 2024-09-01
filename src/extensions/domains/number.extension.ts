@@ -52,7 +52,7 @@ export function VirtualNumber({ context, synapse }: TServiceParams) {
     ],
   });
 
-  return function <LOCALS extends object, ATTRIBUTES extends object>({
+  return function <LOCALS extends object = object, ATTRIBUTES extends object = object>({
     managed = true,
     ...options
   }: AddEntityOptions<NumberConfiguration, NumberEvents, ATTRIBUTES, LOCALS>) {

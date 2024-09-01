@@ -43,7 +43,7 @@ export function VirtualText({ context, synapse }: TServiceParams) {
     map_state: "native_value",
   });
 
-  return function <LOCALS extends object, ATTRIBUTES extends object>({
+  return function <LOCALS extends object = object, ATTRIBUTES extends object = object>({
     managed = true,
     ...options
   }: AddEntityOptions<TextConfiguration, TextEvents, ATTRIBUTES, LOCALS>) {
