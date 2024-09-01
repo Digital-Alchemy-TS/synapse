@@ -21,6 +21,7 @@ export function StorageExtension({
   lifecycle,
   hass,
   synapse,
+  event,
   scheduler,
 }: TServiceParams) {
   const registry = new Map<TSynapseId, TSynapseEntityStorage>();
@@ -85,6 +86,8 @@ export function StorageExtension({
         config.onUpdate.forEach(entity => entity.onUpdate(updateSettableConfig));
       }
       lifecycle.onReady(() => updateSettableConfig());
+      event.on(entity.unique_id, updateSettableConfig);
+      setImmediate(() => updateSettableConfig());
     }
 
     type LoadKeys = keyof EntityConfigCommon<ATTRIBUTES, LOCALS>;

@@ -1,6 +1,6 @@
 import { is, TServiceParams } from "@digital-alchemy/core";
 import { PICK_ENTITY } from "@digital-alchemy/hass";
-import DB, { Database } from "better-sqlite3";
+import SQLiteDriver, { Database } from "better-sqlite3";
 
 import { TSynapseId } from "../helpers";
 
@@ -72,12 +72,22 @@ export type HomeAssistantEntityRow<LOCALS extends object = object> = {
   locals: LOCALS;
 };
 
-export function SQLite({ lifecycle, config, logger, hass, internal, synapse }: TServiceParams) {
+export type SynapseSqliteDriver = typeof SQLiteDriver;
+
+export function SQLite({
+  lifecycle,
+  config,
+  logger,
+  hass,
+  internal,
+  synapse,
+}: TServiceParams): SynapseSqlite {
   let database: Database;
   const application_name = internal.boot.application.name;
+  let Driver: SynapseSqliteDriver = SQLiteDriver;
 
   lifecycle.onPostConfig(() => {
-    database = new DB(config.synapse.SQLITE_DB);
+    database = new Driver(config.synapse.SQLITE_DB);
     database.prepare(ENTITY_CREATE).run();
     database.prepare(LOCALS_CREATE).run();
   });
@@ -163,5 +173,17 @@ export function SQLite({ lifecycle, config, logger, hass, internal, synapse }: T
     return loadRow<LOCALS>(unique_id);
   }
 
-  return { load, update, updateLocal };
+  return {
+    load,
+    setDriver: (driver: SynapseSqliteDriver) => (Driver = driver),
+    update,
+    updateLocal,
+  };
 }
+
+type SynapseSqlite = {
+  load: (unique_id: TSynapseId, defaults: object) => HomeAssistantEntityRow;
+  setDriver: (driver: SynapseSqliteDriver) => void;
+  update: (unique_id: TSynapseId, content: object) => void;
+  updateLocal: (unique_id: TSynapseId, key: string, content: unknown) => void;
+};
