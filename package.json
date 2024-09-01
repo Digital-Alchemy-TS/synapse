@@ -41,7 +41,7 @@
     "@cspell/eslint-plugin": "^8.8.1",
     "@digital-alchemy/core": "^24.8.4",
     "@digital-alchemy/fastify-extension": "^24.8.1",
-    "@digital-alchemy/hass": "^24.8.1",
+    "@digital-alchemy/hass": "^24.8.3",
     "@types/better-sqlite3": "^7.6.10",
     "@types/jest": "^29.5.12",
     "@types/minimist": "^1.2.5",
