@@ -1,14 +1,11 @@
 import { is, TServiceParams } from "@digital-alchemy/core";
-import { PICK_ENTITY } from "@digital-alchemy/hass";
 import SQLiteDriver, { Database } from "better-sqlite3";
 
 import {
   ENTITY_CREATE,
   ENTITY_UPSERT,
-  HomeAssistantEntityLocalRow,
   HomeAssistantEntityRow,
   LOCALS_CREATE,
-  SELECT_LOCALS_QUERY,
   SELECT_QUERY,
   TSynapseId,
 } from "../helpers";

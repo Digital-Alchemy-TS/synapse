@@ -1,9 +1,9 @@
-import { TServiceParams } from "@digital-alchemy/core";
+import { is, TServiceParams } from "@digital-alchemy/core";
 
 import {
+  DELETE_LOCALS_QUERY,
   ENTITY_LOCALS_UPSERT,
   HomeAssistantEntityLocalRow,
-  HomeAssistantEntityRow,
   SELECT_LOCALS_QUERY,
   TSynapseId,
 } from "../helpers";
@@ -12,29 +12,22 @@ export function SynapseLocals({ synapse, logger }: TServiceParams) {
   // #MARK: updateLocal
   function updateLocal(unique_id: TSynapseId, key: string, content: unknown) {
     const database = synapse.sqlite.getDatabase();
-    const entity = database
-      .prepare(`SELECT id FROM HomeAssistantEntity WHERE unique_id = ?`)
-      .get(unique_id) as HomeAssistantEntityRow;
 
-    if (!entity) {
-      logger.warn({ name: updateLocal, unique_id }, `Entity with unique_id not found`);
-      return;
-    }
-
-    const entity_id = entity.id;
     const value_json = JSON.stringify(content);
-    const now = new Date().toISOString();
+    const last_modified = new Date().toISOString();
+    const metadata_json = JSON.stringify({});
 
-    const insertLocal = database.prepare(ENTITY_LOCALS_UPSERT);
-    insertLocal.run({
-      entity_id,
-      key,
-      last_modified: now,
-      value_json,
-    });
+    database
+      .prepare(ENTITY_LOCALS_UPSERT)
+      .run({ key, last_modified, metadata_json, unique_id, value_json });
   }
 
   // #MARK: loadLocals
+  /**
+   * locals are only loaded when they are first utilized for a particular entity
+   *
+   * allows for more performant cold boots
+   */
   function loadLocals(unique_id: TSynapseId) {
     logger.trace({ unique_id }, "initial load of locals");
     const database = synapse.sqlite.getDatabase();
@@ -48,21 +41,42 @@ export function SynapseLocals({ synapse, logger }: TServiceParams) {
 
   // #MARK: localsProxy
   function localsProxy<LOCALS extends object>(unique_id: TSynapseId, defaults: LOCALS) {
-    logger.trace("locals");
+    logger.trace({ unique_id }, "building locals proxy");
     let locals: Map<string, unknown>;
 
     return new Proxy({ ...defaults } as LOCALS, {
+      deleteProperty(_, key: string) {
+        locals ??= loadLocals(unique_id);
+        const database = synapse.sqlite.getDatabase();
+        database.prepare(DELETE_LOCALS_QUERY).run({ key, unique_id });
+        locals.delete(key);
+        return true;
+      },
       get(_, property: string) {
         locals ??= loadLocals(unique_id);
         if (locals.has(property)) {
           return locals.get(property);
         }
+        logger.trace({ unique_id }, `using code default for [%s]`, property);
         return defaults[property as keyof LOCALS];
+      },
+      has(_, property: string) {
+        locals ??= loadLocals(unique_id);
+        return locals.has(property) || property in defaults;
+      },
+      ownKeys() {
+        locals ??= loadLocals(unique_id);
+        return is.unique([...Object.keys(defaults), ...locals.keys()]);
       },
       set(_, property: string, value) {
         locals ??= loadLocals(unique_id);
-        locals.set(property, value);
+        if (locals.get(property) === value) {
+          logger.trace({ property, unique_id }, `value didn't change, not saving`);
+          return true;
+        }
+        logger.debug({ unique_id }, `updating [%s]`, property);
         updateLocal(unique_id, property, value);
+        locals.set(property, value);
         return true;
       },
     });

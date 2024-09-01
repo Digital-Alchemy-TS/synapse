@@ -6,6 +6,7 @@ import { TSynapseId } from "./utility.helper";
 
 export type TSynapseEntityStorage<CONFIGURATION extends object = object> = {
   unique_id: TSynapseId;
+  keys: () => string[];
   set: <KEY extends keyof CONFIGURATION>(key: KEY, value: CONFIGURATION[KEY]) => void;
   get: <KEY extends keyof CONFIGURATION>(key: KEY) => CONFIGURATION[KEY];
   isStored(key: string): key is Extract<keyof CONFIGURATION, string>;

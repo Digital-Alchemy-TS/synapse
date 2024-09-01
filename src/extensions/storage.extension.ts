@@ -98,6 +98,7 @@ export function StorageExtension({
       export: () => ({ ...CURRENT_VALUE }),
       get: key => CURRENT_VALUE[key],
       isStored: key => isCommonConfigKey(key) || load_config_keys.includes(key),
+      keys: () => load,
       set: (key: Extract<keyof CONFIGURATION, string>, value) => {
         const unique_id = entity.unique_id as TSynapseId;
         if (NO_LIVE_UPDATE.has(key)) {

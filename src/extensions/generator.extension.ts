@@ -4,6 +4,7 @@ import { ANY_ENTITY, ENTITY_STATE, TUniqueId, TUniqueIDMapping } from "@digital-
 import {
   AddEntityOptions,
   BaseEvent,
+  COMMON_CONFIG_KEYS,
   CreateRemovableCallback,
   DomainGeneratorOptions,
   EntityConfigCommon,
@@ -12,6 +13,7 @@ import {
   RemovableCallback,
   SynapseEntityProxy,
   TEventMap,
+  TSynapseId,
 } from "../helpers";
 
 export function DomainGenerator({
@@ -114,6 +116,10 @@ export function DomainGenerator({
           ]),
         );
 
+        // * pre-create proxy for locals
+        // (doesn't load data immediately)
+        const locals = synapse.locals.localsProxy(unique_id as TSynapseId, entity.locals ?? {});
+
         // #MARK: entity proxy
         return new Proxy({} as SynapseEntityProxy<CONFIGURATION, EVENT_MAP, ATTRIBUTES, LOCALS>, {
           get(_, property: string) {
@@ -125,7 +131,7 @@ export function DomainGenerator({
             }
             switch (property) {
               case "locals": {
-                return undefined;
+                return locals;
               }
               case "getEntity": {
                 return () => hass.refBy.unique_id(unique_id);
@@ -149,6 +155,16 @@ export function DomainGenerator({
               }
             }
             return undefined;
+          },
+          ownKeys() {
+            return is.unique([
+              "locals",
+              "getEntity",
+              "storage",
+              "onUpdate",
+              ...Object.keys(dynamicAttach),
+              ...storage.keys(),
+            ]);
           },
           set(_, property: string, newValue) {
             if (storage.isStored(property)) {

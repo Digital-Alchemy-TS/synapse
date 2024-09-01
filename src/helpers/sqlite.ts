@@ -16,6 +16,7 @@ export const LOCALS_CREATE = `CREATE TABLE IF NOT EXISTS HomeAssistantEntityLoca
   unique_id INTEGER NOT NULL,
   key TEXT NOT NULL,
   value_json TEXT NOT NULL,
+  metadata_json TEXT NOT NULL,
   last_modified DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (entity_id) REFERENCES HomeAssistantEntity(id),
   UNIQUE (entity_id, key)
@@ -28,14 +29,15 @@ export const ENTITY_UPSERT = `INSERT INTO HomeAssistantEntity (
 ) ON CONFLICT(unique_id) DO UPDATE SET
   entity_id = excluded.entity_id,
   last_reported = excluded.last_reported,
+  metadata_json = excluded.metadata_json,
   last_modified = excluded.last_modified,
   state_json = excluded.state_json,
   application_name = excluded.application_name`;
 
 export const ENTITY_LOCALS_UPSERT = `INSERT INTO HomeAssistantEntityLocals (
-  unique_id, key, value_json, last_modified
+  unique_id, key, value_json, last_modified, metadata_json
 ) VALUES (
-  @unique_id, @key, @value_json, @last_modified
+  @unique_id, @key, @value_json, @last_modified, @metadata_json
 ) ON CONFLICT(unique_id, key) DO UPDATE SET
   value_json = excluded.value_json,
   last_modified = excluded.last_modified`;
@@ -46,6 +48,12 @@ export const SELECT_QUERY = `SELECT *
 
 export const SELECT_LOCALS_QUERY = `SELECT *
   FROM HomeAssistantEntityLocals
+  WHERE unique_id = ?`;
+
+export const DELETE_LOCALS_QUERY = `DELETE FROM HomeAssistantEntityLocals
+  WHERE unique_id = ? AND key = ?`;
+
+export const DELETE_LOCALS_BY_UNIQUE_ID_QUERY = `DELETE FROM HomeAssistantEntityLocals
   WHERE unique_id = ?`;
 
 export type HomeAssistantEntityLocalRow = {
