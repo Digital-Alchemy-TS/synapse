@@ -20,7 +20,7 @@ export function VirtualSensor({ context, synapse }: TServiceParams) {
     ],
   });
 
-  return <ATTRIBUTES extends object, LOCALS extends object>(
+  return <LOCALS extends object, ATTRIBUTES extends object = object>(
     options: AddEntityOptions<
       SensorConfiguration<ATTRIBUTES, LOCALS>,
       SensorEvents,

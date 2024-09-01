@@ -76,7 +76,7 @@ export function VirtualFan({ context, synapse }: TServiceParams) {
     ],
   });
 
-  return <ATTRIBUTES extends object, LOCALS extends object>(
+  return <LOCALS extends object, ATTRIBUTES extends object>(
     options: AddEntityOptions<FanConfiguration, FanEvents, ATTRIBUTES, LOCALS>,
   ) => generate.addEntity(options);
 }

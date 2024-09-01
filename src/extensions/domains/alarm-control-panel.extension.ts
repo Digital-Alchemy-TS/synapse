@@ -73,7 +73,7 @@ export function VirtualAlarmControlPanel({ context, synapse }: TServiceParams) {
     ],
   });
 
-  return function <ATTRIBUTES extends object, LOCALS extends object>({
+  return function <LOCALS extends object, ATTRIBUTES extends object>({
     managed = true,
     ...options
   }: AddEntityOptions<

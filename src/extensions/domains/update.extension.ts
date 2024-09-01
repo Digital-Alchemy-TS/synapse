@@ -70,7 +70,7 @@ export function VirtualUpdate({ context, synapse }: TServiceParams) {
     ],
   });
 
-  return <ATTRIBUTES extends object, LOCALS extends object>(
+  return <LOCALS extends object, ATTRIBUTES extends object>(
     options: AddEntityOptions<UpdateConfiguration, UpdateEvents, ATTRIBUTES, LOCALS>,
   ) => generate.addEntity(options);
 }

@@ -16,7 +16,7 @@ export function EntityGenerator({ scheduler, synapse, context, logger }: TServic
       name: "example device",
       sw_version: "420.69",
     });
-    const sensor = synapse.sensor<Attributes, LocalData>({
+    const sensor = synapse.sensor({
       attributes: {
         destination: "saturn",
       },
@@ -34,14 +34,14 @@ export function EntityGenerator({ scheduler, synapse, context, logger }: TServic
     });
 
     sensor.onUpdate(() => {
-      // sensor.locals.bar
+      // sensor.locals.
     });
 
     const binary_sensor = synapse.binary_sensor({
       context,
       device_class: "window",
-      name: "blinkey",
-      suggested_object_id: "blinkey_the_binary_sensor",
+      name: "blinking",
+      suggested_object_id: "blinking_the_binary_sensor",
     });
     scheduler.interval({
       exec() {

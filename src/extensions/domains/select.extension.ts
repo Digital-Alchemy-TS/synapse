@@ -31,7 +31,7 @@ export function VirtualSelect({ context, synapse }: TServiceParams) {
     map_state: "current_option",
   });
 
-  return function <ATTRIBUTES extends object, LOCALS extends object>({
+  return function <LOCALS extends object, ATTRIBUTES extends object>({
     managed = true,
     ...options
   }: AddEntityOptions<SelectConfiguration, SelectEvents, ATTRIBUTES, LOCALS>) {

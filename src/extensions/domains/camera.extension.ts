@@ -77,7 +77,7 @@ export function VirtualCamera({ context, synapse }: TServiceParams) {
     ],
   });
 
-  return <ATTRIBUTES extends object, LOCALS extends object>(
+  return <LOCALS extends object, ATTRIBUTES extends object>(
     options: AddEntityOptions<CameraConfiguration, CameraEvents, ATTRIBUTES, LOCALS>,
   ) => generate.addEntity(options);
 }

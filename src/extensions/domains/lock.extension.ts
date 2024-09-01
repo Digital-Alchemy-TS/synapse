@@ -73,7 +73,7 @@ export function VirtualLock({ context, synapse }: TServiceParams) {
     ],
   });
 
-  return function <ATTRIBUTES extends object, LOCALS extends object>({
+  return function <LOCALS extends object, ATTRIBUTES extends object>({
     managed = true,
     ...options
   }: AddEntityOptions<LockConfiguration, LockEvents, ATTRIBUTES, LOCALS>) {

@@ -106,7 +106,7 @@ export function VirtualLight({ context, synapse }: TServiceParams) {
     ],
   });
 
-  return <ATTRIBUTES extends object, LOCALS extends object>(
+  return <LOCALS extends object, ATTRIBUTES extends object>(
     options: AddEntityOptions<LightConfiguration, LightEvents, ATTRIBUTES, LOCALS>,
   ) => generate.addEntity(options);
 }
