@@ -53,17 +53,6 @@ export function StorageExtension({
 
     let CURRENT_VALUE = {} as Record<keyof CONFIGURATION, unknown>;
 
-    function localsProxy<LOCALS extends object>(id: TSynapseId) {
-      return new Proxy({} as LOCALS, {
-        get(_, key) {
-          //
-        },
-        set(_, key: string, value: unknown) {
-          synapse.sqlite.updateLocal(id, key, value);
-          return true;
-        },
-      });
-    }
     // #MARK: createSettableConfig
     function createSettableConfig(key: keyof CONFIGURATION, config: ReactiveConfig) {
       function updateSettableConfig() {

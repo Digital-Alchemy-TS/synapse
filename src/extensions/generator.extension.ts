@@ -114,8 +114,6 @@ export function DomainGenerator({
           ]),
         );
 
-        const getEntity = () => hass.refBy.unique_id(unique_id);
-
         // #MARK: entity proxy
         return new Proxy({} as SynapseEntityProxy<CONFIGURATION, EVENT_MAP, ATTRIBUTES, LOCALS>, {
           get(_, property: string) {
@@ -126,8 +124,11 @@ export function DomainGenerator({
               return storage.get(property);
             }
             switch (property) {
+              case "locals": {
+                return undefined;
+              }
               case "getEntity": {
-                return getEntity;
+                return () => hass.refBy.unique_id(unique_id);
               }
               case "storage": {
                 return storage;
