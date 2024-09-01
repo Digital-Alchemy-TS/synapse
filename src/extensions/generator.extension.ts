@@ -1,10 +1,16 @@
-import { is, SINGLE, START, TAnyFunction, TServiceParams } from "@digital-alchemy/core";
+import {
+  InternalError,
+  is,
+  SINGLE,
+  START,
+  TAnyFunction,
+  TServiceParams,
+} from "@digital-alchemy/core";
 import { ANY_ENTITY, ENTITY_STATE, TUniqueId, TUniqueIDMapping } from "@digital-alchemy/hass";
 
 import {
   AddEntityOptions,
   BaseEvent,
-  COMMON_CONFIG_KEYS,
   CreateRemovableCallback,
   DomainGeneratorOptions,
   EntityConfigCommon,
@@ -19,6 +25,7 @@ import {
 export function DomainGenerator({
   logger,
   internal,
+  context,
   synapse,
   event,
   hass,
@@ -120,8 +127,24 @@ export function DomainGenerator({
         // (doesn't load data immediately)
         const locals = synapse.locals.localsProxy(unique_id as TSynapseId, entity.locals ?? {});
 
+        const keys = is.unique([
+          "locals",
+          "getEntity",
+          "storage",
+          "onUpdate",
+          ...Object.keys(dynamicAttach),
+          ...storage.keys(),
+        ]);
+
         // #MARK: entity proxy
         return new Proxy({} as SynapseEntityProxy<CONFIGURATION, EVENT_MAP, ATTRIBUTES, LOCALS>, {
+          deleteProperty(_, property: string) {
+            if (property === "locals") {
+              locals.reset();
+              return true;
+            }
+            return false;
+          },
           get(_, property: string) {
             if (!is.undefined(dynamicAttach[property])) {
               return dynamicAttach[property];
@@ -131,7 +154,7 @@ export function DomainGenerator({
             }
             switch (property) {
               case "locals": {
-                return locals;
+                return locals.proxy;
               }
               case "getEntity": {
                 return () => hass.refBy.unique_id(unique_id);
@@ -156,15 +179,11 @@ export function DomainGenerator({
             }
             return undefined;
           },
+          has(_, property: string) {
+            return keys.includes(property);
+          },
           ownKeys() {
-            return is.unique([
-              "locals",
-              "getEntity",
-              "storage",
-              "onUpdate",
-              ...Object.keys(dynamicAttach),
-              ...storage.keys(),
-            ]);
+            return keys;
           },
           set(_, property: string, newValue) {
             if (storage.isStored(property)) {
