@@ -70,5 +70,34 @@
     "type-fest": "^4.18.2",
     "typescript": "^5.4.5"
   },
+  "jest": {
+    "collectCoverage": true,
+    "coverageReporters": [
+      "text",
+      "cobertura"
+    ],
+    "coveragePathIgnorePatterns": [
+      "src/testing/"
+    ],
+    "preset": "ts-jest",
+    "testEnvironment": "node",
+    "moduleFileExtensions": [
+      "ts",
+      "js",
+      "json",
+      "node"
+    ],
+    "testMatch": [
+      "**/?(*.)+(spec|test).ts"
+    ],
+    "transform": {
+      "^.+\\.ts$": [
+        "ts-jest",
+        {
+          "tsconfig": "tsconfig.spec.json"
+        }
+      ]
+    }
+  },
   "packageManager": "yarn@4.3.1"
 }

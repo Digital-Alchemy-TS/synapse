@@ -18,8 +18,7 @@ export const LOCALS_CREATE = `CREATE TABLE IF NOT EXISTS HomeAssistantEntityLoca
   value_json TEXT NOT NULL,
   metadata_json TEXT NOT NULL,
   last_modified DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  FOREIGN KEY (entity_id) REFERENCES HomeAssistantEntity(id),
-  UNIQUE (entity_id, key)
+  UNIQUE (unique_id, key)
 )`;
 
 export const ENTITY_UPSERT = `INSERT INTO HomeAssistantEntity (
