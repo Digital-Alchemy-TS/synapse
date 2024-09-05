@@ -178,6 +178,9 @@ export function DomainGenerator({
             return keys;
           },
           set(_, property: string, newValue) {
+            if (property === "locals") {
+              return locals.replace(newValue);
+            }
             if (storage.isStored(property)) {
               storage.set(property, newValue);
               return true;

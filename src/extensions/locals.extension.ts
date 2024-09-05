@@ -53,70 +53,86 @@ export function SynapseLocals({ synapse, logger, internal }: TServiceParams) {
     let locals: Map<string, unknown>;
 
     const proxyItem = { ...defaults };
-    return {
-      proxy: new Proxy(proxyItem as LOCALS, {
-        // * delete entity.locals.thing
-        deleteProperty(_, key: string) {
-          locals ??= loadLocals(unique_id);
-          if (!locals) {
-            return false;
-          }
-          if (!locals.has(key)) {
-            return true;
-          }
-          const database = synapse.sqlite.getDatabase();
-          database.prepare(DELETE_LOCALS_QUERY).run([unique_id, key]);
-          locals.delete(key);
-          if (!(key in defaults)) {
-            delete proxyItem[key as keyof typeof proxyItem];
-          }
+    const proxy = new Proxy(proxyItem as LOCALS, {
+      // * delete entity.locals.thing
+      deleteProperty(_, key: string) {
+        locals ??= loadLocals(unique_id);
+        if (!locals) {
+          return false;
+        }
+        if (!locals.has(key)) {
           return true;
-        },
-        get(_, property: string) {
-          locals ??= loadLocals(unique_id);
-          if (!locals) {
-            return defaults[property as keyof LOCALS];
-          }
-          if (locals.has(property)) {
-            return locals.get(property);
-          }
-          logger.trace({ unique_id }, `using code default for [%s]`, property);
+        }
+        const database = synapse.sqlite.getDatabase();
+        database.prepare(DELETE_LOCALS_QUERY).run([unique_id, key]);
+        locals.delete(key);
+        if (!(key in defaults)) {
+          delete proxyItem[key as keyof typeof proxyItem];
+        }
+        return true;
+      },
+      get(_, property: string) {
+        locals ??= loadLocals(unique_id);
+        if (!locals) {
           return defaults[property as keyof LOCALS];
-        },
+        }
+        if (locals.has(property)) {
+          return locals.get(property);
+        }
+        logger.trace({ unique_id }, `using code default for [%s]`, property);
+        return defaults[property as keyof LOCALS];
+      },
 
-        // * "thing" in entity.locals
-        has(_, property: string) {
-          locals ??= loadLocals(unique_id);
-          if (property in defaults) {
-            return true;
-          }
-          return Boolean(locals?.has(property));
-        },
-
-        // * Object.keys(entity.locals)
-        ownKeys() {
-          locals ??= loadLocals(unique_id);
-          if (!locals) {
-            return Object.keys(defaults);
-          }
-          return is.unique([...Object.keys(defaults), ...locals.keys()]);
-        },
-        set(_, property: string, value) {
-          locals ??= loadLocals(unique_id);
-          if (!locals) {
-            return false;
-          }
-          if (is.equal(locals.get(property), value)) {
-            logger.trace({ property, unique_id }, `value didn't change, not saving`);
-            return true;
-          }
-          proxyItem[property as keyof typeof proxyItem] = value;
-          logger.debug({ unique_id }, `updating [%s]`, property);
-          synapse.locals.updateLocal(unique_id, property, value);
-          locals.set(property, value);
+      // * "thing" in entity.locals
+      has(_, property: string) {
+        locals ??= loadLocals(unique_id);
+        if (property in defaults) {
           return true;
-        },
-      }),
+        }
+        return Boolean(locals?.has(property));
+      },
+
+      // * Object.keys(entity.locals)
+      ownKeys() {
+        locals ??= loadLocals(unique_id);
+        if (!locals) {
+          return Object.keys(defaults);
+        }
+        return is.unique([...Object.keys(defaults), ...locals.keys()]);
+      },
+      set(_, property: string, value) {
+        locals ??= loadLocals(unique_id);
+        if (!locals) {
+          return false;
+        }
+        if (is.equal(locals.get(property), value)) {
+          logger.trace({ property, unique_id }, `value didn't change, not saving`);
+          return true;
+        }
+        proxyItem[property as keyof typeof proxyItem] = value;
+        logger.debug({ unique_id }, `updating [%s]`, property);
+        synapse.locals.updateLocal(unique_id, property, value);
+        locals.set(property, value);
+        return true;
+      },
+    });
+
+    return {
+      proxy,
+
+      replace: (data: LOCALS) => {
+        locals ??= loadLocals(unique_id);
+        if (!locals) {
+          return false;
+        }
+        const incoming = Object.keys(data);
+        const current = is.unique([...Object.keys(defaults), ...locals.keys()]);
+        type ProxyKey = keyof typeof proxy;
+
+        current.filter(i => !incoming.includes(i)).forEach(key => delete proxy[key as ProxyKey]);
+        Object.entries(data).forEach(([key, value]) => (proxy[key as ProxyKey] = value));
+        return true;
+      },
       // * delete entity.locals
       reset: () => {
         logger.warn({ unique_id }, "reset locals");

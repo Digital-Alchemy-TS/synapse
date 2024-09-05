@@ -356,6 +356,47 @@ describe("Locals", () => {
     });
 
     describe("set", () => {
+      it("supports object assigns", async () => {
+        expect.assertions(1);
+        application = CreateTestingApplication(
+          {
+            Test({ synapse, context, lifecycle }: TServiceParams) {
+              lifecycle.onReady(() => {
+                const sensor = synapse.sensor({
+                  context,
+                  locals: { test: false },
+                  name: "test",
+                });
+                sensor.locals = { test: true };
+                expect(sensor.locals.test).toBe(true);
+              });
+            },
+          },
+          { keepDb: true },
+        );
+        await application.bootstrap(BASIC_BOOT);
+      });
+
+      it("does not support assign before db avail", async () => {
+        expect.assertions(1);
+        application = CreateTestingApplication(
+          {
+            Test({ synapse, context }: TServiceParams) {
+              const sensor = synapse.sensor({
+                context,
+                locals: { test: false },
+                name: "test",
+              });
+              expect(() => {
+                sensor.locals = { test: true };
+              }).toThrow();
+            },
+          },
+          { keepDb: true },
+        );
+        await application.bootstrap(BASIC_BOOT);
+      });
+
       it("should not allow sets before database is available", async () => {
         expect.assertions(1);
         application = CreateTestingApplication(
