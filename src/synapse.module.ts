@@ -1,5 +1,4 @@
 import { CreateLibrary, InternalConfig } from "@digital-alchemy/core";
-import { LIB_FASTIFY } from "@digital-alchemy/fastify-extension";
 import { LIB_HASS } from "@digital-alchemy/hass";
 import { join } from "path";
 import { cwd } from "process";
@@ -130,7 +129,6 @@ export const LIB_SYNAPSE = CreateLibrary({
   },
   depends: [LIB_HASS],
   name: "synapse",
-  optionalDepends: [LIB_FASTIFY],
   priorityInit: ["generator", "storage", "locals"],
   services: {
     /**
