@@ -31,6 +31,7 @@ describe("Locals", () => {
     await application.bootstrap(BASIC_BOOT);
   });
 
+  // #MARK: Lifecycle
   describe("Lifecycle interactions", () => {
     it("sources defaults from definitions before sqlite is available", async () => {
       expect.assertions(1);
@@ -44,6 +45,7 @@ describe("Locals", () => {
     });
   });
 
+  // #MARK: Sqlite
   describe("sqlite interactions", () => {
     const unique_id = v4();
 
@@ -83,6 +85,7 @@ describe("Locals", () => {
       await application.bootstrap(BASIC_BOOT);
     });
 
+    // #MARK: X-Run
     describe("Cross run", () => {
       it("returns set values", async () => {
         expect.assertions(2);
@@ -143,6 +146,7 @@ describe("Locals", () => {
   });
 
   describe("Operators", () => {
+    // #MARK: deleteProperty
     describe("deleteProperty", () => {
       it("resets locals and deletes sqlite entries", async () => {
         expect.assertions(2);
@@ -232,6 +236,7 @@ describe("Locals", () => {
       });
     });
 
+    // #MARK: has
     describe("has", () => {
       it("has returns true for defaults", async () => {
         expect.assertions(1);
@@ -319,6 +324,7 @@ describe("Locals", () => {
       });
     });
 
+    // #MARK: ownKeys
     describe("ownKeys", () => {
       it("returns defaults as ownKeys before bootstrap", async () => {
         expect.assertions(1);
@@ -354,6 +360,7 @@ describe("Locals", () => {
       });
     });
 
+    // #MARK: set
     describe("set", () => {
       it("supports object assigns", async () => {
         expect.assertions(1);

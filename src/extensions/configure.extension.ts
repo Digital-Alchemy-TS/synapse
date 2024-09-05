@@ -1,8 +1,6 @@
-import { is, MINUTE, sleep, TServiceParams } from "@digital-alchemy/core";
+import { is, TServiceParams } from "@digital-alchemy/core";
 import { createHash } from "crypto";
-import { hostname, networkInterfaces, userInfo } from "os";
-
-const EXTRA_EARLY = 1000;
+import { hostname, userInfo } from "os";
 
 export function Configure({ lifecycle, config, logger, internal, hass, synapse }: TServiceParams) {
   let extensionInstalled = false;
@@ -41,25 +39,26 @@ export function Configure({ lifecycle, config, logger, internal, hass, synapse }
    * keep bothering user until they install the extension or remove the lib
    * kinda pointless otherwise
    */
-  async function doCheck() {
-    if (!config.hass.AUTO_SCAN_CALL_PROXY) {
+  async function checkInstallState() {
+    if (config.synapse.ASSUME_INSTALLED) {
       extensionInstalled = true;
-      return;
+      return true;
     }
     const hassConfig = await hass.fetch.getConfig();
     const installed = hassConfig.components.some(i => i.startsWith("synapse"));
     if (installed) {
       logger.debug("extension is installed!");
       extensionInstalled = true;
-      return;
+      return true;
     }
     logger.error(`synapse extension is not installed`);
-    await sleep(MINUTE);
-    return doCheck();
+    // retry
+    return false;
   }
 
+  // hass.events.
   // make sure it doesn't accidentally get attached to lifecycle
-  lifecycle.onBootstrap(() => setImmediate(async () => await doCheck()));
+  lifecycle.onBootstrap(async () => await synapse.configure.checkInstallState());
 
   lifecycle.onReady(() => {
     if (!synapse.configure.isRegistered()) {
@@ -67,5 +66,5 @@ export function Configure({ lifecycle, config, logger, internal, hass, synapse }
     }
   });
 
-  return { isRegistered };
+  return { checkInstallState, isRegistered };
 }

@@ -78,9 +78,15 @@ const DOMAINS = {
 
 export const LIB_SYNAPSE = CreateLibrary({
   configuration: {
-    DEVICE_TYPE: {
-      default: "urn:schemas-upnp-org:device:Basic:1",
-      type: "string",
+    ASSUME_INSTALLED: {
+      default: false,
+      description: "Used with testing",
+      type: "boolean",
+    },
+    ASSUME_REGISTERED: {
+      default: false,
+      description: "Used with testing",
+      type: "boolean",
     },
     EMIT_HEARTBEAT: {
       default: true,
@@ -104,10 +110,6 @@ export const LIB_SYNAPSE = CreateLibrary({
       description: "Extra data to describe the app + build default device from",
       type: "internal",
     } as InternalConfig<HassDeviceMetadata>,
-    METADATA_HOST: {
-      description: ["Host name to announce as"],
-      type: "string",
-    },
     METADATA_TITLE: {
       description: ["Title for the integration provided by this app", "Defaults to app name"],
       type: "string",
@@ -119,11 +121,6 @@ export const LIB_SYNAPSE = CreateLibrary({
     SQLITE_DB: {
       default: join(cwd(), "synapse_storage.db"),
       description: "Location to persist entity state at",
-      type: "string",
-    },
-    SSDP_PATH: {
-      default: "/description.xml",
-      description: "Route to advertise ssdp xml data at",
       type: "string",
     },
   },

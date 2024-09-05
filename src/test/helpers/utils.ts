@@ -2,6 +2,7 @@ import {
   ApplicationDefinition,
   BootstrapOptions,
   CreateApplication,
+  deepExtend,
   is,
   OptionalModuleConfiguration,
   PartialConfiguration,
@@ -71,15 +72,20 @@ export function CreateTestingApplication(
 export const BASIC_BOOT = {
   configuration: {
     boilerplate: { LOG_LEVEL: "silent" },
-    // boilerplate: { LOG_LEVEL: "error" },
     hass: {
       AUTO_CONNECT_SOCKET: false,
       AUTO_SCAN_CALL_PROXY: false,
       MOCK_SOCKET: true,
     },
-    synapse: { SQLITE_DB },
+    synapse: {
+      ASSUME_INSTALLED: true,
+      SQLITE_DB,
+    },
   },
 } satisfies BootstrapOptions;
+
+export const SPECIAL_BOOT = (configuration: PartialConfiguration) =>
+  deepExtend(BASIC_BOOT, { configuration });
 
 export const CreateTestRunner = <S extends ServiceMap, C extends OptionalModuleConfiguration>(
   UNIT_TESTING_APP: ApplicationDefinition<S, C>,
