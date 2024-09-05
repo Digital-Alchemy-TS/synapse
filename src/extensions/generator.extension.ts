@@ -12,6 +12,7 @@ import {
   RemovableCallback,
   SynapseEntityProxy,
   TEventMap,
+  TSynapseId,
 } from "../helpers";
 
 export function DomainGenerator({
@@ -67,8 +68,8 @@ export function DomainGenerator({
 
     return {
       // #MARK: add_entity
-      addEntity<ATTRIBUTES extends object>(
-        entity: AddEntityOptions<CONFIGURATION, EVENT_MAP, ATTRIBUTES>,
+      addEntity<ATTRIBUTES extends object, LOCALS extends object>(
+        entity: AddEntityOptions<CONFIGURATION, EVENT_MAP, ATTRIBUTES, LOCALS>,
       ) {
         // * defaults
         // - unique_id - required for comms
@@ -80,7 +81,11 @@ export function DomainGenerator({
         const unique_id = entity.unique_id as TUniqueId;
 
         // * initialize storage
-        const storage = synapse.storage.add<CONFIGURATION & EntityConfigCommon<object>>({
+        const storage = synapse.storage.add<
+          LOCALS,
+          ATTRIBUTES,
+          CONFIGURATION & EntityConfigCommon<ATTRIBUTES, LOCALS>
+        >({
           domain,
           entity,
           load_config_keys,
@@ -110,10 +115,28 @@ export function DomainGenerator({
           ]),
         );
 
-        const getEntity = () => hass.refBy.unique_id(unique_id);
+        // * pre-create proxy for locals
+        // (doesn't load data immediately)
+        const locals = synapse.locals.localsProxy(unique_id as TSynapseId, entity.locals ?? {});
+
+        const keys = is.unique([
+          "locals",
+          "getEntity",
+          "storage",
+          "onUpdate",
+          ...Object.keys(dynamicAttach),
+          ...storage.keys(),
+        ]);
 
         // #MARK: entity proxy
-        return new Proxy({} as SynapseEntityProxy<CONFIGURATION, EVENT_MAP, ATTRIBUTES>, {
+        return new Proxy({} as SynapseEntityProxy<CONFIGURATION, EVENT_MAP, ATTRIBUTES, LOCALS>, {
+          deleteProperty(_, property: string) {
+            if (property === "locals") {
+              locals.reset();
+              return true;
+            }
+            return false;
+          },
           get(_, property: string) {
             if (!is.undefined(dynamicAttach[property])) {
               return dynamicAttach[property];
@@ -122,8 +145,11 @@ export function DomainGenerator({
               return storage.get(property);
             }
             switch (property) {
+              case "locals": {
+                return locals.proxy;
+              }
               case "getEntity": {
-                return getEntity;
+                return () => hass.refBy.unique_id(unique_id);
               }
               case "storage": {
                 return storage;
@@ -145,7 +171,16 @@ export function DomainGenerator({
             }
             return undefined;
           },
+          has(_, property: string) {
+            return keys.includes(property);
+          },
+          ownKeys() {
+            return keys;
+          },
           set(_, property: string, newValue) {
+            if (property === "locals") {
+              return locals.replace(newValue);
+            }
             if (storage.isStored(property)) {
               storage.set(property, newValue);
               return true;

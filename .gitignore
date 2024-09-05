@@ -124,3 +124,5 @@ review.zip
 dynamic.d.ts
 /obsidian/.obsidian
 .yarn/install-state.gz
+.env
+jest_sqlite.db

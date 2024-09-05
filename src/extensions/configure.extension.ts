@@ -75,8 +75,12 @@ export function Configure({
    * kinda pointless otherwise
    */
   async function doCheck() {
-    const config = await hass.fetch.getConfig();
-    const installed = config.components.some(i => i.startsWith("synapse"));
+    if (!config.hass.AUTO_SCAN_CALL_PROXY) {
+      extensionInstalled = true;
+      return;
+    }
+    const hassConfig = await hass.fetch.getConfig();
+    const installed = hassConfig.components.some(i => i.startsWith("synapse"));
     if (installed) {
       logger.debug("extension is installed!");
       extensionInstalled = true;

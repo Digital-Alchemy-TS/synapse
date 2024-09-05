@@ -43,7 +43,7 @@ export function VirtualRemote({ context, synapse }: TServiceParams) {
     load_config_keys: ["current_activity", "activity_list", "supported_features"],
   });
 
-  return <ATTRIBUTES extends object>(
-    options: AddEntityOptions<RemoteConfiguration, RemoteEvents, ATTRIBUTES>,
+  return <LOCALS extends object = object, ATTRIBUTES extends object = object>(
+    options: AddEntityOptions<RemoteConfiguration, RemoteEvents, ATTRIBUTES, LOCALS>,
   ) => generate.addEntity(options);
 }

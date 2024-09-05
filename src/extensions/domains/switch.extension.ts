@@ -35,10 +35,10 @@ export function VirtualSwitch({ context, synapse }: TServiceParams) {
     load_config_keys: ["device_class", "is_on"],
   });
 
-  return function <ATTRIBUTES extends object>({
+  return function <LOCALS extends object = object, ATTRIBUTES extends object = object>({
     managed = true,
     ...options
-  }: AddEntityOptions<SwitchConfiguration, SwitchEvents, ATTRIBUTES>) {
+  }: AddEntityOptions<SwitchConfiguration, SwitchEvents, ATTRIBUTES, LOCALS>) {
     const entity = generate.addEntity(options);
     if (managed) {
       entity.onToggle(() => entity.storage.set("is_on", !entity.storage.get("is_on")));

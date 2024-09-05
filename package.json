@@ -2,9 +2,9 @@
   "name": "@digital-alchemy/synapse",
   "repository": "https://github.com/Digital-Alchemy-TS/synapse",
   "homepage": "https://docs.digital-alchemy.app/Synapse",
-  "version": "24.8.2",
+  "version": "24.9.1",
   "scripts": {
-    "mock": "tsx src/mock/main.ts",
+    "start:mock": "tsx src/mock/main.ts",
     "build": "rm -rf dist; tsc",
     "test": "./scripts/test.sh",
     "lint": "eslint src",
@@ -25,31 +25,27 @@
     ".": "./dist/index.js"
   },
   "license": "MIT",
-  "dependencies": {
-    "better-sqlite3": "^11.0.0",
-    "dayjs": "^1.11.11",
-    "node-ssdp": "^4.0.1"
-  },
-  "optionalDependencies": {
-    "@digital-alchemy/fastify-extension": "^24.8.1"
-  },
   "peerDependencies": {
     "@digital-alchemy/core": "*",
-    "@digital-alchemy/hass": "*"
+    "@digital-alchemy/hass": "*",
+    "better-sqlite3": "^11.0.0",
+    "dayjs": "*"
   },
   "devDependencies": {
     "@cspell/eslint-plugin": "^8.8.1",
     "@digital-alchemy/core": "^24.8.4",
     "@digital-alchemy/fastify-extension": "^24.8.1",
-    "@digital-alchemy/hass": "^24.8.1",
+    "@digital-alchemy/hass": "^24.8.3",
     "@types/better-sqlite3": "^7.6.10",
     "@types/jest": "^29.5.12",
     "@types/minimist": "^1.2.5",
     "@types/node": "^20.12.12",
     "@types/node-ssdp": "^4.0.4",
-    "@types/uuid": "^9.0.8",
+    "@types/uuid": "^10.0.0",
     "@typescript-eslint/eslint-plugin": "7.9.0",
     "@typescript-eslint/parser": "7.9.0",
+    "better-sqlite3": "^11.0.0",
+    "dayjs": "^1.11.11",
     "eslint": "8.57.0",
     "eslint-config-prettier": "9.1.0",
     "eslint-plugin-import": "^2.29.1",
@@ -70,5 +66,37 @@
     "type-fest": "^4.18.2",
     "typescript": "^5.4.5"
   },
-  "packageManager": "yarn@4.3.1"
+  "jest": {
+    "collectCoverage": true,
+    "coverageReporters": [
+      "text",
+      "cobertura"
+    ],
+    "coveragePathIgnorePatterns": [
+      "src/test/"
+    ],
+    "preset": "ts-jest",
+    "testEnvironment": "node",
+    "moduleFileExtensions": [
+      "ts",
+      "js",
+      "json",
+      "node"
+    ],
+    "testMatch": [
+      "**/?(*.)+(spec|test).ts"
+    ],
+    "transform": {
+      "^.+\\.ts$": [
+        "ts-jest",
+        {
+          "tsconfig": "tsconfig.spec.json"
+        }
+      ]
+    }
+  },
+  "packageManager": "yarn@4.4.1",
+  "dependencies": {
+    "uuid": "^10.0.0"
+  }
 }

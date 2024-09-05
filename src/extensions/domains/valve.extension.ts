@@ -61,7 +61,7 @@ export function VirtualValve({ context, synapse }: TServiceParams) {
     ],
   });
 
-  return <ATTRIBUTES extends object>(
-    options: AddEntityOptions<ValveConfiguration, ValveEvents, ATTRIBUTES>,
+  return <LOCALS extends object = object, ATTRIBUTES extends object = object>(
+    options: AddEntityOptions<ValveConfiguration, ValveEvents, ATTRIBUTES, LOCALS>,
   ) => generate.addEntity(options);
 }

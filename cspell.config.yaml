@@ -20,12 +20,14 @@ words:
   - upnp
   - programminghorror
   - rgbw
+  - blinkey
   - rgbww
   - datasources
   - sonarjs
   - tvshow
   - utcnow
   - zeroconf
+  - cobertura
   - autoincrement
   - ssdp
 ignoreWords: []

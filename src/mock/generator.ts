@@ -1,19 +1,32 @@
 import { SECOND, TServiceParams } from "@digital-alchemy/core";
 import dayjs from "dayjs";
 
+type LocalData = {
+  foo: number;
+  bar: boolean;
+};
+
+type Attributes = {
+  destination: string;
+};
+
 export function EntityGenerator({ scheduler, synapse, context, logger }: TServiceParams) {
   try {
     const subDevice = synapse.device.register("sub_device", {
       name: "example device",
       sw_version: "420.69",
     });
-    const sensor = synapse.sensor({
+    const sensor = synapse.sensor<number, LocalData, Attributes>({
       attributes: {
         destination: "saturn",
       },
       context,
       device_class: "speed",
       device_id: subDevice,
+      locals: {
+        bar: false,
+        foo: 5,
+      },
       name: "Test the sensor",
       state: 20,
       suggested_object_id: "magic_the_sensor",
@@ -21,14 +34,14 @@ export function EntityGenerator({ scheduler, synapse, context, logger }: TServic
     });
 
     sensor.onUpdate(() => {
-      //
+      // sensor.locals.
     });
 
     const binary_sensor = synapse.binary_sensor({
       context,
       device_class: "window",
-      name: "blinkey",
-      suggested_object_id: "blinkey_the_binary_sensor",
+      name: "blinking",
+      suggested_object_id: "blinking_the_binary_sensor",
     });
     scheduler.interval({
       exec() {

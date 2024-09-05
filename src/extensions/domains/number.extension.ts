@@ -52,10 +52,10 @@ export function VirtualNumber({ context, synapse }: TServiceParams) {
     ],
   });
 
-  return function <ATTRIBUTES extends object>({
+  return function <LOCALS extends object = object, ATTRIBUTES extends object = object>({
     managed = true,
     ...options
-  }: AddEntityOptions<NumberConfiguration, NumberEvents, ATTRIBUTES>) {
+  }: AddEntityOptions<NumberConfiguration, NumberEvents, ATTRIBUTES, LOCALS>) {
     const entity = generate.addEntity(options);
     if (managed) {
       entity.onSetValue(({ value }) => entity.storage.set("native_value", value));

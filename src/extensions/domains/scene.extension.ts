@@ -19,7 +19,7 @@ export function VirtualScene({ context, synapse }: TServiceParams) {
     domain: "scene",
   });
 
-  return <ATTRIBUTES extends object>(
-    options: AddEntityOptions<SceneConfiguration, SceneEvents, ATTRIBUTES>,
+  return <LOCALS extends object = object, ATTRIBUTES extends object = object>(
+    options: AddEntityOptions<SceneConfiguration, SceneEvents, ATTRIBUTES, LOCALS>,
   ) => generate.addEntity(options);
 }

@@ -11,6 +11,7 @@ import {
   DomainGenerator,
   SocketExtension,
   StorageExtension,
+  SynapseLocals,
   VirtualAlarmControlPanel,
   VirtualBinarySensor,
   VirtualButton,
@@ -130,7 +131,7 @@ export const LIB_SYNAPSE = CreateLibrary({
   depends: [LIB_HASS],
   name: "synapse",
   optionalDepends: [LIB_FASTIFY],
-  priorityInit: ["generator", "storage"],
+  priorityInit: ["generator", "storage", "locals"],
   services: {
     /**
      * internal
@@ -147,7 +148,7 @@ export const LIB_SYNAPSE = CreateLibrary({
      */
     discovery: DiscoveryExtension,
     generator: DomainGenerator,
-
+    locals: SynapseLocals,
     socket: SocketExtension,
     sqlite: SQLite,
     storage: StorageExtension,

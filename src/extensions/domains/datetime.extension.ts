@@ -30,10 +30,10 @@ export function VirtualDateTime({ context, synapse }: TServiceParams) {
     map_state: "native_value",
   });
 
-  return function <ATTRIBUTES extends object>({
+  return function <LOCALS extends object = object, ATTRIBUTES extends object = object>({
     managed = true,
     ...options
-  }: AddEntityOptions<DateTimeConfiguration, DateTimeEvents, ATTRIBUTES>) {
+  }: AddEntityOptions<DateTimeConfiguration, DateTimeEvents, ATTRIBUTES, LOCALS>) {
     const entity = generate.addEntity(options);
     if (managed) {
       entity.onSetValue(({ value }) => entity.storage.set("native_value", value));
