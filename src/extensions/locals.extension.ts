@@ -16,12 +16,10 @@ export function SynapseLocals({ synapse, logger, internal }: TServiceParams) {
 
     const value_json = JSON.stringify(content);
     const last_modified = new Date().toISOString();
-    const metadata_json = JSON.stringify({});
 
     database.prepare(ENTITY_LOCALS_UPSERT).run({
       key,
       last_modified,
-      metadata_json,
       unique_id,
       value_json,
     });

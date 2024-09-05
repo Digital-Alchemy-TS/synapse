@@ -2,7 +2,7 @@
   "name": "@digital-alchemy/synapse",
   "repository": "https://github.com/Digital-Alchemy-TS/synapse",
   "homepage": "https://docs.digital-alchemy.app/Synapse",
-  "version": "24.9.1",
+  "version": "24.9.2",
   "scripts": {
     "start:mock": "tsx src/mock/main.ts",
     "build": "rm -rf dist; tsc",
@@ -29,7 +29,8 @@
     "@digital-alchemy/core": "*",
     "@digital-alchemy/hass": "*",
     "better-sqlite3": "^11.0.0",
-    "dayjs": "*"
+    "dayjs": "*",
+    "uuid": "*"
   },
   "devDependencies": {
     "@cspell/eslint-plugin": "^8.8.1",
@@ -64,7 +65,8 @@
     "ts-jest": "^29.1.2",
     "tsx": "^4.10.3",
     "type-fest": "^4.18.2",
-    "typescript": "^5.4.5"
+    "typescript": "^5.4.5",
+    "uuid": "^10.0.0"
   },
   "jest": {
     "collectCoverage": true,
@@ -95,8 +97,5 @@
       ]
     }
   },
-  "packageManager": "yarn@4.4.1",
-  "dependencies": {
-    "uuid": "^10.0.0"
-  }
+  "packageManager": "yarn@4.4.1"
 }
