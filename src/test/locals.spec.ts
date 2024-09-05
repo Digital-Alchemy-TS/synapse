@@ -6,7 +6,7 @@ import {
 } from "@digital-alchemy/core";
 import { v4 } from "uuid";
 
-import { HomeAssistantEntityLocalRow, TSynapseId } from "../helpers";
+import { HomeAssistantEntityLocalRow } from "../helpers";
 import { BASIC_BOOT, CreateTestingApplication } from "./helpers";
 
 describe("Locals", () => {
@@ -324,7 +324,7 @@ describe("Locals", () => {
       it("returns defaults as ownKeys before bootstrap", async () => {
         expect.assertions(1);
         application = CreateTestingApplication({
-          Test({ synapse, context, lifecycle }: TServiceParams) {
+          Test({ synapse, context }: TServiceParams) {
             const sensor = synapse.sensor<number, { test: boolean; string?: string }>({
               context,
               locals: { test: false },
