@@ -1,3 +1,7 @@
+[![codecov](https://codecov.io/github/Digital-Alchemy-TS/synapse/graph/badge.svg?token=IBGLY3RY68)](https://codecov.io/github/Digital-Alchemy-TS/synapse)
+
+---
+
 ## 📘 Description
 
 Welcome to `@digital-alchemy/synapse`!
