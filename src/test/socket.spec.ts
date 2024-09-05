@@ -11,7 +11,7 @@ import { v4 } from "uuid";
 
 import { BASIC_BOOT, CreateTestingApplication } from "./helpers";
 
-describe("Device", () => {
+describe("Socket", () => {
   let application: ApplicationDefinition<ServiceMap, OptionalModuleConfiguration>;
 
   afterEach(async () => {
