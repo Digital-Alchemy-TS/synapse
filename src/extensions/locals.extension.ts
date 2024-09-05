@@ -53,6 +53,7 @@ export function SynapseLocals({ synapse, logger, internal }: TServiceParams) {
     let locals: Map<string, unknown>;
 
     const proxyItem = { ...defaults };
+    type ProxyKey = keyof typeof proxy;
     const proxy = new Proxy(proxyItem as LOCALS, {
       // * delete entity.locals.thing
       deleteProperty(_, key: string) {
@@ -127,7 +128,6 @@ export function SynapseLocals({ synapse, logger, internal }: TServiceParams) {
         }
         const incoming = Object.keys(data);
         const current = is.unique([...Object.keys(defaults), ...locals.keys()]);
-        type ProxyKey = keyof typeof proxy;
 
         current.filter(i => !incoming.includes(i)).forEach(key => delete proxy[key as ProxyKey]);
         Object.entries(data).forEach(([key, value]) => (proxy[key as ProxyKey] = value));
