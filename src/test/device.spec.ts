@@ -102,7 +102,7 @@ describe("Configuration", () => {
 
   // #MARK: getInfo
   fdescribe("id", () => {
-    it("default id", async () => {
+    fit("default id", async () => {
       expect.assertions(1);
       application = CreateTestingApplication({
         Test({ synapse }: TServiceParams) {
@@ -111,7 +111,11 @@ describe("Configuration", () => {
           expect(synapse.device.id()).toBe("d3fbf239-3650-904b-6527-7ca5b6ad4eb2");
         },
       });
-      await application.bootstrap(SPECIAL_BOOT({ boilerplate: { LOG_LEVEL: "info" } }));
+      await application.bootstrap(
+        SPECIAL_BOOT({
+          boilerplate: { LOG_LEVEL: "trace" },
+        }),
+      );
     });
 
     it("formats according to provided params string", async () => {
