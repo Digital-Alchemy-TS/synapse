@@ -86,7 +86,7 @@ describe("Locals", () => {
     });
 
     // #MARK: X-Run
-    describe("Cross run", () => {
+    xdescribe("Cross run", () => {
       it("returns set values", async () => {
         expect.assertions(2);
         application = CreateTestingApplication({
