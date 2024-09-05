@@ -16,7 +16,6 @@ export const LOCALS_CREATE = `CREATE TABLE IF NOT EXISTS HomeAssistantEntityLoca
   unique_id INTEGER NOT NULL,
   key TEXT NOT NULL,
   value_json TEXT NOT NULL,
-  metadata_json TEXT NOT NULL,
   last_modified DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   UNIQUE (unique_id, key)
 )`;
@@ -28,15 +27,14 @@ export const ENTITY_UPSERT = `INSERT INTO HomeAssistantEntity (
 ) ON CONFLICT(unique_id) DO UPDATE SET
   entity_id = excluded.entity_id,
   last_reported = excluded.last_reported,
-  metadata_json = excluded.metadata_json,
   last_modified = excluded.last_modified,
   state_json = excluded.state_json,
   application_name = excluded.application_name`;
 
 export const ENTITY_LOCALS_UPSERT = `INSERT INTO HomeAssistantEntityLocals (
-  unique_id, key, value_json, last_modified, metadata_json
+  unique_id, key, value_json, last_modified
 ) VALUES (
-  @unique_id, @key, @value_json, @last_modified, @metadata_json
+  @unique_id, @key, @value_json, @last_modified
 ) ON CONFLICT(unique_id, key) DO UPDATE SET
   value_json = excluded.value_json,
   last_modified = excluded.last_modified`;

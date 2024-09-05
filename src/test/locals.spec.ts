@@ -109,7 +109,6 @@ describe("Locals", () => {
               expect(entry).toEqual(
                 expect.objectContaining({
                   key: "test",
-                  metadata_json: "{}",
                   unique_id,
                   value_json: "true",
                 }),
