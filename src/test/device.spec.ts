@@ -108,7 +108,9 @@ describe("Configuration", () => {
         Test({ synapse }: TServiceParams) {
           jest.spyOn(process, "cwd").mockImplementationOnce(() => `/app`);
           jest.spyOn(os, "hostname").mockImplementationOnce(() => `test_host`);
-          expect(synapse.device.id()).toBe("d3fbf239-3650-904b-6527-7ca5b6ad4eb2");
+          const id = synapse.device.id();
+          console.error({ id });
+          expect(id).toBe("d3fbf239-3650-904b-6527-7ca5b6ad4eb2");
         },
       });
       await application.bootstrap(
