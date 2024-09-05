@@ -27,6 +27,7 @@ words:
   - tvshow
   - utcnow
   - zeroconf
+  - cobertura
   - autoincrement
   - ssdp
 ignoreWords: []

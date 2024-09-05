@@ -1,11 +1,4 @@
-import {
-  InternalError,
-  is,
-  SINGLE,
-  START,
-  TAnyFunction,
-  TServiceParams,
-} from "@digital-alchemy/core";
+import { is, SINGLE, START, TAnyFunction, TServiceParams } from "@digital-alchemy/core";
 import { ANY_ENTITY, ENTITY_STATE, TUniqueId, TUniqueIDMapping } from "@digital-alchemy/hass";
 
 import {
@@ -25,7 +18,6 @@ import {
 export function DomainGenerator({
   logger,
   internal,
-  context,
   synapse,
   event,
   hass,

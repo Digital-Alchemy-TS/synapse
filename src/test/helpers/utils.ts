@@ -13,7 +13,7 @@ import { HassConfig, LIB_HASS } from "@digital-alchemy/hass";
 import { LIB_MOCK_ASSISTANT } from "@digital-alchemy/hass/mock-assistant";
 import { existsSync, rmSync } from "fs";
 import { join } from "path";
-import { cwd, env } from "process";
+import { cwd } from "process";
 
 import { LIB_SYNAPSE } from "../../synapse.module";
 
@@ -41,29 +41,45 @@ export const SILENT_BOOT = (
   },
 });
 const SQLITE_DB = join(cwd(), "jest_sqlite.db");
+type TestingOptions = {
+  keepDb?: boolean;
+};
 
-export function CreateTestingApplication(services: ServiceMap) {
+export function CreateTestingApplication(
+  services: ServiceMap,
+  { keepDb: keepDatabase = false }: TestingOptions = {},
+) {
   return CreateApplication({
     configurationLoaders: [],
-
     libraries: [LIB_HASS, LIB_SYNAPSE],
     // @ts-expect-error testing
     name: "testing",
     services: {
       ...services,
-      Loader({ lifecycle, internal, config }) {
+      Loader({ lifecycle, internal }) {
         lifecycle.onPreInit(() => {
           internal.boilerplate.configuration.set("synapse", "SQLITE_DB", SQLITE_DB);
-        });
-        lifecycle.onPostConfig(() => {
-          if (existsSync(config.synapse.SQLITE_DB)) {
-            rmSync(config.synapse.SQLITE_DB);
+          if (!keepDatabase && existsSync(SQLITE_DB)) {
+            rmSync(SQLITE_DB);
           }
         });
       },
     },
   });
 }
+
+export const BASIC_BOOT = {
+  configuration: {
+    boilerplate: { LOG_LEVEL: "silent" },
+    // boilerplate: { LOG_LEVEL: "error" },
+    hass: {
+      AUTO_CONNECT_SOCKET: false,
+      AUTO_SCAN_CALL_PROXY: false,
+      MOCK_SOCKET: true,
+    },
+    synapse: { SQLITE_DB },
+  },
+} satisfies BootstrapOptions;
 
 export const CreateTestRunner = <S extends ServiceMap, C extends OptionalModuleConfiguration>(
   UNIT_TESTING_APP: ApplicationDefinition<S, C>,
@@ -72,10 +88,11 @@ export const CreateTestRunner = <S extends ServiceMap, C extends OptionalModuleC
   // test runs at ready
   return async function (setup: ServiceFunction, Test: ServiceFunction) {
     function test(params: TServiceParams) {
-      params.lifecycle.onReady(async () => await Test(params));
-      params.lifecycle.onPreInit(() => {
-        if (existsSync(params.config.synapse.SQLITE_DB)) {
-          rmSync(params.config.synapse.SQLITE_DB);
+      const { lifecycle, config } = params;
+      lifecycle.onReady(async () => await Test(params));
+      lifecycle.onPreInit(() => {
+        if (existsSync(config.synapse.SQLITE_DB)) {
+          rmSync(config.synapse.SQLITE_DB);
         }
       });
     }
@@ -83,9 +100,13 @@ export const CreateTestRunner = <S extends ServiceMap, C extends OptionalModuleC
       appendLibrary: LIB_MOCK_ASSISTANT,
       appendService: is.function(setup) ? { Rewire, setup, test } : { Rewire, test },
       configuration: {
-        // boilerplate: { LOG_LEVEL: "error" },
-        hass: { MOCK_SOCKET: true },
-        synapse: { SQLITE_DB: join(cwd(), "jest_sqlite.db") },
+        boilerplate: { LOG_LEVEL: "silent" },
+        hass: {
+          AUTO_CONNECT_SOCKET: false,
+          AUTO_SCAN_CALL_PROXY: false,
+          MOCK_SOCKET: true,
+        },
+        synapse: { SQLITE_DB },
       },
     });
   };

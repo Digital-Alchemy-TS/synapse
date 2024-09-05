@@ -49,8 +49,7 @@ export const SELECT_LOCALS_QUERY = `SELECT *
   FROM HomeAssistantEntityLocals
   WHERE unique_id = ?`;
 
-export const DELETE_LOCALS_QUERY = `DELETE FROM HomeAssistantEntityLocals
-  WHERE unique_id = ? AND key = ?`;
+export const DELETE_LOCALS_QUERY = `DELETE FROM HomeAssistantEntityLocals WHERE unique_id = ? AND key = ?`;
 
 export const DELETE_LOCALS_BY_UNIQUE_ID_QUERY = `DELETE FROM HomeAssistantEntityLocals
   WHERE unique_id = ?`;

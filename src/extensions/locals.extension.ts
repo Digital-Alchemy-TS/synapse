@@ -9,7 +9,7 @@ import {
   TSynapseId,
 } from "../helpers";
 
-export function SynapseLocals({ synapse, logger }: TServiceParams) {
+export function SynapseLocals({ synapse, logger, internal }: TServiceParams) {
   // #MARK: updateLocal
   function updateLocal(unique_id: TSynapseId, key: string, content: unknown) {
     const database = synapse.sqlite.getDatabase();
@@ -34,6 +34,9 @@ export function SynapseLocals({ synapse, logger }: TServiceParams) {
    * allows for more performant cold boots
    */
   function loadLocals(unique_id: TSynapseId) {
+    if (!internal.boot.completedLifecycleEvents.has("PostConfig")) {
+      return undefined;
+    }
     logger.trace({ unique_id }, "initial load of locals");
     const database = synapse.sqlite.getDatabase();
 
@@ -49,42 +52,67 @@ export function SynapseLocals({ synapse, logger }: TServiceParams) {
     logger.trace({ unique_id }, "building locals proxy");
     let locals: Map<string, unknown>;
 
+    const proxyItem = { ...defaults };
     return {
-      proxy: new Proxy({ ...defaults } as LOCALS, {
+      proxy: new Proxy(proxyItem as LOCALS, {
         // * delete entity.locals.thing
         deleteProperty(_, key: string) {
           locals ??= loadLocals(unique_id);
+          if (!locals) {
+            return false;
+          }
+          if (!locals.has(key)) {
+            return true;
+          }
           const database = synapse.sqlite.getDatabase();
-          database.prepare(DELETE_LOCALS_QUERY).run({ key, unique_id });
+          database.prepare(DELETE_LOCALS_QUERY).run([unique_id, key]);
           locals.delete(key);
+          if (!(key in defaults)) {
+            delete proxyItem[key as keyof typeof proxyItem];
+          }
           return true;
         },
         get(_, property: string) {
           locals ??= loadLocals(unique_id);
+          if (!locals) {
+            return defaults[property as keyof LOCALS];
+          }
           if (locals.has(property)) {
             return locals.get(property);
           }
           logger.trace({ unique_id }, `using code default for [%s]`, property);
           return defaults[property as keyof LOCALS];
         },
+
         // * "thing" in entity.locals
         has(_, property: string) {
           locals ??= loadLocals(unique_id);
-          return locals.has(property) || property in defaults;
+          if (property in defaults) {
+            return true;
+          }
+          return Boolean(locals?.has(property));
         },
+
         // * Object.keys(entity.locals)
         ownKeys() {
           locals ??= loadLocals(unique_id);
+          if (!locals) {
+            return Object.keys(defaults);
+          }
           return is.unique([...Object.keys(defaults), ...locals.keys()]);
         },
         set(_, property: string, value) {
           locals ??= loadLocals(unique_id);
-          if (locals.get(property) === value) {
+          if (!locals) {
+            return false;
+          }
+          if (is.equal(locals.get(property), value)) {
             logger.trace({ property, unique_id }, `value didn't change, not saving`);
             return true;
           }
+          proxyItem[property as keyof typeof proxyItem] = value;
           logger.debug({ unique_id }, `updating [%s]`, property);
-          updateLocal(unique_id, property, value);
+          synapse.locals.updateLocal(unique_id, property, value);
           locals.set(property, value);
           return true;
         },
@@ -93,11 +121,11 @@ export function SynapseLocals({ synapse, logger }: TServiceParams) {
       reset: () => {
         logger.warn({ unique_id }, "reset locals");
         const database = synapse.sqlite.getDatabase();
-        database.prepare(DELETE_LOCALS_BY_UNIQUE_ID_QUERY).run({ unique_id });
+        database.prepare(DELETE_LOCALS_BY_UNIQUE_ID_QUERY).run([unique_id]);
         locals = new Map();
       },
     };
   }
 
-  return { localsProxy };
+  return { localsProxy, updateLocal };
 }
