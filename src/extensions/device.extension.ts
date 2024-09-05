@@ -46,11 +46,6 @@ export function DeviceExtension({ config, lifecycle, logger, internal, synapse }
     },
 
     /**
-     * for testing
-     */
-    getRegistry: () => DEVICE_REGISTRY,
-
-    /**
      * Create a stable UUID to uniquely identify this app.
      *
      * source data defaults to:

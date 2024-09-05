@@ -9,7 +9,8 @@
     "test": "./scripts/test.sh",
     "lint": "eslint src",
     "prepublishOnly": "npm run build",
-    "upgrade": "yarn up '@digital-alchemy/*'"
+    "upgrade": "yarn up '@digital-alchemy/*'",
+    "act": "act pull_request"
   },
   "author": {
     "url": "https://github.com/zoe-codez",

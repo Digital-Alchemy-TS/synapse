@@ -102,6 +102,7 @@ describe("Configuration", () => {
 
   // #MARK: getInfo
   describe("id", () => {
+    // this one fails on pipelines, swallowing all errors
     xit("default id", async () => {
       expect.assertions(1);
       application = CreateTestingApplication({
@@ -139,13 +140,41 @@ describe("Configuration", () => {
 
   // #MARK: getInfo
   describe("list", () => {
-    xit("default id", async () => {
+    it("returns empty lists with no devices", async () => {
       expect.assertions(1);
       application = CreateTestingApplication({
         Test({ synapse }: TServiceParams) {
-          jest.spyOn(process, "cwd").mockImplementationOnce(() => `/app`);
-          jest.spyOn(os, "hostname").mockImplementationOnce(() => `test_host`);
-          expect(synapse.device.id()).toBe("d3fbf239-3650-904b-6527-7ca5b6ad4eb2");
+          expect(synapse.device.list()).toEqual([]);
+        },
+      });
+      await application.bootstrap(BASIC_BOOT);
+    });
+
+    it("returns the device with no extra properties", async () => {
+      expect.assertions(1);
+      application = CreateTestingApplication({
+        Test({ synapse, config }: TServiceParams) {
+          const unique_id = v4();
+          synapse.device.register(unique_id, {});
+          expect(synapse.device.list()).toEqual([
+            { hub_id: config.synapse.METADATA_UNIQUE_ID, unique_id },
+          ]);
+        },
+      });
+      await application.bootstrap(BASIC_BOOT);
+    });
+
+    it("returns the device with extra properties", async () => {
+      expect.assertions(1);
+      application = CreateTestingApplication({
+        Test({ synapse, config }: TServiceParams) {
+          const unique_id = v4();
+          synapse.device.register(unique_id, {
+            name: "foo",
+          });
+          expect(synapse.device.list()).toEqual([
+            { hub_id: config.synapse.METADATA_UNIQUE_ID, name: "foo", unique_id },
+          ]);
         },
       });
       await application.bootstrap(BASIC_BOOT);
