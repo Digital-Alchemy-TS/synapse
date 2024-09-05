@@ -62,7 +62,6 @@ export function DeviceExtension({ config, lifecycle, logger, internal, synapse }
      */
     id(data?: string[] | string) {
       data ??= [host, internal.boot.application.name, cwd()];
-      console.error({ data });
       return md5ToUUID(
         createHash("md5")
           .update(is.string(data) ? data : data.join("-"))

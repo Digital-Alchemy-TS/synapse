@@ -9,7 +9,7 @@ import { v4 } from "uuid";
 import { HomeAssistantEntityLocalRow } from "../helpers";
 import { BASIC_BOOT, CreateTestingApplication } from "./helpers";
 
-xdescribe("Locals", () => {
+describe("Locals", () => {
   let application: ApplicationDefinition<ServiceMap, OptionalModuleConfiguration>;
 
   afterEach(async () => {
