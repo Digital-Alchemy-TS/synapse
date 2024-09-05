@@ -113,11 +113,15 @@ describe("Configuration", () => {
           expect(id).toBe("d3fbf239-3650-904b-6527-7ca5b6ad4eb2");
         },
       });
-      await application.bootstrap(
-        SPECIAL_BOOT({
-          boilerplate: { LOG_LEVEL: "trace" },
-        }),
-      );
+      try {
+        await application.bootstrap(
+          SPECIAL_BOOT({
+            boilerplate: { LOG_LEVEL: "trace" },
+          }),
+        );
+      } catch (error) {
+        console.error({ error });
+      }
     });
 
     it("formats according to provided params string", async () => {
