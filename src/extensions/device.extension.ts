@@ -9,23 +9,31 @@ import { HassDeviceMetadata, md5ToUUID, TSynapseDeviceId } from "../helpers";
 
 const host = hostname();
 
-export function DeviceExtension({ config, lifecycle, logger, internal }: TServiceParams) {
+export function DeviceExtension({ config, lifecycle, logger, internal, synapse }: TServiceParams) {
   let synapseVersion: string;
   const DEVICE_REGISTRY = new Map<string, HassDeviceMetadata>();
 
   lifecycle.onPostConfig(() => {
+    synapseVersion = synapse.device.loadVersion();
+  });
+
+  function loadVersion(): string {
+    if (!is.empty(synapseVersion)) {
+      return synapseVersion;
+    }
     const file = join(__dirname, "..", "..", "package.json");
     if (existsSync(file)) {
       logger.trace("loading package");
       try {
         const contents = readFileSync(file, "utf8");
         const data = JSON.parse(contents) as { version: string };
-        synapseVersion = data?.version;
+        return data?.version;
       } catch (error) {
         logger.error(error);
       }
     }
-  });
+    return undefined;
+  }
 
   return {
     getInfo(): HassDeviceMetadata {
@@ -36,6 +44,12 @@ export function DeviceExtension({ config, lifecycle, logger, internal }: TServic
         ...config.synapse.METADATA,
       };
     },
+
+    /**
+     * for testing
+     */
+    getRegistry: () => DEVICE_REGISTRY,
+
     /**
      * Create a stable UUID to uniquely identify this app.
      *
@@ -54,6 +68,7 @@ export function DeviceExtension({ config, lifecycle, logger, internal }: TServic
           .digest("hex"),
       );
     },
+
     list() {
       return [...DEVICE_REGISTRY.keys()].map(unique_id => ({
         ...DEVICE_REGISTRY.get(unique_id),
@@ -61,9 +76,21 @@ export function DeviceExtension({ config, lifecycle, logger, internal }: TServic
         unique_id,
       }));
     },
+
+    /**
+     * override the `sw_version`
+     *
+     * normally loads version from package.json
+     */
+    loadVersion,
+
     register(id: string, data: HassDeviceMetadata): TSynapseDeviceId {
       DEVICE_REGISTRY.set(id, data);
       return id as TSynapseDeviceId;
+    },
+
+    setVersion(version: string) {
+      synapseVersion = version;
     },
   };
 }

@@ -25,11 +25,10 @@ Then add to your application / library
 ```typescript
 import { LIB_SYNAPSE } from "@digital-alchemy/synapse";
 import { LIB_HASS } from "@digital-alchemy/hass";
-import { LIB_FASTIFY } from "@digital-alchemy/fastify-extension";
 
 // application
 const MY_APP = CreateApplication({
-  libraries: [LIB_SYNAPSE, LIB_HASS, LIB_FASTIFY],
+  libraries: [LIB_SYNAPSE, LIB_HASS],
   name: "home_automation",
 })
 
