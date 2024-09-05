@@ -9,7 +9,7 @@ import os from "os";
 import process from "process";
 import { v4 } from "uuid";
 
-import { BASIC_BOOT, CreateTestingApplication } from "./helpers";
+import { BASIC_BOOT, CreateTestingApplication, SPECIAL_BOOT } from "./helpers";
 
 describe("Configuration", () => {
   let application: ApplicationDefinition<ServiceMap, OptionalModuleConfiguration>;
@@ -111,7 +111,7 @@ describe("Configuration", () => {
           expect(synapse.device.id()).toBe("d3fbf239-3650-904b-6527-7ca5b6ad4eb2");
         },
       });
-      await application.bootstrap(BASIC_BOOT);
+      await application.bootstrap(SPECIAL_BOOT({ boilerplate: { LOG_LEVEL: "warn" } }));
     });
 
     it("formats according to provided params string", async () => {
