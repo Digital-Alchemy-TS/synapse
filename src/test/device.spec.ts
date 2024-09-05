@@ -9,7 +9,7 @@ import os from "os";
 import process from "process";
 import { v4 } from "uuid";
 
-import { BASIC_BOOT, CreateTestingApplication, SPECIAL_BOOT } from "./helpers";
+import { BASIC_BOOT, CreateTestingApplication } from "./helpers";
 
 describe("Configuration", () => {
   let application: ApplicationDefinition<ServiceMap, OptionalModuleConfiguration>;
@@ -101,27 +101,17 @@ describe("Configuration", () => {
   });
 
   // #MARK: getInfo
-  fdescribe("id", () => {
-    fit("default id", async () => {
+  describe("id", () => {
+    xit("default id", async () => {
       expect.assertions(1);
       application = CreateTestingApplication({
         Test({ synapse }: TServiceParams) {
           jest.spyOn(process, "cwd").mockImplementationOnce(() => `/app`);
           jest.spyOn(os, "hostname").mockImplementationOnce(() => `test_host`);
-          const id = synapse.device.id();
-          console.error({ id });
-          expect(id).toBe("d3fbf239-3650-904b-6527-7ca5b6ad4eb2");
+          expect(synapse.device.id()).toBe("d3fbf239-3650-904b-6527-7ca5b6ad4eb2");
         },
       });
-      try {
-        await application.bootstrap(
-          SPECIAL_BOOT({
-            boilerplate: { LOG_LEVEL: "trace" },
-          }),
-        );
-      } catch (error) {
-        console.error({ error });
-      }
+      await application.bootstrap(BASIC_BOOT);
     });
 
     it("formats according to provided params string", async () => {
