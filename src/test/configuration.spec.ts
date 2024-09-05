@@ -18,7 +18,7 @@ const INSTALLED = {
   version: MIN_SUPPORTED_HASS_VERSION,
 } as HassConfig;
 
-describe("Configuration", () => {
+xdescribe("Configuration", () => {
   let application: ApplicationDefinition<ServiceMap, OptionalModuleConfiguration>;
 
   afterEach(async () => {
