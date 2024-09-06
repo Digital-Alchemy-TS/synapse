@@ -99,7 +99,7 @@ export function VirtualWaterHeater({ context, synapse }: TServiceParams) {
     options: AddEntityOptions<
       WaterHeaterConfiguration,
       WaterHeaterEvents,
-      PARAMS["Attributes"],
+      PARAMS["attributes"],
       PARAMS["locals"]
     >,
   ) => generate.addEntity(options);

@@ -79,7 +79,7 @@ export function VirtualAlarmControlPanel({ context, synapse }: TServiceParams) {
   }: AddEntityOptions<
     AlarmControlPanelConfiguration,
     AlarmControlPanelEvents,
-    PARAMS["Attributes"],
+    PARAMS["attributes"],
     PARAMS["locals"]
   >) {
     const entity = generate.addEntity(options);

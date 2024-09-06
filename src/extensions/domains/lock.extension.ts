@@ -76,7 +76,7 @@ export function VirtualLock({ context, synapse }: TServiceParams) {
   return function <PARAMS extends BasicAddParams>({
     managed = true,
     ...options
-  }: AddEntityOptions<LockConfiguration, LockEvents, PARAMS["Attributes"], PARAMS["locals"]>) {
+  }: AddEntityOptions<LockConfiguration, LockEvents, PARAMS["attributes"], PARAMS["locals"]>) {
     const entity = generate.addEntity(options);
     if (managed) {
       entity.onLock(({}) => entity.storage.set("is_locked", true));

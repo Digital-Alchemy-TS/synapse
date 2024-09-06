@@ -77,6 +77,6 @@ export function VirtualFan({ context, synapse }: TServiceParams) {
   });
 
   return <PARAMS extends BasicAddParams>(
-    options: AddEntityOptions<FanConfiguration, FanEvents, PARAMS["Attributes"], PARAMS["locals"]>,
+    options: AddEntityOptions<FanConfiguration, FanEvents, PARAMS["attributes"], PARAMS["locals"]>,
   ) => generate.addEntity(options);
 }

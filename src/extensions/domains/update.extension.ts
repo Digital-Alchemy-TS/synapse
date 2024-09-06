@@ -74,7 +74,7 @@ export function VirtualUpdate({ context, synapse }: TServiceParams) {
     options: AddEntityOptions<
       UpdateConfiguration,
       UpdateEvents,
-      PARAMS["Attributes"],
+      PARAMS["attributes"],
       PARAMS["locals"]
     >,
   ) => generate.addEntity(options);

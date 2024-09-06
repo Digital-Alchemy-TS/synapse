@@ -30,7 +30,7 @@ export function VirtualBinarySensor({ context, synapse }: TServiceParams) {
     options: AddEntityOptions<
       BinarySensorConfiguration,
       BinarySensorEvents,
-      PARAMS["Attributes"],
+      PARAMS["attributes"],
       PARAMS["locals"]
     >,
   ) => generate.addEntity(options);

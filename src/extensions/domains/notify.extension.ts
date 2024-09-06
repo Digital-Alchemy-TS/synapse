@@ -26,7 +26,7 @@ export function VirtualNotify({ context, synapse }: TServiceParams) {
     options: AddEntityOptions<
       NotifyConfiguration,
       NotifyEvents,
-      PARAMS["Attributes"],
+      PARAMS["attributes"],
       PARAMS["locals"]
     >,
   ) => generate.addEntity(options);

@@ -25,7 +25,7 @@ export function VirtualButton({ context, synapse }: TServiceParams) {
     options: AddEntityOptions<
       ButtonConfiguration,
       ButtonEvents,
-      PARAMS["Attributes"],
+      PARAMS["attributes"],
       PARAMS["locals"]
     >,
   ) => generate.addEntity(options);

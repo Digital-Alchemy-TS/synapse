@@ -65,7 +65,7 @@ export function VirtualValve({ context, synapse }: TServiceParams) {
     options: AddEntityOptions<
       ValveConfiguration,
       ValveEvents,
-      PARAMS["Attributes"],
+      PARAMS["attributes"],
       PARAMS["locals"]
     >,
   ) => generate.addEntity(options);

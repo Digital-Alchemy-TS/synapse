@@ -35,7 +35,7 @@ export function VirtualImage({ context, synapse }: TServiceParams) {
     options: AddEntityOptions<
       ImageConfiguration,
       ImageEvents,
-      PARAMS["Attributes"],
+      PARAMS["attributes"],
       PARAMS["locals"]
     >,
   ) => generate.addEntity(options);

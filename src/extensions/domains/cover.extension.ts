@@ -83,7 +83,7 @@ export function VirtualCover({ context, synapse }: TServiceParams) {
     options: AddEntityOptions<
       CoverConfiguration,
       CoverEvents,
-      PARAMS["Attributes"],
+      PARAMS["attributes"],
       PARAMS["locals"]
     >,
   ) => generate.addEntity(options);

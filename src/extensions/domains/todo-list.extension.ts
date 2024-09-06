@@ -56,7 +56,7 @@ export function VirtualTodoList({ context, synapse }: TServiceParams) {
     options: AddEntityOptions<
       TodoConfiguration,
       TodoEvents,
-      PARAMS["Attributes"],
+      PARAMS["attributes"],
       PARAMS["locals"]
     >,
   ) => generate.addEntity(options);

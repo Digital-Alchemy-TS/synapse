@@ -46,7 +46,7 @@ export function VirtualText({ context, synapse }: TServiceParams) {
   return function <PARAMS extends BasicAddParams>({
     managed = true,
     ...options
-  }: AddEntityOptions<TextConfiguration, TextEvents, PARAMS["Attributes"], PARAMS["locals"]>) {
+  }: AddEntityOptions<TextConfiguration, TextEvents, PARAMS["attributes"], PARAMS["locals"]>) {
     const entity = generate.addEntity(options);
     if (managed) {
       entity.onSetValue(({ value }) => entity.storage.set("native_value", value));

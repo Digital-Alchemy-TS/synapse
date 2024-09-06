@@ -35,7 +35,7 @@ export function VirtualLawnMower({ context, synapse }: TServiceParams) {
     options: AddEntityOptions<
       LawnMowerConfiguration,
       LawnMowerEvents,
-      PARAMS["Attributes"],
+      PARAMS["attributes"],
       PARAMS["locals"]
     >,
   ) => generate.addEntity(options);

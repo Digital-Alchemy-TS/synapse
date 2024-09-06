@@ -81,7 +81,7 @@ export function VirtualCamera({ context, synapse }: TServiceParams) {
     options: AddEntityOptions<
       CameraConfiguration,
       CameraEvents,
-      PARAMS["Attributes"],
+      PARAMS["attributes"],
       PARAMS["locals"]
     >,
   ) => generate.addEntity(options);

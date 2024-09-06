@@ -23,7 +23,7 @@ export function VirtualScene({ context, synapse }: TServiceParams) {
     options: AddEntityOptions<
       SceneConfiguration,
       SceneEvents,
-      PARAMS["Attributes"],
+      PARAMS["attributes"],
       PARAMS["locals"]
     >,
   ) => generate.addEntity(options);

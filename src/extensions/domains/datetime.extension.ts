@@ -36,7 +36,7 @@ export function VirtualDateTime({ context, synapse }: TServiceParams) {
   }: AddEntityOptions<
     DateTimeConfiguration,
     DateTimeEvents,
-    PARAMS["Attributes"],
+    PARAMS["attributes"],
     PARAMS["locals"]
   >) {
     const entity = generate.addEntity(options);

@@ -34,7 +34,7 @@ export function VirtualDate({ context, synapse }: TServiceParams) {
   return function <PARAMS extends BasicAddParams>({
     managed = true,
     ...options
-  }: AddEntityOptions<DateConfiguration, DateEvents, PARAMS["Attributes"], PARAMS["locals"]>) {
+  }: AddEntityOptions<DateConfiguration, DateEvents, PARAMS["attributes"], PARAMS["locals"]>) {
     const entity = generate.addEntity(options);
     if (managed) {
       entity.onSetValue(({ value }) => entity.storage.set("native_value", value));

@@ -30,7 +30,7 @@ export function VirtualTime({ context, synapse }: TServiceParams) {
   return function <PARAMS extends BasicAddParams>({
     managed = true,
     ...options
-  }: AddEntityOptions<TimeConfiguration, TimeEvents, PARAMS["Attributes"], PARAMS["locals"]>) {
+  }: AddEntityOptions<TimeConfiguration, TimeEvents, PARAMS["attributes"], PARAMS["locals"]>) {
     const entity = generate.addEntity(options);
     if (managed) {
       entity.onSetValue(({ value }) => entity.storage.set("native_value", value));

@@ -60,7 +60,7 @@ export function VirtualNumber({ context, synapse }: TServiceParams) {
   return function <PARAMS extends BasicAddParams>({
     managed = true,
     ...options
-  }: AddEntityOptions<NumberConfiguration, NumberEvents, PARAMS["Attributes"], PARAMS["locals"]>) {
+  }: AddEntityOptions<NumberConfiguration, NumberEvents, PARAMS["attributes"], PARAMS["locals"]>) {
     const entity = generate.addEntity(options);
     if (managed) {
       entity.onSetValue(({ value }) => entity.storage.set("native_value", value));

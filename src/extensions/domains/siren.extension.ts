@@ -39,7 +39,7 @@ export function VirtualSiren({ context, synapse }: TServiceParams) {
     options: AddEntityOptions<
       SirenConfiguration,
       SirenEvents,
-      PARAMS["Attributes"],
+      PARAMS["attributes"],
       PARAMS["locals"]
     >,
   ) => generate.addEntity(options);

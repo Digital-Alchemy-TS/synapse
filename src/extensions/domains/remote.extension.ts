@@ -47,7 +47,7 @@ export function VirtualRemote({ context, synapse }: TServiceParams) {
     options: AddEntityOptions<
       RemoteConfiguration,
       RemoteEvents,
-      PARAMS["Attributes"],
+      PARAMS["attributes"],
       PARAMS["locals"]
     >,
   ) => generate.addEntity(options);

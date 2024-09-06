@@ -24,7 +24,7 @@ export type SynapseDescribeResponse = {
 
 export type BasicAddParams = {
   locals?: object;
-  Attributes?: object;
+  attributes?: object;
 };
 
 export type HassDeviceMetadata = {
