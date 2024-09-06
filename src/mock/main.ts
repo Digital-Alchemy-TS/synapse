@@ -35,7 +35,6 @@ setImmediate(
     await ENTITY_GENERATOR.bootstrap({
       configuration: {
         boilerplate: { LOG_LEVEL: "debug" },
-        fastify: { PORT: 3000 },
         synapse: {
           METADATA: {
             hw_version: "0.0.1",

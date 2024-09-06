@@ -6,6 +6,12 @@ export type SensorEvents = {
   //
 };
 
+type AddParams = {
+  state?: string | number;
+  locals?: object;
+  attributes?: object;
+};
+
 export function VirtualSensor({ context, synapse }: TServiceParams) {
   const generate = synapse.generator.create<
     SensorConfiguration<object, object, string | number>,
@@ -23,19 +29,15 @@ export function VirtualSensor({ context, synapse }: TServiceParams) {
     ],
   });
 
-  return <
-    STATE_TYPE extends string | number,
-    LOCALS extends object = never,
-    ATTRIBUTES extends object = never,
-  >(
+  return <PARAMS extends AddParams>(
     options: AddEntityOptions<
-      SensorConfiguration<ATTRIBUTES, LOCALS, STATE_TYPE>,
+      SensorConfiguration<PARAMS["attributes"], PARAMS["locals"], PARAMS["state"]>,
       SensorEvents,
-      ATTRIBUTES,
-      LOCALS
+      PARAMS["attributes"],
+      PARAMS["locals"]
     >,
   ) => {
-    const out = generate.addEntity<ATTRIBUTES, LOCALS>(options);
-    return out as typeof out & { state: STATE_TYPE };
+    const out = generate.addEntity<PARAMS["attributes"], PARAMS["locals"]>(options);
+    return out as typeof out & { state: PARAMS["state"] };
   };
 }

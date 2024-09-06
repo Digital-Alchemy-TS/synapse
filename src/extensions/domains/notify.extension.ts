@@ -1,6 +1,6 @@
 import { TServiceParams } from "@digital-alchemy/core";
 
-import { AddEntityOptions } from "../..";
+import { AddEntityOptions, BasicAddParams } from "../..";
 
 export type NotifyConfiguration = {
   //
@@ -22,7 +22,12 @@ export function VirtualNotify({ context, synapse }: TServiceParams) {
     load_config_keys: [],
   });
 
-  return <LOCALS extends object = object, ATTRIBUTES extends object = object>(
-    options: AddEntityOptions<NotifyConfiguration, NotifyEvents, ATTRIBUTES, LOCALS>,
+  return <PARAMS extends BasicAddParams>(
+    options: AddEntityOptions<
+      NotifyConfiguration,
+      NotifyEvents,
+      PARAMS["attributes"],
+      PARAMS["locals"]
+    >,
   ) => generate.addEntity(options);
 }

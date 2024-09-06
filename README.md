@@ -1,3 +1,7 @@
+[![codecov](https://codecov.io/github/Digital-Alchemy-TS/synapse/graph/badge.svg?token=IBGLY3RY68)](https://codecov.io/github/Digital-Alchemy-TS/synapse)
+
+---
+
 ## 📘 Description
 
 Welcome to `@digital-alchemy/synapse`!
@@ -21,11 +25,10 @@ Then add to your application / library
 ```typescript
 import { LIB_SYNAPSE } from "@digital-alchemy/synapse";
 import { LIB_HASS } from "@digital-alchemy/hass";
-import { LIB_FASTIFY } from "@digital-alchemy/fastify-extension";
 
 // application
 const MY_APP = CreateApplication({
-  libraries: [LIB_SYNAPSE, LIB_HASS, LIB_FASTIFY],
+  libraries: [LIB_SYNAPSE, LIB_HASS],
   name: "home_automation",
 })
 

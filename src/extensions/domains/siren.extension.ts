@@ -1,6 +1,6 @@
 import { TServiceParams } from "@digital-alchemy/core";
 
-import { AddEntityOptions, SettableConfiguration } from "../..";
+import { AddEntityOptions, BasicAddParams, SettableConfiguration } from "../..";
 
 export type SirenConfiguration = {
   /**
@@ -35,7 +35,12 @@ export function VirtualSiren({ context, synapse }: TServiceParams) {
     load_config_keys: ["is_on", "available_tones", "supported_features"],
   });
 
-  return <LOCALS extends object = object, ATTRIBUTES extends object = object>(
-    options: AddEntityOptions<SirenConfiguration, SirenEvents, ATTRIBUTES, LOCALS>,
+  return <PARAMS extends BasicAddParams>(
+    options: AddEntityOptions<
+      SirenConfiguration,
+      SirenEvents,
+      PARAMS["attributes"],
+      PARAMS["locals"]
+    >,
   ) => generate.addEntity(options);
 }

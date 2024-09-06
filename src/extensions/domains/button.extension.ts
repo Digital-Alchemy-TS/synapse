@@ -1,7 +1,7 @@
 import { TServiceParams } from "@digital-alchemy/core";
 import { ButtonDeviceClass } from "@digital-alchemy/hass";
 
-import { AddEntityOptions } from "../..";
+import { AddEntityOptions, BasicAddParams } from "../..";
 
 export type ButtonConfiguration = {
   device_class?: `${ButtonDeviceClass}`;
@@ -21,7 +21,12 @@ export function VirtualButton({ context, synapse }: TServiceParams) {
     load_config_keys: ["device_class"],
   });
 
-  return <LOCALS extends object = object, ATTRIBUTES extends object = object>(
-    options: AddEntityOptions<ButtonConfiguration, ButtonEvents, ATTRIBUTES, LOCALS>,
+  return <PARAMS extends BasicAddParams>(
+    options: AddEntityOptions<
+      ButtonConfiguration,
+      ButtonEvents,
+      PARAMS["attributes"],
+      PARAMS["locals"]
+    >,
   ) => generate.addEntity(options);
 }

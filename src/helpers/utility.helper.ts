@@ -22,6 +22,11 @@ export type SynapseDescribeResponse = {
   username: string;
 };
 
+export type BasicAddParams = {
+  locals?: object;
+  attributes?: object;
+};
+
 export type HassDeviceMetadata = {
   /**
    * A URL on which the device or service can be configured, linking to paths inside the Home Assistant UI can be done by using `homeassistant://<path>`.

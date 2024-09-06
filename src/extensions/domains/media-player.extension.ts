@@ -1,7 +1,7 @@
 import { TServiceParams } from "@digital-alchemy/core";
 import { Dayjs } from "dayjs";
 
-import { AddEntityOptions, SettableConfiguration } from "../..";
+import { AddEntityOptions, BasicAddParams, SettableConfiguration } from "../..";
 
 enum MediaType {
   MUSIC = "music",
@@ -211,7 +211,12 @@ export function VirtualMediaPlayer({ context, synapse }: TServiceParams) {
     ],
   });
 
-  return <LOCALS extends object = object, ATTRIBUTES extends object = object>(
-    options: AddEntityOptions<MediaPlayerConfiguration, MediaPlayerEvents, ATTRIBUTES, LOCALS>,
+  return <PARAMS extends BasicAddParams>(
+    options: AddEntityOptions<
+      MediaPlayerConfiguration,
+      MediaPlayerEvents,
+      PARAMS["attributes"],
+      PARAMS["locals"]
+    >,
   ) => generate.addEntity(options);
 }

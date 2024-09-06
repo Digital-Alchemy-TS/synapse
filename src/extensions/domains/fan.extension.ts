@@ -1,6 +1,6 @@
 import { TServiceParams } from "@digital-alchemy/core";
 
-import { AddEntityOptions, SettableConfiguration } from "../..";
+import { AddEntityOptions, BasicAddParams, SettableConfiguration } from "../..";
 
 export type FanConfiguration<PRESET_MODES extends string = string> = {
   /**
@@ -76,7 +76,7 @@ export function VirtualFan({ context, synapse }: TServiceParams) {
     ],
   });
 
-  return <LOCALS extends object = object, ATTRIBUTES extends object = object>(
-    options: AddEntityOptions<FanConfiguration, FanEvents, ATTRIBUTES, LOCALS>,
+  return <PARAMS extends BasicAddParams>(
+    options: AddEntityOptions<FanConfiguration, FanEvents, PARAMS["attributes"], PARAMS["locals"]>,
   ) => generate.addEntity(options);
 }

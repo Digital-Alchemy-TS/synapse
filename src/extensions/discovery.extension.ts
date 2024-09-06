@@ -15,7 +15,6 @@ export function DiscoveryExtension({
   const APP_METADATA = () => ({
     app: internal.boot.application.name,
     device: synapse.device.getInfo(),
-    host: config.synapse.METADATA_HOST,
     hostname: hostname(),
     secondary_devices: synapse.device.list(),
     title: config.synapse.METADATA_TITLE,

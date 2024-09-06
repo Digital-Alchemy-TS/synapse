@@ -1,6 +1,6 @@
 import { TServiceParams } from "@digital-alchemy/core";
 
-import { AddEntityOptions, SettableConfiguration } from "../..";
+import { AddEntityOptions, BasicAddParams, SettableConfiguration } from "../..";
 
 export type SelectConfiguration<OPTIONS extends string = string> = {
   /**
@@ -31,10 +31,10 @@ export function VirtualSelect({ context, synapse }: TServiceParams) {
     map_state: "current_option",
   });
 
-  return function <LOCALS extends object = object, ATTRIBUTES extends object = object>({
+  return function <PARAMS extends BasicAddParams>({
     managed = true,
     ...options
-  }: AddEntityOptions<SelectConfiguration, SelectEvents, ATTRIBUTES, LOCALS>) {
+  }: AddEntityOptions<SelectConfiguration, SelectEvents, PARAMS["attributes"], PARAMS["locals"]>) {
     const entity = generate.addEntity(options);
     if (managed) {
       entity.onSelectOption(({ option }) => entity.storage.set("current_option", option));

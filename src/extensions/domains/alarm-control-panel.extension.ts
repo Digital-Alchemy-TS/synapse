@@ -1,6 +1,6 @@
 import { TServiceParams } from "@digital-alchemy/core";
 
-import { AddEntityOptions, SettableConfiguration } from "../..";
+import { AddEntityOptions, BasicAddParams, SettableConfiguration } from "../..";
 
 export type AlarmControlPanelStates =
   | "disarmed"
@@ -73,14 +73,14 @@ export function VirtualAlarmControlPanel({ context, synapse }: TServiceParams) {
     ],
   });
 
-  return function <LOCALS extends object = object, ATTRIBUTES extends object = object>({
+  return function <PARAMS extends BasicAddParams>({
     managed = true,
     ...options
   }: AddEntityOptions<
     AlarmControlPanelConfiguration,
     AlarmControlPanelEvents,
-    ATTRIBUTES,
-    LOCALS
+    PARAMS["attributes"],
+    PARAMS["locals"]
   >) {
     const entity = generate.addEntity(options);
     if (managed) {

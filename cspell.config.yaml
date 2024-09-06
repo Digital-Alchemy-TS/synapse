@@ -28,6 +28,7 @@ words:
   - utcnow
   - zeroconf
   - cobertura
+  - entitylocals
   - autoincrement
   - ssdp
 ignoreWords: []

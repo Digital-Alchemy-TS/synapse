@@ -1,7 +1,7 @@
 import { TServiceParams } from "@digital-alchemy/core";
 import { BinarySensorDeviceClass } from "@digital-alchemy/hass";
 
-import { AddEntityOptions, SettableConfiguration } from "../..";
+import { AddEntityOptions, BasicAddParams, SettableConfiguration } from "../..";
 
 export type BinarySensorConfiguration = {
   /**
@@ -26,7 +26,12 @@ export function VirtualBinarySensor({ context, synapse }: TServiceParams) {
     load_config_keys: ["device_class", "is_on"],
   });
 
-  return <LOCALS extends object = object, ATTRIBUTES extends object = object>(
-    options: AddEntityOptions<BinarySensorConfiguration, BinarySensorEvents, ATTRIBUTES, LOCALS>,
+  return <PARAMS extends BasicAddParams>(
+    options: AddEntityOptions<
+      BinarySensorConfiguration,
+      BinarySensorEvents,
+      PARAMS["attributes"],
+      PARAMS["locals"]
+    >,
   ) => generate.addEntity(options);
 }

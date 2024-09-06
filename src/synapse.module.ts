@@ -1,5 +1,4 @@
 import { CreateLibrary, InternalConfig } from "@digital-alchemy/core";
-import { LIB_FASTIFY } from "@digital-alchemy/fastify-extension";
 import { LIB_HASS } from "@digital-alchemy/hass";
 import { join } from "path";
 import { cwd } from "process";
@@ -65,6 +64,19 @@ const DOMAINS = {
   remote: VirtualRemote,
   scene: VirtualScene,
   select: VirtualSelect,
+  /**
+   * ### Customizing Types
+   *
+   * Use type params to fine tune sensor
+   *
+   * ```typescript
+   * synapse.sensor<{
+   *   state: number;
+   *   locals: { example: boolean }
+   *   attributes: {  }
+   *  }>({ ... })
+   * ```
+   */
   sensor: VirtualSensor,
   siren: VirtualSiren,
   switch: VirtualSwitch,
@@ -79,9 +91,15 @@ const DOMAINS = {
 
 export const LIB_SYNAPSE = CreateLibrary({
   configuration: {
-    DEVICE_TYPE: {
-      default: "urn:schemas-upnp-org:device:Basic:1",
-      type: "string",
+    ASSUME_INSTALLED: {
+      default: false,
+      description: "Used with testing",
+      type: "boolean",
+    },
+    ASSUME_REGISTERED: {
+      default: false,
+      description: "Used with testing",
+      type: "boolean",
     },
     EMIT_HEARTBEAT: {
       default: true,
@@ -105,10 +123,6 @@ export const LIB_SYNAPSE = CreateLibrary({
       description: "Extra data to describe the app + build default device from",
       type: "internal",
     } as InternalConfig<HassDeviceMetadata>,
-    METADATA_HOST: {
-      description: ["Host name to announce as"],
-      type: "string",
-    },
     METADATA_TITLE: {
       description: ["Title for the integration provided by this app", "Defaults to app name"],
       type: "string",
@@ -122,15 +136,9 @@ export const LIB_SYNAPSE = CreateLibrary({
       description: "Location to persist entity state at",
       type: "string",
     },
-    SSDP_PATH: {
-      default: "/description.xml",
-      description: "Route to advertise ssdp xml data at",
-      type: "string",
-    },
   },
   depends: [LIB_HASS],
   name: "synapse",
-  optionalDepends: [LIB_FASTIFY],
   priorityInit: ["generator", "storage", "locals"],
   services: {
     /**

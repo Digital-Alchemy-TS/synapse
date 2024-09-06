@@ -61,7 +61,7 @@ export function DomainGenerator({
         event: [config.synapse.EVENT_NAMESPACE, name, getIdentifier()].join("/"),
         exec: ({ data }: BaseEvent) => {
           logger.trace({ data, name }, `receive`);
-          event.emit(`/synapse/${name}/${data.unique_id}`, data);
+          event.emit(`synapse/${name}/${data.unique_id}`, data);
         },
       });
     });
@@ -80,16 +80,14 @@ export function DomainGenerator({
         entity.suggested_object_id ??= formatObjectId(entity.name);
         const unique_id = entity.unique_id as TUniqueId;
 
-        // * initialize storage
-        const storage = synapse.storage.add<
-          LOCALS,
-          ATTRIBUTES,
-          CONFIGURATION & EntityConfigCommon<ATTRIBUTES, LOCALS>
-        >({
+        const data = {
           domain,
           entity,
           load_config_keys,
-        });
+        };
+        type mergedConfig = CONFIGURATION & EntityConfigCommon<ATTRIBUTES, LOCALS>;
+        // * initialize storage
+        const storage = synapse.storage.add<LOCALS, ATTRIBUTES, mergedConfig>(data);
 
         // * map bus events
         bus_events.forEach(bus_event => {
@@ -97,7 +95,10 @@ export function DomainGenerator({
             return;
           }
           logger.trace({ bus_event, context, name: entity.name }, `static attach`);
-          removableListener(`/synapse/${bus_event}/${unique_id}`, entity[bus_event]);
+          synapse.generator.removableListener(
+            `synapse/${bus_event}/${unique_id}`,
+            entity[bus_event],
+          );
         });
 
         // * build dynamic listeners
@@ -108,8 +109,8 @@ export function DomainGenerator({
               .map(i => i.charAt(START).toUpperCase() + i.slice(SINGLE))
               .join("")}`,
             ((callback: RemovableCallback) =>
-              removableListener(
-                `/synapse/${name}/${unique_id}`,
+              synapse.generator.removableListener(
+                `synapse/${name}/${unique_id}`,
                 callback,
               )) as CreateRemovableCallback,
           ]),
@@ -128,8 +129,16 @@ export function DomainGenerator({
           ...storage.keys(),
         ]);
 
+        // ? adding the keys here makes ownKeys & has work
+        const thing = Object.fromEntries(keys.map(i => [i, true])) as SynapseEntityProxy<
+          CONFIGURATION,
+          EVENT_MAP,
+          ATTRIBUTES,
+          LOCALS
+        >;
+
         // #MARK: entity proxy
-        return new Proxy({} as SynapseEntityProxy<CONFIGURATION, EVENT_MAP, ATTRIBUTES, LOCALS>, {
+        return new Proxy(thing, {
           deleteProperty(_, property: string) {
             if (property === "locals") {
               locals.reset();
@@ -191,5 +200,5 @@ export function DomainGenerator({
       },
     };
   }
-  return { create };
+  return { create, removableListener };
 }

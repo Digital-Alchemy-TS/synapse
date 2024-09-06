@@ -1,6 +1,6 @@
 import { TServiceParams } from "@digital-alchemy/core";
 
-import { AddEntityOptions, SettableConfiguration } from "../..";
+import { AddEntityOptions, BasicAddParams, SettableConfiguration } from "../..";
 
 export type LockConfiguration = {
   /**
@@ -73,10 +73,10 @@ export function VirtualLock({ context, synapse }: TServiceParams) {
     ],
   });
 
-  return function <LOCALS extends object = object, ATTRIBUTES extends object = object>({
+  return function <PARAMS extends BasicAddParams>({
     managed = true,
     ...options
-  }: AddEntityOptions<LockConfiguration, LockEvents, ATTRIBUTES, LOCALS>) {
+  }: AddEntityOptions<LockConfiguration, LockEvents, PARAMS["attributes"], PARAMS["locals"]>) {
     const entity = generate.addEntity(options);
     if (managed) {
       entity.onLock(({}) => entity.storage.set("is_locked", true));

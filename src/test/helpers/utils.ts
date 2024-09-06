@@ -2,11 +2,13 @@ import {
   ApplicationDefinition,
   BootstrapOptions,
   CreateApplication,
+  deepExtend,
   is,
   OptionalModuleConfiguration,
   PartialConfiguration,
   ServiceFunction,
   ServiceMap,
+  TBlackHole,
   TServiceParams,
 } from "@digital-alchemy/core";
 import { HassConfig, LIB_HASS } from "@digital-alchemy/hass";
@@ -45,18 +47,35 @@ type TestingOptions = {
   keepDb?: boolean;
 };
 
-export function CreateTestingApplication(
-  services: ServiceMap,
+let application: ApplicationDefinition<ServiceMap, OptionalModuleConfiguration>;
+afterEach(async () => {
+  if (application) {
+    await application.teardown();
+    application = undefined;
+  }
+});
+
+let tParams: TServiceParams;
+export const CHECK_LOAD_CONFIG_KEYS = (load_config_keys: string[], callback: () => TBlackHole) => {
+  const spy = jest.spyOn(tParams.synapse.storage, "add");
+  callback();
+
+  expect(spy).toHaveBeenCalledWith(expect.objectContaining({ load_config_keys }));
+};
+
+export function TestRunner(
+  Test: ServiceFunction,
   { keepDb: keepDatabase = false }: TestingOptions = {},
 ) {
-  return CreateApplication({
+  application = CreateApplication({
     configurationLoaders: [],
     libraries: [LIB_HASS, LIB_SYNAPSE],
     // @ts-expect-error testing
     name: "testing",
     services: {
-      ...services,
-      Loader({ lifecycle, internal }) {
+      Loader(params) {
+        const { lifecycle, internal } = params;
+        tParams = params;
         lifecycle.onPreInit(() => {
           internal.boilerplate.configuration.set("synapse", "SQLITE_DB", SQLITE_DB);
           if (!keepDatabase && existsSync(SQLITE_DB)) {
@@ -64,22 +83,29 @@ export function CreateTestingApplication(
           }
         });
       },
+      Test,
     },
   });
+  return application;
 }
 
 export const BASIC_BOOT = {
   configuration: {
     boilerplate: { LOG_LEVEL: "silent" },
-    // boilerplate: { LOG_LEVEL: "error" },
     hass: {
       AUTO_CONNECT_SOCKET: false,
       AUTO_SCAN_CALL_PROXY: false,
       MOCK_SOCKET: true,
     },
-    synapse: { SQLITE_DB },
+    synapse: {
+      ASSUME_INSTALLED: true,
+      SQLITE_DB,
+    },
   },
 } satisfies BootstrapOptions;
+
+export const CONFIG_BOOT = (configuration: PartialConfiguration) =>
+  deepExtend(BASIC_BOOT, { configuration });
 
 export const CreateTestRunner = <S extends ServiceMap, C extends OptionalModuleConfiguration>(
   UNIT_TESTING_APP: ApplicationDefinition<S, C>,
