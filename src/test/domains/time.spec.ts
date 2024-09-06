@@ -20,17 +20,19 @@ describe("Time", () => {
   it("set up up correct bus transfer events", async () => {
     const unique_id = v4();
     const events = ["set_value"];
-    expect.assertions(events.length);
+    expect.assertions(events.length + 2);
 
     await TestRunner(({ hass, event, synapse, context, config, internal }) => {
-      synapse.time({ context, name: "test", unique_id });
+      const inline = jest.fn();
+      const dynamic = jest.fn();
+      const entity = synapse.time({ context, name: "test", set_value: inline, unique_id });
+      entity.onSetValue(dynamic);
       // - run through each event
       events.forEach(name => {
         const fn = jest.fn();
 
         // attach listener for expected internal event
         event.on(["synapse", name, unique_id].join("/"), fn);
-
         // emit artificial socket event
         hass.socket.socketEvents.emit(
           [config.synapse.EVENT_NAMESPACE, name, internal.boot.application.name].join("/"),
@@ -39,6 +41,8 @@ describe("Time", () => {
 
         // profit
         expect(fn).toHaveBeenCalled();
+        expect(inline).toHaveBeenCalled();
+        expect(dynamic).toHaveBeenCalled();
       });
     }).bootstrap(BASIC_BOOT);
   });
