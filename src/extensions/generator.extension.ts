@@ -80,16 +80,14 @@ export function DomainGenerator({
         entity.suggested_object_id ??= formatObjectId(entity.name);
         const unique_id = entity.unique_id as TUniqueId;
 
-        // * initialize storage
-        const storage = synapse.storage.add<
-          LOCALS,
-          ATTRIBUTES,
-          CONFIGURATION & EntityConfigCommon<ATTRIBUTES, LOCALS>
-        >({
+        const data = {
           domain,
           entity,
           load_config_keys,
-        });
+        };
+        type mergedConfig = CONFIGURATION & EntityConfigCommon<ATTRIBUTES, LOCALS>;
+        // * initialize storage
+        const storage = synapse.storage.add<LOCALS, ATTRIBUTES, mergedConfig>(data);
 
         // * map bus events
         bus_events.forEach(bus_event => {
