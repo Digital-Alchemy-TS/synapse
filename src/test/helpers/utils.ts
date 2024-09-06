@@ -8,6 +8,7 @@ import {
   PartialConfiguration,
   ServiceFunction,
   ServiceMap,
+  TBlackHole,
   TServiceParams,
 } from "@digital-alchemy/core";
 import { HassConfig, LIB_HASS } from "@digital-alchemy/hass";
@@ -54,6 +55,14 @@ afterEach(async () => {
   }
 });
 
+let tParams: TServiceParams;
+export const CHECK_LOAD_CONFIG_KEYS = (load_config_keys: string[], callback: () => TBlackHole) => {
+  const spy = jest.spyOn(tParams.synapse.storage, "add");
+  callback();
+
+  expect(spy).toHaveBeenCalledWith(expect.objectContaining({ load_config_keys }));
+};
+
 export function TestRunner(
   Test: ServiceFunction,
   { keepDb: keepDatabase = false }: TestingOptions = {},
@@ -64,7 +73,9 @@ export function TestRunner(
     // @ts-expect-error testing
     name: "testing",
     services: {
-      Loader({ lifecycle, internal }) {
+      Loader(params) {
+        const { lifecycle, internal } = params;
+        tParams = params;
         lifecycle.onPreInit(() => {
           internal.boilerplate.configuration.set("synapse", "SQLITE_DB", SQLITE_DB);
           if (!keepDatabase && existsSync(SQLITE_DB)) {

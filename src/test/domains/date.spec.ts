@@ -2,16 +2,16 @@ import { v4 } from "uuid";
 
 import { BASIC_BOOT, TestRunner } from "../helpers";
 
-describe("Scene", () => {
+describe("Date", () => {
   afterEach(() => jest.restoreAllMocks());
 
   it("loads the correct keys from storage", async () => {
     await TestRunner(({ synapse, context }) => {
       const spy = jest.spyOn(synapse.storage, "add");
-      synapse.scene({ context, name: "test" });
+      synapse.date({ context, name: "test" });
       expect(spy).toHaveBeenCalledWith(
         expect.objectContaining({
-          load_config_keys: [],
+          load_config_keys: ["native_value"],
         }),
       );
     }).bootstrap(BASIC_BOOT);
@@ -19,11 +19,11 @@ describe("Scene", () => {
 
   it("set up up correct bus transfer events", async () => {
     const unique_id = v4();
-    const events = ["activate"];
+    const events = ["set_value"];
     expect.assertions(events.length);
 
     await TestRunner(({ hass, event, synapse, context, config, internal }) => {
-      synapse.scene({ context, name: "test", unique_id });
+      synapse.date({ context, name: "test", unique_id });
       // - run through each event
       events.forEach(name => {
         const fn = jest.fn();

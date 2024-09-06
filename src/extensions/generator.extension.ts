@@ -61,7 +61,7 @@ export function DomainGenerator({
         event: [config.synapse.EVENT_NAMESPACE, name, getIdentifier()].join("/"),
         exec: ({ data }: BaseEvent) => {
           logger.trace({ data, name }, `receive`);
-          event.emit(`/synapse/${name}/${data.unique_id}`, data);
+          event.emit(`synapse/${name}/${data.unique_id}`, data);
         },
       });
     });
@@ -96,7 +96,7 @@ export function DomainGenerator({
           }
           logger.trace({ bus_event, context, name: entity.name }, `static attach`);
           synapse.generator.removableListener(
-            `/synapse/${bus_event}/${unique_id}`,
+            `synapse/${bus_event}/${unique_id}`,
             entity[bus_event],
           );
         });
@@ -110,7 +110,7 @@ export function DomainGenerator({
               .join("")}`,
             ((callback: RemovableCallback) =>
               synapse.generator.removableListener(
-                `/synapse/${name}/${unique_id}`,
+                `synapse/${name}/${unique_id}`,
                 callback,
               )) as CreateRemovableCallback,
           ]),
