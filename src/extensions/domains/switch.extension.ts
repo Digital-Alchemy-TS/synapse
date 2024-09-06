@@ -1,7 +1,7 @@
 import { TServiceParams } from "@digital-alchemy/core";
 import { SwitchDeviceClass } from "@digital-alchemy/hass";
 
-import { AddEntityOptions, SettableConfiguration } from "../..";
+import { AddEntityOptions, BasicAddParams, SettableConfiguration } from "../..";
 
 export type SwitchConfiguration = {
   device_class?: `${SwitchDeviceClass}`;
@@ -35,10 +35,10 @@ export function VirtualSwitch({ context, synapse }: TServiceParams) {
     load_config_keys: ["device_class", "is_on"],
   });
 
-  return function <LOCALS extends object = object, ATTRIBUTES extends object = object>({
+  return function <PARAMS extends BasicAddParams>({
     managed = true,
     ...options
-  }: AddEntityOptions<SwitchConfiguration, SwitchEvents, ATTRIBUTES, LOCALS>) {
+  }: AddEntityOptions<SwitchConfiguration, SwitchEvents, PARAMS["Attributes"], PARAMS["locals"]>) {
     const entity = generate.addEntity(options);
     if (managed) {
       entity.onToggle(() => entity.storage.set("is_on", !entity.storage.get("is_on")));

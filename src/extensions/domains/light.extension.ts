@@ -1,6 +1,6 @@
 import { TServiceParams } from "@digital-alchemy/core";
 
-import { AddEntityOptions, SettableConfiguration } from "../..";
+import { AddEntityOptions, BasicAddParams, SettableConfiguration } from "../..";
 
 export type LightConfiguration<COLOR_MODES extends string = string> = {
   /**
@@ -106,7 +106,12 @@ export function VirtualLight({ context, synapse }: TServiceParams) {
     ],
   });
 
-  return <LOCALS extends object = object, ATTRIBUTES extends object = object>(
-    options: AddEntityOptions<LightConfiguration, LightEvents, ATTRIBUTES, LOCALS>,
+  return <PARAMS extends BasicAddParams>(
+    options: AddEntityOptions<
+      LightConfiguration,
+      LightEvents,
+      PARAMS["Attributes"],
+      PARAMS["locals"]
+    >,
   ) => generate.addEntity(options);
 }

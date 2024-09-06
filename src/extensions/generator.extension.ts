@@ -97,7 +97,10 @@ export function DomainGenerator({
             return;
           }
           logger.trace({ bus_event, context, name: entity.name }, `static attach`);
-          removableListener(`/synapse/${bus_event}/${unique_id}`, entity[bus_event]);
+          synapse.generator.removableListener(
+            `/synapse/${bus_event}/${unique_id}`,
+            entity[bus_event],
+          );
         });
 
         // * build dynamic listeners
@@ -108,7 +111,7 @@ export function DomainGenerator({
               .map(i => i.charAt(START).toUpperCase() + i.slice(SINGLE))
               .join("")}`,
             ((callback: RemovableCallback) =>
-              removableListener(
+              synapse.generator.removableListener(
                 `/synapse/${name}/${unique_id}`,
                 callback,
               )) as CreateRemovableCallback,
@@ -199,5 +202,5 @@ export function DomainGenerator({
       },
     };
   }
-  return { create };
+  return { create, removableListener };
 }

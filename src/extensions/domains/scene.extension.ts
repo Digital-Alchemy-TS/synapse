@@ -1,6 +1,6 @@
 import { TServiceParams } from "@digital-alchemy/core";
 
-import { AddEntityOptions } from "../..";
+import { AddEntityOptions, BasicAddParams } from "../..";
 
 export type SceneConfiguration = {
   //
@@ -19,7 +19,12 @@ export function VirtualScene({ context, synapse }: TServiceParams) {
     domain: "scene",
   });
 
-  return <LOCALS extends object = object, ATTRIBUTES extends object = object>(
-    options: AddEntityOptions<SceneConfiguration, SceneEvents, ATTRIBUTES, LOCALS>,
+  return <PARAMS extends BasicAddParams>(
+    options: AddEntityOptions<
+      SceneConfiguration,
+      SceneEvents,
+      PARAMS["Attributes"],
+      PARAMS["locals"]
+    >,
   ) => generate.addEntity(options);
 }

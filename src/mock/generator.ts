@@ -16,7 +16,7 @@ export function EntityGenerator({ scheduler, synapse, context, logger }: TServic
       name: "example device",
       sw_version: "420.69",
     });
-    const sensor = synapse.sensor<number, LocalData, Attributes>({
+    const sensor = synapse.sensor<{ locals: LocalData; Attributes: Attributes; State: number }>({
       attributes: {
         destination: "saturn",
       },
@@ -34,7 +34,7 @@ export function EntityGenerator({ scheduler, synapse, context, logger }: TServic
     });
 
     sensor.onUpdate(() => {
-      // sensor.locals.
+      // sensor.attributes.
     });
 
     const binary_sensor = synapse.binary_sensor({

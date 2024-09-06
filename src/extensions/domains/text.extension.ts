@@ -1,6 +1,6 @@
 import { TServiceParams } from "@digital-alchemy/core";
 
-import { AddEntityOptions, SettableConfiguration } from "../..";
+import { AddEntityOptions, BasicAddParams, SettableConfiguration } from "../..";
 
 export type TextConfiguration = {
   /**
@@ -43,10 +43,10 @@ export function VirtualText({ context, synapse }: TServiceParams) {
     map_state: "native_value",
   });
 
-  return function <LOCALS extends object = object, ATTRIBUTES extends object = object>({
+  return function <PARAMS extends BasicAddParams>({
     managed = true,
     ...options
-  }: AddEntityOptions<TextConfiguration, TextEvents, ATTRIBUTES, LOCALS>) {
+  }: AddEntityOptions<TextConfiguration, TextEvents, PARAMS["Attributes"], PARAMS["locals"]>) {
     const entity = generate.addEntity(options);
     if (managed) {
       entity.onSetValue(({ value }) => entity.storage.set("native_value", value));

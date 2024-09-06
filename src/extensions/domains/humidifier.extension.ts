@@ -1,7 +1,7 @@
 import { TServiceParams } from "@digital-alchemy/core";
 import { HumidifierDeviceClass } from "@digital-alchemy/hass";
 
-import { AddEntityOptions, SettableConfiguration } from "../..";
+import { AddEntityOptions, BasicAddParams, SettableConfiguration } from "../..";
 
 export type HumidifierConfiguration = {
   /**
@@ -84,7 +84,12 @@ export function VirtualHumidifier({ context, synapse }: TServiceParams) {
     ],
   });
 
-  return <LOCALS extends object = object, ATTRIBUTES extends object = object>(
-    options: AddEntityOptions<HumidifierConfiguration, HumidifierEvents, ATTRIBUTES, LOCALS>,
+  return <PARAMS extends BasicAddParams>(
+    options: AddEntityOptions<
+      HumidifierConfiguration,
+      HumidifierEvents,
+      PARAMS["Attributes"],
+      PARAMS["locals"]
+    >,
   ) => generate.addEntity(options);
 }

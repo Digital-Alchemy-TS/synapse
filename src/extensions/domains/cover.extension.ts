@@ -1,7 +1,7 @@
 import { TServiceParams } from "@digital-alchemy/core";
 import { CoverDeviceClass } from "@digital-alchemy/hass";
 
-import { AddEntityOptions, SettableConfiguration } from "../..";
+import { AddEntityOptions, BasicAddParams, SettableConfiguration } from "../..";
 
 export type CoverConfiguration = {
   /**
@@ -79,7 +79,12 @@ export function VirtualCover({ context, synapse }: TServiceParams) {
     ],
   });
 
-  return <LOCALS extends object = object, ATTRIBUTES extends object = object>(
-    options: AddEntityOptions<CoverConfiguration, CoverEvents, ATTRIBUTES, LOCALS>,
+  return <PARAMS extends BasicAddParams>(
+    options: AddEntityOptions<
+      CoverConfiguration,
+      CoverEvents,
+      PARAMS["Attributes"],
+      PARAMS["locals"]
+    >,
   ) => generate.addEntity(options);
 }

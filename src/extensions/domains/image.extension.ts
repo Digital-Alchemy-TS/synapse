@@ -1,7 +1,7 @@
 import { TServiceParams } from "@digital-alchemy/core";
 import { Dayjs } from "dayjs";
 
-import { AddEntityOptions, SettableConfiguration } from "../..";
+import { AddEntityOptions, BasicAddParams, SettableConfiguration } from "../..";
 
 export type ImageConfiguration = {
   /**
@@ -31,7 +31,12 @@ export function VirtualImage({ context, synapse }: TServiceParams) {
     load_config_keys: ["content_type", "image_last_updated", "image_url"],
   });
 
-  return <LOCALS extends object = object, ATTRIBUTES extends object = object>(
-    options: AddEntityOptions<ImageConfiguration, ImageEvents, ATTRIBUTES, LOCALS>,
+  return <PARAMS extends BasicAddParams>(
+    options: AddEntityOptions<
+      ImageConfiguration,
+      ImageEvents,
+      PARAMS["Attributes"],
+      PARAMS["locals"]
+    >,
   ) => generate.addEntity(options);
 }

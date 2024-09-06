@@ -1,6 +1,6 @@
 import { TServiceParams } from "@digital-alchemy/core";
 
-import { AddEntityOptions, SettableConfiguration } from "../..";
+import { AddEntityOptions, BasicAddParams, SettableConfiguration } from "../..";
 
 type Year = `${number}${number}${number}${number}`;
 type MD = `${number}${number}`;
@@ -31,10 +31,10 @@ export function VirtualDate({ context, synapse }: TServiceParams) {
     map_state: "native_value",
   });
 
-  return function <LOCALS extends object = object, ATTRIBUTES extends object = object>({
+  return function <PARAMS extends BasicAddParams>({
     managed = true,
     ...options
-  }: AddEntityOptions<DateConfiguration, DateEvents, ATTRIBUTES, LOCALS>) {
+  }: AddEntityOptions<DateConfiguration, DateEvents, PARAMS["Attributes"], PARAMS["locals"]>) {
     const entity = generate.addEntity(options);
     if (managed) {
       entity.onSetValue(({ value }) => entity.storage.set("native_value", value));

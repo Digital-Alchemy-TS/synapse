@@ -1,6 +1,6 @@
 import { TServiceParams } from "@digital-alchemy/core";
 
-import { AddEntityOptions, SettableConfiguration } from "../..";
+import { AddEntityOptions, BasicAddParams, SettableConfiguration } from "../..";
 
 export type SynapseTimeFormat = `${number}${number}:${number}${number}:${number}${number}`;
 
@@ -27,10 +27,10 @@ export function VirtualTime({ context, synapse }: TServiceParams) {
     map_state: "native_value",
   });
 
-  return function <LOCALS extends object = object, ATTRIBUTES extends object = object>({
+  return function <PARAMS extends BasicAddParams>({
     managed = true,
     ...options
-  }: AddEntityOptions<TimeConfiguration, TimeEvents, ATTRIBUTES, LOCALS>) {
+  }: AddEntityOptions<TimeConfiguration, TimeEvents, PARAMS["Attributes"], PARAMS["locals"]>) {
     const entity = generate.addEntity(options);
     if (managed) {
       entity.onSetValue(({ value }) => entity.storage.set("native_value", value));

@@ -1,6 +1,11 @@
 import { TServiceParams } from "@digital-alchemy/core";
 
-import { AddEntityOptions, SensorDeviceClasses, SettableConfiguration } from "../..";
+import {
+  AddEntityOptions,
+  BasicAddParams,
+  SensorDeviceClasses,
+  SettableConfiguration,
+} from "../..";
 
 export type NumberConfiguration = SensorDeviceClasses & {
   /**
@@ -52,10 +57,10 @@ export function VirtualNumber({ context, synapse }: TServiceParams) {
     ],
   });
 
-  return function <LOCALS extends object = object, ATTRIBUTES extends object = object>({
+  return function <PARAMS extends BasicAddParams>({
     managed = true,
     ...options
-  }: AddEntityOptions<NumberConfiguration, NumberEvents, ATTRIBUTES, LOCALS>) {
+  }: AddEntityOptions<NumberConfiguration, NumberEvents, PARAMS["Attributes"], PARAMS["locals"]>) {
     const entity = generate.addEntity(options);
     if (managed) {
       entity.onSetValue(({ value }) => entity.storage.set("native_value", value));

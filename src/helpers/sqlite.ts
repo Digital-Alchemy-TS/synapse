@@ -11,7 +11,7 @@ export const ENTITY_CREATE = `CREATE TABLE IF NOT EXISTS HomeAssistantEntity (
   application_name TEXT NOT NULL
 )`;
 
-export const LOCALS_CREATE = `CREATE TABLE IF NOT EXISTS HomeAssistantEntityLocals (
+export const LOCALS_CREATE = `CREATE TABLE IF NOT EXISTS HomeAssistantEntitylocals (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   unique_id INTEGER NOT NULL,
   key TEXT NOT NULL,
@@ -31,7 +31,7 @@ export const ENTITY_UPSERT = `INSERT INTO HomeAssistantEntity (
   state_json = excluded.state_json,
   application_name = excluded.application_name`;
 
-export const ENTITY_LOCALS_UPSERT = `INSERT INTO HomeAssistantEntityLocals (
+export const ENTITY_LOCALS_UPSERT = `INSERT INTO HomeAssistantEntitylocals (
   unique_id, key, value_json, last_modified
 ) VALUES (
   @unique_id, @key, @value_json, @last_modified
@@ -44,12 +44,12 @@ export const SELECT_QUERY = `SELECT *
   WHERE unique_id = ? AND application_name = ?`;
 
 export const SELECT_LOCALS_QUERY = `SELECT *
-  FROM HomeAssistantEntityLocals
+  FROM HomeAssistantEntitylocals
   WHERE unique_id = ?`;
 
-export const DELETE_LOCALS_QUERY = `DELETE FROM HomeAssistantEntityLocals WHERE unique_id = ? AND key = ?`;
+export const DELETE_LOCALS_QUERY = `DELETE FROM HomeAssistantEntitylocals WHERE unique_id = ? AND key = ?`;
 
-export const DELETE_LOCALS_BY_UNIQUE_ID_QUERY = `DELETE FROM HomeAssistantEntityLocals
+export const DELETE_LOCALS_BY_UNIQUE_ID_QUERY = `DELETE FROM HomeAssistantEntitylocals
   WHERE unique_id = ?`;
 
 export type HomeAssistantEntityLocalRow = {

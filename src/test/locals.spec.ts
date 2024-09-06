@@ -3,13 +3,24 @@ import { v4 } from "uuid";
 import { HomeAssistantEntityLocalRow } from "../helpers";
 import { BASIC_BOOT, TestRunner } from "./helpers";
 
+type SensorParams = {
+  locals: {
+    string?: string;
+    test: boolean;
+  };
+};
+
 describe("Locals", () => {
   afterEach(() => jest.restoreAllMocks());
 
   it("exists", async () => {
     expect.assertions(1);
     await TestRunner(({ synapse, context }) => {
-      const sensor = synapse.sensor({ context, locals: { test: false }, name: "test" });
+      const sensor = synapse.sensor<SensorParams>({
+        context,
+        locals: { test: false },
+        name: "test",
+      });
       expect(sensor.locals).toBeDefined();
     }).bootstrap(BASIC_BOOT);
   });
@@ -19,7 +30,11 @@ describe("Locals", () => {
     it("sources defaults from definitions before sqlite is available", async () => {
       expect.assertions(1);
       await TestRunner(({ synapse, context }) => {
-        const sensor = synapse.sensor({ context, locals: { test: false }, name: "test" });
+        const sensor = synapse.sensor<SensorParams>({
+          context,
+          locals: { test: false },
+          name: "test",
+        });
         expect(sensor.locals.test).toBe(false);
       }).bootstrap(BASIC_BOOT);
     });
@@ -33,7 +48,11 @@ describe("Locals", () => {
       expect.assertions(3);
       await TestRunner(({ synapse, context, lifecycle }) => {
         lifecycle.onReady(() => {
-          const sensor = synapse.sensor({ context, locals: { test: false }, name: "test" });
+          const sensor = synapse.sensor<SensorParams>({
+            context,
+            locals: { test: false },
+            name: "test",
+          });
           const spy = jest.spyOn(synapse.sqlite, "getDatabase");
           expect(sensor.locals.test).toBe(false);
           expect(sensor.locals.test).toBe(false);
@@ -46,7 +65,7 @@ describe("Locals", () => {
       expect.assertions(1);
       await TestRunner(({ synapse, context, lifecycle }) => {
         lifecycle.onReady(() => {
-          const sensor = synapse.sensor({
+          const sensor = synapse.sensor<SensorParams>({
             context,
             locals: { test: false },
             name: "test",
@@ -65,7 +84,7 @@ describe("Locals", () => {
         expect.assertions(2);
         await TestRunner(({ synapse, context, lifecycle }) => {
           lifecycle.onReady(() => {
-            const sensor = synapse.sensor({
+            const sensor = synapse.sensor<SensorParams>({
               context,
               locals: { test: false },
               name: "test",
@@ -79,7 +98,7 @@ describe("Locals", () => {
               .prepare<
                 [string],
                 HomeAssistantEntityLocalRow
-              >(`SELECT * FROM HomeAssistantEntityLocals WHERE unique_id = ?`)
+              >(`SELECT * FROM HomeAssistantEntitylocals WHERE unique_id = ?`)
               .all(unique_id);
 
             expect(entry).toEqual(
@@ -98,7 +117,7 @@ describe("Locals", () => {
         await TestRunner(
           ({ synapse, context, lifecycle }) => {
             lifecycle.onReady(() => {
-              const sensor = synapse.sensor({
+              const sensor = synapse.sensor<SensorParams>({
                 context,
                 locals: { test: false },
                 name: "test",
@@ -121,7 +140,7 @@ describe("Locals", () => {
         await TestRunner(({ synapse, context, lifecycle }) => {
           lifecycle.onReady(() => {
             const unique_id = v4();
-            const sensor = synapse.sensor({
+            const sensor = synapse.sensor<SensorParams>({
               context,
               locals: { test: true },
               name: "test",
@@ -134,7 +153,7 @@ describe("Locals", () => {
 
             const database = synapse.sqlite.getDatabase();
             const entry = database
-              .prepare(`SELECT * FROM HomeAssistantEntityLocals WHERE unique_id = ?`)
+              .prepare(`SELECT * FROM HomeAssistantEntitylocals WHERE unique_id = ?`)
               .all(unique_id);
 
             expect(spy).toHaveBeenCalled();
@@ -146,7 +165,7 @@ describe("Locals", () => {
       it("does not allow deletes before load", async () => {
         expect.assertions(1);
         await TestRunner(({ synapse, context }) => {
-          const sensor = synapse.sensor({
+          const sensor = synapse.sensor<SensorParams>({
             context,
             locals: { test: false },
             name: "test",
@@ -161,7 +180,7 @@ describe("Locals", () => {
         expect.assertions(1);
         await TestRunner(({ synapse, context, lifecycle }) => {
           lifecycle.onReady(() => {
-            const sensor = synapse.sensor({
+            const sensor = synapse.sensor<SensorParams>({
               context,
               locals: { test: false },
               name: "test",
@@ -178,7 +197,7 @@ describe("Locals", () => {
         expect.assertions(2);
         await TestRunner(({ synapse, context, lifecycle }) => {
           lifecycle.onReady(() => {
-            const sensor = synapse.sensor({
+            const sensor = synapse.sensor<SensorParams>({
               context,
               locals: { test: false },
               name: "test",
@@ -198,7 +217,7 @@ describe("Locals", () => {
         expect.assertions(1);
         await TestRunner(({ synapse, context, lifecycle }) => {
           lifecycle.onReady(() => {
-            const sensor = synapse.sensor({
+            const sensor = synapse.sensor<SensorParams>({
               context,
               locals: { test: false },
               name: "test",
@@ -211,7 +230,7 @@ describe("Locals", () => {
       it("has returns true for defaults before ready", async () => {
         expect.assertions(1);
         await TestRunner(({ synapse, context }) => {
-          const sensor = synapse.sensor({
+          const sensor = synapse.sensor<SensorParams>({
             context,
             locals: { test: false },
             name: "test",
@@ -224,7 +243,7 @@ describe("Locals", () => {
         expect.assertions(1);
         await TestRunner(({ synapse, context, lifecycle }) => {
           lifecycle.onReady(() => {
-            const sensor = synapse.sensor({
+            const sensor = synapse.sensor<SensorParams>({
               context,
               locals: { test: false },
               name: "test",
@@ -239,7 +258,7 @@ describe("Locals", () => {
         expect.assertions(1);
         await TestRunner(({ synapse, context, lifecycle }) => {
           lifecycle.onReady(() => {
-            const sensor = synapse.sensor<number, { test: boolean; string?: string }>({
+            const sensor = synapse.sensor<SensorParams>({
               context,
               locals: { test: false },
               name: "test",
@@ -253,7 +272,7 @@ describe("Locals", () => {
         expect.assertions(1);
         await TestRunner(({ synapse, context, lifecycle }) => {
           lifecycle.onReady(() => {
-            const sensor = synapse.sensor<number, { test: boolean; string?: string }>({
+            const sensor = synapse.sensor<SensorParams>({
               context,
               locals: { test: false },
               name: "test",
@@ -270,7 +289,7 @@ describe("Locals", () => {
       it("returns defaults as ownKeys before bootstrap", async () => {
         expect.assertions(1);
         await TestRunner(({ synapse, context }) => {
-          const sensor = synapse.sensor<number, { test: boolean; string?: string }>({
+          const sensor = synapse.sensor<SensorParams>({
             context,
             locals: { test: false },
             name: "test",
@@ -283,7 +302,7 @@ describe("Locals", () => {
         expect.assertions(1);
         await TestRunner(({ synapse, context, lifecycle }) => {
           lifecycle.onReady(() => {
-            const sensor = synapse.sensor<number, { test: boolean; string?: string }>({
+            const sensor = synapse.sensor<SensorParams>({
               context,
               locals: { test: false },
               name: "test",
@@ -302,7 +321,7 @@ describe("Locals", () => {
         await TestRunner(
           ({ synapse, context, lifecycle }) => {
             lifecycle.onReady(() => {
-              const sensor = synapse.sensor({
+              const sensor = synapse.sensor<SensorParams>({
                 context,
                 locals: { test: false },
                 name: "test",
@@ -319,7 +338,7 @@ describe("Locals", () => {
         expect.assertions(1);
         await TestRunner(
           ({ synapse, context }) => {
-            const sensor = synapse.sensor({
+            const sensor = synapse.sensor<SensorParams>({
               context,
               locals: { test: false },
               name: "test",
@@ -336,7 +355,7 @@ describe("Locals", () => {
         expect.assertions(1);
         await TestRunner(
           ({ synapse, context }) => {
-            const sensor = synapse.sensor({
+            const sensor = synapse.sensor<SensorParams>({
               context,
               locals: { test: false },
               name: "test",
@@ -354,7 +373,7 @@ describe("Locals", () => {
         await TestRunner(
           ({ synapse, context, lifecycle }) => {
             lifecycle.onReady(() => {
-              const sensor = synapse.sensor({
+              const sensor = synapse.sensor<SensorParams>({
                 context,
                 locals: { test: false },
                 name: "test",

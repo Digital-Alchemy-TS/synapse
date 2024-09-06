@@ -1,7 +1,7 @@
 import { TServiceParams } from "@digital-alchemy/core";
 import { Dayjs } from "dayjs";
 
-import { AddEntityOptions, SettableConfiguration } from "../..";
+import { AddEntityOptions, BasicAddParams, SettableConfiguration } from "../..";
 
 export type DateTimeConfiguration = {
   /**
@@ -30,10 +30,15 @@ export function VirtualDateTime({ context, synapse }: TServiceParams) {
     map_state: "native_value",
   });
 
-  return function <LOCALS extends object = object, ATTRIBUTES extends object = object>({
+  return function <PARAMS extends BasicAddParams>({
     managed = true,
     ...options
-  }: AddEntityOptions<DateTimeConfiguration, DateTimeEvents, ATTRIBUTES, LOCALS>) {
+  }: AddEntityOptions<
+    DateTimeConfiguration,
+    DateTimeEvents,
+    PARAMS["Attributes"],
+    PARAMS["locals"]
+  >) {
     const entity = generate.addEntity(options);
     if (managed) {
       entity.onSetValue(({ value }) => entity.storage.set("native_value", value));

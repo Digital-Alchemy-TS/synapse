@@ -1,6 +1,6 @@
 import { TServiceParams } from "@digital-alchemy/core";
 
-import { AddEntityOptions, SettableConfiguration } from "../..";
+import { AddEntityOptions, BasicAddParams, SettableConfiguration } from "../..";
 
 export type LawnMowerConfiguration = {
   /**
@@ -31,7 +31,12 @@ export function VirtualLawnMower({ context, synapse }: TServiceParams) {
     load_config_keys: ["activity", "supported_features"],
   });
 
-  return <LOCALS extends object = object, ATTRIBUTES extends object = object>(
-    options: AddEntityOptions<LawnMowerConfiguration, LawnMowerEvents, ATTRIBUTES, LOCALS>,
+  return <PARAMS extends BasicAddParams>(
+    options: AddEntityOptions<
+      LawnMowerConfiguration,
+      LawnMowerEvents,
+      PARAMS["Attributes"],
+      PARAMS["locals"]
+    >,
   ) => generate.addEntity(options);
 }

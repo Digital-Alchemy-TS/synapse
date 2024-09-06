@@ -1,6 +1,6 @@
 import { TServiceParams } from "@digital-alchemy/core";
 
-import { AddEntityOptions, SettableConfiguration } from "../..";
+import { AddEntityOptions, BasicAddParams, SettableConfiguration } from "../..";
 
 export type VacuumConfiguration<FAN_SPEEDS extends string = string> = {
   /**
@@ -63,7 +63,12 @@ export function VirtualVacuum({ context, synapse }: TServiceParams) {
     load_config_keys: ["battery_level", "fan_speed", "fan_speed_list", "supported_features"],
   });
 
-  return <LOCALS extends object = object, ATTRIBUTES extends object = object>(
-    options: AddEntityOptions<VacuumConfiguration, VacuumEvents, ATTRIBUTES, LOCALS>,
+  return <PARAMS extends BasicAddParams>(
+    options: AddEntityOptions<
+      VacuumConfiguration,
+      VacuumEvents,
+      PARAMS["Attributes"],
+      PARAMS["locals"]
+    >,
   ) => generate.addEntity(options);
 }
