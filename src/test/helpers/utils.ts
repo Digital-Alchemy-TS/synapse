@@ -46,17 +46,24 @@ type TestingOptions = {
   keepDb?: boolean;
 };
 
-export function CreateTestingApplication(
-  services: ServiceMap,
+let application: ApplicationDefinition<ServiceMap, OptionalModuleConfiguration>;
+afterEach(async () => {
+  if (application) {
+    await application.teardown();
+    application = undefined;
+  }
+});
+
+export function TestRunner(
+  Test: ServiceFunction,
   { keepDb: keepDatabase = false }: TestingOptions = {},
 ) {
-  return CreateApplication({
+  application = CreateApplication({
     configurationLoaders: [],
     libraries: [LIB_HASS, LIB_SYNAPSE],
     // @ts-expect-error testing
     name: "testing",
     services: {
-      ...services,
       Loader({ lifecycle, internal }) {
         lifecycle.onPreInit(() => {
           internal.boilerplate.configuration.set("synapse", "SQLITE_DB", SQLITE_DB);
@@ -65,8 +72,10 @@ export function CreateTestingApplication(
           }
         });
       },
+      Test,
     },
   });
+  return application;
 }
 
 export const BASIC_BOOT = {
@@ -84,7 +93,7 @@ export const BASIC_BOOT = {
   },
 } satisfies BootstrapOptions;
 
-export const SPECIAL_BOOT = (configuration: PartialConfiguration) =>
+export const CONFIG_BOOT = (configuration: PartialConfiguration) =>
   deepExtend(BASIC_BOOT, { configuration });
 
 export const CreateTestRunner = <S extends ServiceMap, C extends OptionalModuleConfiguration>(

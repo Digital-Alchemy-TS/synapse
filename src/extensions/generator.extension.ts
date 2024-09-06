@@ -128,8 +128,16 @@ export function DomainGenerator({
           ...storage.keys(),
         ]);
 
+        // ? adding the keys here makes ownKeys & has work
+        const thing = Object.fromEntries(keys.map(i => [i, true])) as SynapseEntityProxy<
+          CONFIGURATION,
+          EVENT_MAP,
+          ATTRIBUTES,
+          LOCALS
+        >;
+
         // #MARK: entity proxy
-        return new Proxy({} as SynapseEntityProxy<CONFIGURATION, EVENT_MAP, ATTRIBUTES, LOCALS>, {
+        return new Proxy(thing, {
           deleteProperty(_, property: string) {
             if (property === "locals") {
               locals.reset();
