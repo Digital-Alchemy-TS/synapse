@@ -98,7 +98,7 @@ describe("Locals", () => {
               .prepare<
                 [string],
                 HomeAssistantEntityLocalRow
-              >(`SELECT * FROM HomeAssistantEntitylocals WHERE unique_id = ?`)
+              >(`SELECT * FROM HomeAssistantEntityLocals WHERE unique_id = ?`)
               .all(unique_id);
 
             expect(entry).toEqual(
@@ -153,7 +153,7 @@ describe("Locals", () => {
 
             const database = synapse.sqlite.getDatabase();
             const entry = database
-              .prepare(`SELECT * FROM HomeAssistantEntitylocals WHERE unique_id = ?`)
+              .prepare(`SELECT * FROM HomeAssistantEntityLocals WHERE unique_id = ?`)
               .all(unique_id);
 
             expect(spy).toHaveBeenCalled();
