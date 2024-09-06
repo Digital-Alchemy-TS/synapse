@@ -1,6 +1,6 @@
 import { v4 } from "uuid";
 
-import { BASIC_BOOT, CONFIG_BOOT, TestRunner } from "./helpers";
+import { BASIC_BOOT, TestRunner } from "./helpers";
 
 describe("Generator", () => {
   afterEach(() => jest.restoreAllMocks());
