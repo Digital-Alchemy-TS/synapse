@@ -64,6 +64,19 @@ const DOMAINS = {
   remote: VirtualRemote,
   scene: VirtualScene,
   select: VirtualSelect,
+  /**
+   * ### Customizing Types
+   *
+   * Use type params to fine tune sensor
+   *
+   * ```typescript
+   * synapse.sensor<{
+   *   state: number;
+   *   locals: { example: boolean }
+   *   attributes: {  }
+   *  }>({ ... })
+   * ```
+   */
   sensor: VirtualSensor,
   siren: VirtualSiren,
   switch: VirtualSwitch,
