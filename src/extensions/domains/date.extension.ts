@@ -1,4 +1,4 @@
-import { is, NONE, TServiceParams } from "@digital-alchemy/core";
+import { is, TServiceParams } from "@digital-alchemy/core";
 import dayjs, { Dayjs } from "dayjs";
 
 import {
@@ -53,7 +53,6 @@ type DateSettable =
     };
 
 const FORMAT = "YYYY-MM-DD";
-const expectedLength = FORMAT.length;
 
 type CallbackType<D extends TypeOptions = "iso"> = D extends "dayjs"
   ? Dayjs
