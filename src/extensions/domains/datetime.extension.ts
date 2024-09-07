@@ -88,9 +88,12 @@ export function VirtualDateTime({ context, synapse, logger }: TServiceParams) {
       );
     },
     iso(property: keyof DateTimeConfiguration, data: SerializeTypes) {
-      if (is.undefined(data) || is.number(data)) {
+      if (is.number(data)) {
         logger.warn({ data, property }, `expected [iso string] received unexpected type`);
         return new Date(data).toISOString();
+      }
+      if (is.undefined(data)) {
+        data = new Date();
       }
       if (is.date(data) || data instanceof dayjs) {
         logger.warn({ data, property }, `expected [iso string] received unexpected type`);
@@ -147,10 +150,10 @@ export function VirtualDateTime({ context, synapse, logger }: TServiceParams) {
           return dayjs(data);
         }
         case "date": {
-          return new Date(data);
+          return data ? new Date(data) : new Date();
         }
         default: {
-          return String(data);
+          return data ? String(data) : new Date().toISOString();
         }
       }
     },

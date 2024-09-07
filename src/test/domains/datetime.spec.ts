@@ -1,8 +1,7 @@
-import exp from "constants";
-import dayjs, { Dayjs } from "dayjs";
+import dayjs from "dayjs";
 import { v4 } from "uuid";
 
-import { BASIC_BOOT, CONFIG_BOOT, TestRunner } from "../helpers";
+import { BASIC_BOOT, TestRunner } from "../helpers";
 
 const TESTING_DATE = `2024-01-01T00:00:00.000Z`;
 
@@ -181,6 +180,147 @@ describe("DateTime", () => {
           expect(entity.native_value).toEqual(dayjs(now));
           entity.native_value = undefined;
           expect(entity.native_value).toBeInstanceOf(dayjs);
+        }).bootstrap(BASIC_BOOT);
+      });
+
+      it("throws for invalid types", async () => {
+        expect.assertions(5);
+        await TestRunner(({ synapse, context }) => {
+          const entity = synapse.datetime<{ date_type: "dayjs" }>({
+            context,
+            date_type: "dayjs",
+            name: "test",
+            native_value: dayjs(TESTING_DATE),
+          });
+          expect(() => {
+            entity.native_value = null;
+          }).toThrow();
+          expect(() => {
+            // @ts-expect-error it's the test
+            entity.native_value = {};
+          }).toThrow();
+          expect(() => {
+            // @ts-expect-error it's the test
+            entity.native_value = false;
+          }).toThrow();
+          expect(() => {
+            // @ts-expect-error it's the test
+            entity.native_value = Number.NaN;
+          }).toThrow();
+          expect(() => {
+            // @ts-expect-error it's the test
+            entity.native_value = new Date("invalid date string");
+          }).toThrow();
+        }).bootstrap(BASIC_BOOT);
+      });
+    });
+
+    describe("iso", () => {
+      it("loads from blank", async () => {
+        expect.assertions(1);
+        await TestRunner(({ synapse, context }) => {
+          const entity = synapse.datetime({
+            context,
+            date_type: "iso",
+            name: "test",
+          });
+          expect(entity.native_value).toEqual(new Date().toISOString());
+        }).bootstrap(BASIC_BOOT);
+      });
+
+      it("loads from defaulted", async () => {
+        expect.assertions(1);
+        await TestRunner(({ synapse, context }) => {
+          const entity = synapse.datetime({
+            context,
+            date_type: "iso",
+            name: "test",
+            native_value: TESTING_DATE,
+          });
+          expect(entity.native_value).toEqual(new Date(TESTING_DATE).toISOString());
+        }).bootstrap(BASIC_BOOT);
+      });
+
+      it("can assign and retrieve", async () => {
+        expect.assertions(1);
+        await TestRunner(({ synapse, context }) => {
+          const entity = synapse.datetime<{ date_type: "iso" }>({
+            context,
+            date_type: "iso",
+            name: "test",
+            native_value: TESTING_DATE,
+          });
+          const now = Date.now();
+          entity.native_value = new Date(now).toISOString();
+          expect(entity.native_value).toEqual(new Date(now).toISOString());
+        }).bootstrap(BASIC_BOOT);
+      });
+
+      it("will allow some unexpected types", async () => {
+        expect.assertions(4);
+        await TestRunner(({ synapse, context }) => {
+          const entity = synapse.datetime<{ date_type: "iso" }>({
+            context,
+            date_type: "iso",
+            name: "test",
+            native_value: TESTING_DATE,
+          });
+          const now = Date.now();
+          // @ts-expect-error it's the test
+          entity.native_value = now;
+          expect(entity.native_value).toEqual(new Date(now).toISOString());
+          // @ts-expect-error it's the test
+          entity.native_value = new Date(now);
+          expect(entity.native_value).toEqual(new Date(now).toISOString());
+          // @ts-expect-error it's the test
+          entity.native_value = dayjs(now);
+          expect(entity.native_value).toEqual(dayjs(now).toISOString());
+          entity.native_value = undefined;
+          expect(entity.native_value).toEqual(new Date().toISOString());
+        }).bootstrap(BASIC_BOOT);
+      });
+
+      it("throws for invalid types", async () => {
+        expect.assertions(4);
+        await TestRunner(({ synapse, context }) => {
+          const entity = synapse.datetime<{ date_type: "iso" }>({
+            context,
+            date_type: "iso",
+            name: "test",
+            native_value: TESTING_DATE,
+          });
+          expect(() => {
+            entity.native_value = null;
+          }).toThrow();
+          expect(() => {
+            // @ts-expect-error it's the test
+            entity.native_value = {};
+          }).toThrow();
+          expect(() => {
+            // @ts-expect-error it's the test
+            entity.native_value = false;
+          }).toThrow();
+          expect(() => {
+            entity.native_value = "invalid date string";
+          }).toThrow();
+        }).bootstrap(BASIC_BOOT);
+      });
+    });
+
+    describe("other", () => {
+      it("does not affect other properties", async () => {
+        expect.assertions(2);
+        await TestRunner(({ synapse, context }) => {
+          const entity = synapse.datetime<{ date_type: "iso" }>({
+            context,
+            date_type: "iso",
+            name: "test",
+            native_value: TESTING_DATE,
+          });
+          entity.disabled = true;
+          expect(entity.disabled).toBe(true);
+          entity.disabled = false;
+          expect(entity.disabled).toBe(false);
         }).bootstrap(BASIC_BOOT);
       });
     });
