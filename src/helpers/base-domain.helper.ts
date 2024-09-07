@@ -42,8 +42,16 @@ export type DomainGeneratorOptions<
   default_config?: Partial<CONFIGURATION>;
 } & (
   | {
-      serialize: (data: SERIALIZE_TYPES, options: CONFIGURATION) => string;
-      unserialize: (data: string, options: CONFIGURATION) => SERIALIZE_TYPES;
+      serialize: (
+        property: keyof CONFIGURATION,
+        data: SERIALIZE_TYPES,
+        options: CONFIGURATION,
+      ) => string;
+      unserialize: (
+        property: keyof CONFIGURATION,
+        data: string,
+        options: CONFIGURATION,
+      ) => SERIALIZE_TYPES;
     }
   | EmptyObject
 );
