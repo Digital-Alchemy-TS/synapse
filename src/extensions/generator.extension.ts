@@ -40,12 +40,12 @@ export function DomainGenerator({
   const registered = new Set<string>();
 
   // #MARK: create
-  function create<CONFIGURATION extends object, EVENT_MAP extends TEventMap>({
-    domain,
-    context,
-    bus_events = [],
-    load_config_keys = [],
-  }: DomainGeneratorOptions<CONFIGURATION, EVENT_MAP>) {
+  function create<
+    CONFIGURATION extends object,
+    EVENT_MAP extends TEventMap,
+    SERIALIZE_TYPES extends unknown = unknown,
+  >(options: DomainGeneratorOptions<CONFIGURATION, EVENT_MAP, SERIALIZE_TYPES>) {
+    const { domain, context, bus_events = [], load_config_keys = [], ...extra } = options;
     logger.trace({ bus_events, context }, "registering domain [%s]", domain);
 
     // 🚌🚏 Bus transfer
@@ -191,6 +191,9 @@ export function DomainGenerator({
               return locals.replace(newValue);
             }
             if (storage.isStored(property)) {
+              if ("serialize" in extra) {
+                newValue = extra.serialize(newValue, options as CONFIGURATION);
+              }
               storage.set(property, newValue);
               return true;
             }

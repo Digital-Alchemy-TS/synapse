@@ -24,7 +24,6 @@ export function VirtualTime({ context, synapse }: TServiceParams) {
     // @ts-expect-error its fine
     domain: "time",
     load_config_keys: ["native_value"],
-    map_state: "native_value",
   });
 
   return function <PARAMS extends BasicAddParams>({

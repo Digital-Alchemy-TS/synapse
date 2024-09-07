@@ -1,14 +1,7 @@
 import { TServiceParams } from "@digital-alchemy/core";
 import dayjs, { Dayjs } from "dayjs";
 
-import {
-  AddEntityOptions,
-  BasicAddParams,
-  BuildCallbacks,
-  SelectConfiguration,
-  SelectEvents,
-  SettableConfiguration,
-} from "../..";
+import { AddEntityOptions, BasicAddParams, BuildCallbacks, SettableConfiguration } from "../..";
 
 type DateTimeSettable =
   | {
@@ -20,11 +13,11 @@ type DateTimeSettable =
     }
   | {
       date_type: "dayjs";
-      native_value?: SettableConfiguration<Dayjs>;
+      native_value: SettableConfiguration<Dayjs>;
     }
   | {
       date_type: "date";
-      native_value?: SettableConfiguration<Date>;
+      native_value: SettableConfiguration<Date>;
     };
 
 export type DateTimeConfiguration = {
@@ -50,14 +43,41 @@ type CallbackType<D extends TypeOptions = "iso"> = D extends "dayjs"
     ? Date
     : string;
 
+type SerializeTypes = string | Date | Dayjs;
+
 export function VirtualDateTime({ context, synapse }: TServiceParams) {
-  const generate = synapse.generator.create<DateTimeConfiguration, DateTimeEvents>({
+  const generate = synapse.generator.create<DateTimeConfiguration, DateTimeEvents, SerializeTypes>({
     bus_events: ["set_value"],
     context,
     // @ts-expect-error its fine
     domain: "datetime",
     load_config_keys: ["native_value"],
-    map_state: "native_value",
+    serialize(data: SerializeTypes, options: DateTimeConfiguration) {
+      switch (options.date_type) {
+        case "dayjs": {
+          return (data as Dayjs).toISOString();
+        }
+        case "date": {
+          return (data as Date).toISOString();
+        }
+        default: {
+          return String(data);
+        }
+      }
+    },
+    unserialize(iso: string, options: DateTimeConfiguration): SerializeTypes {
+      switch (options.date_type) {
+        case "dayjs": {
+          return dayjs(iso);
+        }
+        case "date": {
+          return new Date(iso);
+        }
+        default: {
+          return String(iso);
+        }
+      }
+    },
   });
 
   return function <PARAMS extends DateTimeParams>({

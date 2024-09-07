@@ -30,7 +30,6 @@ export function VirtualSelect({ context, synapse }: TServiceParams) {
     // @ts-expect-error its fine
     domain: "select",
     load_config_keys: ["current_option", "options"],
-    map_state: "current_option",
   });
 
   return function <PARAMS extends SelectOptions>({

@@ -27,6 +27,7 @@ words:
   - tvshow
   - utcnow
   - zeroconf
+  - unserialize
   - cobertura
   - entitylocals
   - autoincrement

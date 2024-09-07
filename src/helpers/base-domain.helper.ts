@@ -1,6 +1,7 @@
 import { TBlackHole, TContext } from "@digital-alchemy/core";
 import { TRawDomains } from "@digital-alchemy/hass";
 import { createHash } from "crypto";
+import { EmptyObject } from "type-fest";
 
 import { EntityConfigCommon } from "./common-config.helper";
 import { TSynapseId } from "./utility.helper";
@@ -17,6 +18,7 @@ export type CreateRemovableCallback<DATA extends unknown = unknown> = (
 export type DomainGeneratorOptions<
   CONFIGURATION extends object,
   EVENT_MAP extends Record<string, object>,
+  SERIALIZE_TYPES extends unknown = unknown,
 > = {
   /**
    * The domain to map the code to on the python side
@@ -38,7 +40,13 @@ export type DomainGeneratorOptions<
    * What to use instead of `undefined` / `None`
    */
   default_config?: Partial<CONFIGURATION>;
-};
+} & (
+  | {
+      serialize: (data: SERIALIZE_TYPES, options: CONFIGURATION) => string;
+      unserialize: (data: string, options: CONFIGURATION) => SERIALIZE_TYPES;
+    }
+  | EmptyObject
+);
 
 export type TEventMap = Record<string, object>;
 

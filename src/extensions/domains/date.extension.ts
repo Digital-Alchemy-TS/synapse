@@ -28,7 +28,6 @@ export function VirtualDate({ context, synapse }: TServiceParams) {
     // @ts-expect-error its fine
     domain: "date",
     load_config_keys: ["native_value"],
-    map_state: "native_value",
   });
 
   return function <PARAMS extends BasicAddParams>({

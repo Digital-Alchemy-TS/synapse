@@ -1,5 +1,4 @@
 import { SECOND, TServiceParams } from "@digital-alchemy/core";
-import dayjs from "dayjs";
 
 type LocalData = {
   foo: number;
@@ -131,7 +130,6 @@ export function EntityGenerator({ scheduler, synapse, context, logger }: TServic
     synapse.datetime({
       context,
       name: "Example datetime",
-      native_value: dayjs("2024-01-01 00:00:00"),
       suggested_object_id: "example_the_datetime",
     });
     synapse.date({
