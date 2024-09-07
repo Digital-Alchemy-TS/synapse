@@ -33,7 +33,7 @@ export type DateTimeConfiguration = {
   managed?: boolean;
 } & DateTimeSettable;
 
-export type DateTimeEvents<VALUE extends string | Dayjs | Date = string> = {
+export type DateTimeEvents<VALUE extends SerializeTypes = string> = {
   set_value: { value: VALUE };
 };
 
@@ -72,7 +72,7 @@ export function VirtualDateTime({ context, synapse }: TServiceParams) {
       if (is.date(data) && is.number(data.getTime())) {
         return data.toISOString();
       }
-      if (is.object(data) && "toISOString" in data && is.function(data.toISOString)) {
+      if (data instanceof dayjs) {
         return data.toISOString();
       }
       throw new EntityException(

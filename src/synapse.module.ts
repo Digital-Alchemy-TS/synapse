@@ -51,9 +51,20 @@ const DOMAINS = {
   camera: VirtualCamera,
   climate: VirtualClimate,
   cover: VirtualCover,
-  date: VirtualDate,
   /**
    * ### Customize date type
+   *
+   * Provides `YYYY-MM-DD` format by default
+   *
+   * > Available options: `iso` | `date` | `dayjs`
+   *
+   * ```typescript
+   * synapse.date<{ date_type: "dayjs" }>({ ... })
+   * ```
+   */
+  date: VirtualDate,
+  /**
+   * ### Customize datetime type
    *
    * > Available options: `iso` | `date` | `dayjs`
    *
