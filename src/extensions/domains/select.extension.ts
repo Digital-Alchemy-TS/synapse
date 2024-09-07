@@ -1,6 +1,6 @@
 import { TServiceParams } from "@digital-alchemy/core";
 
-import { AddEntityOptions, BasicAddParams, SettableConfiguration } from "../..";
+import { AddEntityOptions, BasicAddParams, BuildCallbacks, SettableConfiguration } from "../..";
 
 export type SelectConfiguration<OPTIONS extends string = string> = {
   /**
@@ -17,8 +17,10 @@ export type SelectConfiguration<OPTIONS extends string = string> = {
   managed?: boolean;
 };
 
-export type SelectEvents = {
-  select_option: { option: string };
+type SelectOptions = BasicAddParams & { options: string };
+
+export type SelectEvents<OPTIONS extends string = string> = {
+  select_option: { option: OPTIONS };
 };
 
 export function VirtualSelect({ context, synapse }: TServiceParams) {
@@ -31,14 +33,24 @@ export function VirtualSelect({ context, synapse }: TServiceParams) {
     map_state: "current_option",
   });
 
-  return function <PARAMS extends BasicAddParams>({
+  return function <PARAMS extends SelectOptions>({
     managed = true,
     ...options
-  }: AddEntityOptions<SelectConfiguration, SelectEvents, PARAMS["attributes"], PARAMS["locals"]>) {
+  }: AddEntityOptions<
+    SelectConfiguration<PARAMS["options"]>,
+    SelectEvents<PARAMS["options"]>,
+    PARAMS["attributes"],
+    PARAMS["locals"]
+  >) {
     const entity = generate.addEntity(options);
     if (managed) {
       entity.onSelectOption(({ option }) => entity.storage.set("current_option", option));
     }
-    return entity;
+    type DynamicCallbacks = BuildCallbacks<SelectEvents<PARAMS["options"]>>;
+    type TypedVirtualSelect = Omit<typeof entity, keyof DynamicCallbacks> &
+      DynamicCallbacks &
+      Omit<SelectConfiguration<PARAMS["options"]>, "managed">;
+
+    return entity as TypedVirtualSelect;
   };
 }
