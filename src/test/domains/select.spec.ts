@@ -17,26 +17,6 @@ describe("Select", () => {
     }).bootstrap(BASIC_BOOT);
   });
 
-  // it("loads the correct keys from storage", async () => {
-  //   await TestRunner(({ synapse, context }) => {
-  //     const spy = jest.spyOn(synapse.storage, "add");
-  //     const select = synapse.select<{ options: "a" | "b" | "c" }>({
-  //       context,
-  //       current_option: "c",
-  //       name: "test",
-  //       options: ["a", "b", "c"],
-  //     });
-  //     // select.onSelectOption(({option}) => option === )
-  //     select.current_option = "c";
-  //     select.options = ["c"];
-  //     expect(spy).toHaveBeenCalledWith(
-  //       expect.objectContaining({
-  //         load_config_keys: ["current_option", "options"],
-  //       }),
-  //     );
-  //   }).bootstrap(BASIC_BOOT);
-  // });
-
   it("set up up correct bus transfer events", async () => {
     const unique_id = v4();
     const events = ["select_option"];

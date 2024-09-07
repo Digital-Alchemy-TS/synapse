@@ -52,6 +52,15 @@ const DOMAINS = {
   climate: VirtualClimate,
   cover: VirtualCover,
   date: VirtualDate,
+  /**
+   * ### Customize date type
+   *
+   * > Available options: `iso` | `date` | `dayjs`
+   *
+   * ```typescript
+   * synapse.datetime<{ date_type: "dayjs" }>({ ... })
+   * ```
+   */
   datetime: VirtualDateTime,
   fan: VirtualFan,
   image: VirtualImage,
@@ -65,16 +74,12 @@ const DOMAINS = {
   scene: VirtualScene,
   select: VirtualSelect,
   /**
-   * ### Customizing Types
+   * ### Customize state
    *
-   * Use type params to fine tune sensor
+   * > Available options: `number` | `string`
    *
    * ```typescript
-   * synapse.sensor<{
-   *   state: number;
-   *   locals: { example: boolean }
-   *   attributes: {  }
-   *  }>({ ... })
+   * synapse.sensor<{ state: number }>({ ... })
    * ```
    */
   sensor: VirtualSensor,
