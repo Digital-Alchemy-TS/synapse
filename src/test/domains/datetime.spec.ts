@@ -23,6 +23,26 @@ describe("DateTime", () => {
 
   describe("serialization", () => {
     describe("date", () => {
+      it("events with correct types", async () => {
+        const unique_id = v4();
+        expect.assertions(1);
+        await TestRunner(({ synapse, context, config, hass, internal }) => {
+          const entity = synapse.datetime<{ date_type: "date" }>({
+            context,
+            date_type: "date",
+            name: "test",
+            unique_id,
+          });
+          entity.onSetValue(({ value }) => {
+            expect(value).toBeInstanceOf(Date);
+          });
+          hass.socket.socketEvents.emit(
+            [config.synapse.EVENT_NAMESPACE, "set_value", internal.boot.application.name].join("/"),
+            { data: { unique_id } },
+          );
+        }).bootstrap(BASIC_BOOT);
+      });
+
       it("loads from blank", async () => {
         expect.assertions(1);
         await TestRunner(({ synapse, context }) => {
@@ -119,6 +139,25 @@ describe("DateTime", () => {
     });
 
     describe("dayjs", () => {
+      it("events with correct types", async () => {
+        const unique_id = v4();
+        expect.assertions(1);
+        await TestRunner(({ synapse, context, config, hass, internal }) => {
+          const entity = synapse.datetime<{ date_type: "dayjs" }>({
+            context,
+            date_type: "dayjs",
+            name: "test",
+            unique_id,
+          });
+          entity.onSetValue(({ value }) => {
+            expect(value).toBeInstanceOf(dayjs);
+          });
+          hass.socket.socketEvents.emit(
+            [config.synapse.EVENT_NAMESPACE, "set_value", internal.boot.application.name].join("/"),
+            { data: { unique_id } },
+          );
+        }).bootstrap(BASIC_BOOT);
+      });
       it("loads from blank", async () => {
         expect.assertions(1);
         await TestRunner(({ synapse, context }) => {
@@ -216,6 +255,26 @@ describe("DateTime", () => {
     });
 
     describe("iso", () => {
+      it("events with correct types", async () => {
+        const unique_id = v4();
+        expect.assertions(1);
+        await TestRunner(({ synapse, context, config, hass, internal }) => {
+          const entity = synapse.datetime<{ date_type: "iso" }>({
+            context,
+            date_type: "iso",
+            name: "test",
+            unique_id,
+          });
+          entity.onSetValue(({ value }) => {
+            expect(value).toBeInstanceOf(String);
+          });
+          hass.socket.socketEvents.emit(
+            [config.synapse.EVENT_NAMESPACE, "set_value", internal.boot.application.name].join("/"),
+            { data: { unique_id } },
+          );
+        }).bootstrap(BASIC_BOOT);
+      });
+
       it("loads from blank", async () => {
         expect.assertions(1);
         await TestRunner(({ synapse, context }) => {
