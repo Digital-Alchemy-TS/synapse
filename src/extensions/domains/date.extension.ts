@@ -1,5 +1,5 @@
 import { is, TServiceParams } from "@digital-alchemy/core";
-import dayjs, { Dayjs } from "dayjs";
+import dayjs, { ConfigType, Dayjs } from "dayjs";
 
 import {
   AddEntityOptions,
@@ -60,14 +60,6 @@ export function VirtualDate({ context, synapse, logger }: TServiceParams) {
       if (property !== "native_value") {
         return data as string;
       }
-      if (is.undefined(data)) {
-        logger.warn(`received undefined date, changing to today`);
-        return dayjs().format(FORMAT);
-      }
-      const incoming = dayjs(data);
-      if (!incoming.isSame(incoming.startOf("day"))) {
-        logger.trace({ incoming: incoming.toISOString() }, `value arrived with time set, dropping`);
-      }
       return dayjs(data).format(FORMAT);
     },
     unserialize(
@@ -78,15 +70,16 @@ export function VirtualDate({ context, synapse, logger }: TServiceParams) {
       if (property !== "native_value") {
         return data as SerializeTypes;
       }
+      const ref = dayjs(data).startOf("day");
       switch (options.date_type) {
         case "dayjs": {
-          return dayjs(data).startOf("day");
+          return ref;
         }
         case "date": {
-          return dayjs(data).startOf("day").toDate();
+          return ref.toDate();
         }
         default: {
-          return dayjs(data).format(FORMAT) as SynapseDateFormat;
+          return ref.format(FORMAT) as SynapseDateFormat;
         }
       }
     },
@@ -94,26 +87,12 @@ export function VirtualDate({ context, synapse, logger }: TServiceParams) {
       if (key !== "native_value") {
         return true;
       }
-      if (
-        is.number(newValue) ||
-        is.date(newValue) ||
-        is.dayjs(newValue) ||
-        is.undefined(newValue)
-      ) {
-        return true;
-      }
-      if (is.string(newValue)) {
-        if (!dayjs(newValue).isValid()) {
-          throw new EntityException(
-            context,
-            "BAD_DATE_STRING",
-            `${newValue} is not a valid date string`,
-          );
-        }
+      const incoming = dayjs(newValue as ConfigType);
+      if (incoming.isValid()) {
         return true;
       }
       logger.error({ expected: current.date_type || "ISO8601", newValue }, "unknown value type");
-      throw new EntityException(context, "INVALID_DATE_STRING", `Received invalid `);
+      throw new EntityException(context, "INVALID_DATE", `Received invalid date format`);
     },
   });
 

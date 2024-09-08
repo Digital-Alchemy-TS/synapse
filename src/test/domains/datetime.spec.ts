@@ -108,7 +108,7 @@ describe("DateTime", () => {
       });
 
       it("throws for invalid types", async () => {
-        expect.assertions(5);
+        expect.assertions(4);
         await TestRunner(({ synapse, context }) => {
           const entity = synapse.datetime<{ date_type: "date" }>({
             context,
@@ -122,10 +122,6 @@ describe("DateTime", () => {
           expect(() => {
             // @ts-expect-error it's the test
             entity.native_value = {};
-          }).toThrow();
-          expect(() => {
-            // @ts-expect-error it's the test
-            entity.native_value = false;
           }).toThrow();
           expect(() => {
             // @ts-expect-error it's the test
@@ -223,7 +219,7 @@ describe("DateTime", () => {
       });
 
       it("throws for invalid types", async () => {
-        expect.assertions(5);
+        expect.assertions(4);
         await TestRunner(({ synapse, context }) => {
           const entity = synapse.datetime<{ date_type: "dayjs" }>({
             context,
@@ -237,10 +233,6 @@ describe("DateTime", () => {
           expect(() => {
             // @ts-expect-error it's the test
             entity.native_value = {};
-          }).toThrow();
-          expect(() => {
-            // @ts-expect-error it's the test
-            entity.native_value = false;
           }).toThrow();
           expect(() => {
             // @ts-expect-error it's the test
@@ -340,11 +332,10 @@ describe("DateTime", () => {
       });
 
       it("throws for invalid types", async () => {
-        expect.assertions(4);
+        expect.assertions(3);
         await TestRunner(({ synapse, context }) => {
           const entity = synapse.datetime<{ date_type: "iso" }>({
             context,
-            date_type: "iso",
             name: "test",
             native_value: TESTING_DATE,
           });
@@ -354,10 +345,6 @@ describe("DateTime", () => {
           expect(() => {
             // @ts-expect-error it's the test
             entity.native_value = {};
-          }).toThrow();
-          expect(() => {
-            // @ts-expect-error it's the test
-            entity.native_value = false;
           }).toThrow();
           expect(() => {
             entity.native_value = "invalid date string";

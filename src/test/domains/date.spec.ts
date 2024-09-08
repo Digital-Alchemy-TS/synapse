@@ -337,7 +337,6 @@ describe("Date", () => {
         await TestRunner(({ synapse, context }) => {
           const entity = synapse.date<{ date_type: "iso" }>({
             context,
-            date_type: "iso",
             name: "test",
           });
           const now = Date.now();
@@ -369,7 +368,6 @@ describe("Date", () => {
         await TestRunner(({ synapse, context }) => {
           const entity = synapse.date<{ date_type: "iso" }>({
             context,
-            date_type: "iso",
             name: "test",
           });
           expect(() => {

@@ -1,5 +1,5 @@
 import { is, TServiceParams } from "@digital-alchemy/core";
-import dayjs, { Dayjs } from "dayjs";
+import dayjs, { ConfigType, Dayjs } from "dayjs";
 
 import {
   AddEntityOptions,
@@ -51,7 +51,7 @@ type CallbackType<D extends TypeOptions = "iso"> = D extends "dayjs"
 
 type SerializeTypes = string | Date | Dayjs;
 
-export function VirtualDateTime({ context, synapse }: TServiceParams) {
+export function VirtualDateTime({ context, synapse, logger }: TServiceParams) {
   // #MARK: generator
   const generate = synapse.generator.create<DateTimeConfiguration, DateTimeEvents, SerializeTypes>({
     bus_events: ["set_value"],
@@ -63,23 +63,7 @@ export function VirtualDateTime({ context, synapse }: TServiceParams) {
       if (property !== "native_value") {
         return data as string;
       }
-      if (is.undefined(data)) {
-        return new Date().toISOString();
-      }
-      if (is.number(data) || is.string(data)) {
-        data = new Date(data);
-      }
-      if (is.date(data) && is.number(data.getTime())) {
-        return data.toISOString();
-      }
-      if (is.dayjs(data)) {
-        return data.toISOString();
-      }
-      throw new EntityException(
-        context,
-        "INVALID_DATE",
-        `Provided an invalid value to datetime entity`,
-      );
+      return dayjs(data).toISOString();
     },
     unserialize(
       property: keyof DateTimeConfiguration,
@@ -89,17 +73,29 @@ export function VirtualDateTime({ context, synapse }: TServiceParams) {
       if (property !== "native_value") {
         return data as SerializeTypes;
       }
+      const ref = dayjs(data);
       switch (options.date_type) {
         case "dayjs": {
-          return dayjs(data);
+          return ref;
         }
         case "date": {
-          return data ? new Date(data) : new Date();
+          return ref.toDate();
         }
         default: {
-          return data ? String(data) : new Date().toISOString();
+          return ref.toISOString();
         }
       }
+    },
+    validate(current: DateTimeConfiguration, key: keyof DateTimeConfiguration, newValue: unknown) {
+      if (key !== "native_value") {
+        return true;
+      }
+      const incoming = dayjs(newValue as ConfigType);
+      if (incoming.isValid()) {
+        return true;
+      }
+      logger.error({ expected: current.date_type || "iso", newValue }, "unknown value type");
+      throw new EntityException(context, "INVALID_DATETIME", `Received invalid datetime format`);
     },
   });
 
