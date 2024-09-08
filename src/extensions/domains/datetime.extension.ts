@@ -72,7 +72,7 @@ export function VirtualDateTime({ context, synapse }: TServiceParams) {
       if (is.date(data) && is.number(data.getTime())) {
         return data.toISOString();
       }
-      if (data instanceof dayjs) {
+      if (is.dayjs(data)) {
         return data.toISOString();
       }
       throw new EntityException(

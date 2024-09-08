@@ -1,15 +1,12 @@
 import { TServiceParams } from "@digital-alchemy/core";
+import { EmptyObject } from "type-fest";
 
 import { AddEntityOptions, BasicAddParams } from "../..";
 
-export type SceneConfiguration = {
-  //
-};
+export type SceneConfiguration = EmptyObject;
 
 export type SceneEvents = {
-  activate: {
-    //
-  };
+  activate: EmptyObject;
 };
 
 export function VirtualScene({ context, synapse }: TServiceParams) {

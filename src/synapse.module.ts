@@ -1,5 +1,6 @@
-import { CreateLibrary, InternalConfig } from "@digital-alchemy/core";
+import { CreateLibrary, InternalConfig, is } from "@digital-alchemy/core";
 import { LIB_HASS } from "@digital-alchemy/hass";
+import dayjs, { Dayjs } from "dayjs";
 import { join } from "path";
 import { cwd } from "process";
 
@@ -188,3 +189,12 @@ declare module "@digital-alchemy/core" {
     synapse: typeof LIB_SYNAPSE;
   }
 }
+
+declare module "@digital-alchemy/core" {
+  export interface IsIt {
+    dayjs: (test: unknown) => test is Dayjs;
+  }
+}
+is.dayjs = (test: unknown): test is Dayjs => {
+  return test instanceof dayjs && (test as Dayjs).isValid();
+};

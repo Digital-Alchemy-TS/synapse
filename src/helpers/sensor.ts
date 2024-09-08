@@ -303,7 +303,7 @@ export type SensorConfiguration<
          * Requires the enum device class to be set.
          * Cannot be combined with `state_class` or `native_unit_of_measurement`.
          */
-        options?: string[];
+        options?: Array<STATE_TYPE extends string ? STATE_TYPE : string>;
       }
     | {
         /**

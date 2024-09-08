@@ -40,6 +40,12 @@ export type DomainGeneratorOptions<
    * What to use instead of `undefined` / `None`
    */
   default_config?: Partial<CONFIGURATION>;
+  /**
+   * run as part of the setter process
+   *
+   * ensure that data is valid before handing off to internals
+   */
+  validate?: (current: CONFIGURATION, key: keyof CONFIGURATION, value: unknown) => void | never;
 } & (
   | {
       serialize: (

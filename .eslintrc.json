@@ -96,6 +96,7 @@
         "jest": true
       },
       "rules": {
+        "@cspell/spellchecker": "off",
         "@typescript-eslint/unbound-method": "off",
         "@typescript-eslint/no-magic-numbers": "off",
         "sonarjs/no-duplicate-string": "off",

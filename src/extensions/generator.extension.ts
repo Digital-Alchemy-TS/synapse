@@ -201,23 +201,26 @@ export function DomainGenerator({
             // * manage entity config properties
             if (storage.isStored(property)) {
               // if the domain provides a serialization process, do that before storing
-              if ("serialize" in extra) {
-                try {
-                  newValue = extra.serialize(property, newValue, entity);
-                } catch (error) {
-                  logger.error(
-                    {
-                      context: entity.context,
-                      error,
-                      name: entity.name,
-                      newValue,
-                      property,
-                      unique_id: entity.unique_id,
-                    },
-                    "serialize failed",
-                  );
-                  return false;
+              try {
+                if ("validate" in extra) {
+                  extra.validate(entity, property, newValue);
                 }
+                if ("serialize" in extra) {
+                  newValue = extra.serialize(property, newValue, entity);
+                }
+              } catch (error) {
+                logger.error(
+                  {
+                    context: entity.context,
+                    error,
+                    name: entity.name,
+                    newValue,
+                    property,
+                    unique_id: entity.unique_id,
+                  },
+                  "set failed",
+                );
+                return false;
               }
               storage.set(property, newValue);
               return true;

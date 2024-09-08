@@ -36,21 +36,9 @@ type DateParams = BasicAddParams & {
 type SerializeTypes = SynapseDateFormat | Date | Dayjs;
 
 type DateSettable =
-  | {
-      date_type?: "iso";
-      /**
-       * iso date string
-       */
-      native_value?: SettableConfiguration<SynapseDateFormat>;
-    }
-  | {
-      date_type: "dayjs";
-      native_value?: SettableConfiguration<Dayjs>;
-    }
-  | {
-      date_type: "date";
-      native_value?: SettableConfiguration<Date>;
-    };
+  | { date_type?: "iso"; native_value?: SettableConfiguration<SynapseDateFormat> }
+  | { date_type: "dayjs"; native_value?: SettableConfiguration<Dayjs> }
+  | { date_type: "date"; native_value?: SettableConfiguration<Date> };
 
 const FORMAT = "YYYY-MM-DD";
 
@@ -73,26 +61,14 @@ export function VirtualDate({ context, synapse, logger }: TServiceParams) {
         return data as string;
       }
       if (is.undefined(data)) {
+        logger.warn(`received undefined date, changing to today`);
         return dayjs().format(FORMAT);
       }
-      try {
-        const ref = dayjs(data);
-        if (!ref.isValid()) {
-          throw new EntityException(
-            context,
-            "INVALID_DATE",
-            `Provided an invalid value to datetime entity`,
-          );
-        }
-        return ref.format(FORMAT);
-      } catch (error) {
-        logger.error({ error }, "failed");
-        throw new EntityException(
-          context,
-          "INVALID_DATE",
-          `Provided an invalid value to datetime entity`,
-        );
+      const incoming = dayjs(data);
+      if (!incoming.isSame(incoming.startOf("day"))) {
+        logger.trace({ incoming: incoming.toISOString() }, `value arrived with time set, dropping`);
       }
+      return dayjs(data).format(FORMAT);
     },
     unserialize(
       property: keyof DateTimeConfiguration,
@@ -113,6 +89,31 @@ export function VirtualDate({ context, synapse, logger }: TServiceParams) {
           return dayjs(data).format(FORMAT) as SynapseDateFormat;
         }
       }
+    },
+    validate(current: DateConfiguration, key: keyof DateConfiguration, newValue: unknown) {
+      if (key !== "native_value") {
+        return true;
+      }
+      if (
+        is.number(newValue) ||
+        is.date(newValue) ||
+        is.dayjs(newValue) ||
+        is.undefined(newValue)
+      ) {
+        return true;
+      }
+      if (is.string(newValue)) {
+        if (!dayjs(newValue).isValid()) {
+          throw new EntityException(
+            context,
+            "BAD_DATE_STRING",
+            `${newValue} is not a valid date string`,
+          );
+        }
+        return true;
+      }
+      logger.error({ expected: current.date_type || "ISO8601", newValue }, "unknown value type");
+      throw new EntityException(context, "INVALID_DATE_STRING", `Received invalid `);
     },
   });
 

@@ -1,6 +1,6 @@
 import { TServiceParams } from "@digital-alchemy/core";
 
-import { AddEntityOptions, SensorConfiguration } from "../..";
+import { AddEntityOptions, EntityException, SensorConfiguration } from "../..";
 
 export type SensorEvents = {
   //
@@ -37,7 +37,20 @@ export function VirtualSensor({ context, synapse }: TServiceParams) {
       PARAMS["locals"]
     >,
   ) => {
+    if ("options" in options) {
+      if ("state_class" in options || "native_unit_of_measurement" in options) {
+        throw new EntityException(
+          context,
+          "CANNOT_COMBINE_KEYS",
+          "Cannot combine state_class & native_unit_of_measurement with options",
+        );
+      }
+      options.device_class = "enum";
+    }
     const out = generate.addEntity<PARAMS["attributes"], PARAMS["locals"]>(options);
-    return out as typeof out & { state: PARAMS["state"] };
+
+    type SynapseSensor = typeof out & { state: PARAMS["state"] };
+
+    return out as SynapseSensor;
   };
 }
