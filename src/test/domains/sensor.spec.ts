@@ -6,6 +6,7 @@ describe("Sensor", () => {
   afterEach(() => jest.restoreAllMocks());
 
   it("loads the correct keys from storage", async () => {
+    expect.assertions(1);
     await TestRunner(({ synapse, context }) => {
       const spy = jest.spyOn(synapse.storage, "add");
       synapse.sensor({ context, name: "test" });
@@ -13,11 +14,11 @@ describe("Sensor", () => {
         expect.objectContaining({
           load_config_keys: [
             "device_class",
-            "last_reset",
             "state",
+            "unit_of_measurement",
+            "last_reset",
             "suggested_display_precision",
             "suggested_unit_of_measurement",
-            "unit_of_measurement",
           ],
         }),
       );
@@ -48,5 +49,41 @@ describe("Sensor", () => {
         expect(fn).toHaveBeenCalled();
       });
     }).bootstrap(BASIC_BOOT);
+  });
+
+  describe("configuration combinations", () => {
+    it("does not allow state_class with options", async () => {
+      expect.assertions(1);
+      await TestRunner(({ synapse, context }) => {
+        expect(() => {
+          synapse.sensor({
+            context,
+            device_class: "enum",
+            name: "test",
+            options: [],
+            sensor_type: "string",
+            // @ts-expect-error it's the test
+            state_class: "foo",
+          });
+        }).toThrow();
+      }).bootstrap(BASIC_BOOT);
+    });
+
+    it("does not allow native_unit_of_measurement with options", async () => {
+      expect.assertions(1);
+      await TestRunner(({ synapse, context }) => {
+        expect(() => {
+          synapse.sensor({
+            context,
+            device_class: "enum",
+            name: "test",
+            // @ts-expect-error it's the test
+            native_unit_of_measurement: "foo",
+            options: [],
+            sensor_type: "string",
+          });
+        }).toThrow();
+      }).bootstrap(BASIC_BOOT);
+    });
   });
 });
