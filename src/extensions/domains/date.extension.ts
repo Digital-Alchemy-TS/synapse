@@ -6,8 +6,8 @@ import {
   BasicAddParams,
   BuildCallbacks,
   DateTimeConfiguration,
-  EntityException,
   SettableConfiguration,
+  SynapseEntityException,
 } from "../..";
 
 type Year = `${number}${number}${number}${number}`;
@@ -92,7 +92,7 @@ export function VirtualDate({ context, synapse, logger }: TServiceParams) {
         return true;
       }
       logger.error({ expected: current.date_type || "ISO8601", newValue }, "unknown value type");
-      throw new EntityException(context, "INVALID_DATE", `Received invalid date format`);
+      throw new SynapseEntityException(context, "SET_INVALID_DATE", `Received invalid date format`);
     },
   });
 

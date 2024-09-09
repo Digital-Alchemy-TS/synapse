@@ -24,21 +24,6 @@ describe("Sensor", () => {
     }).bootstrap(BASIC_BOOT);
   });
 
-  it("tests things", async () => {
-    await TestRunner(({ synapse, context }) => {
-      const sensor = synapse.sensor<{
-        state: "a" | "b" | "c";
-      }>({
-        context,
-        name: "test",
-        options: ["a", "b", "c"],
-      });
-      sensor.state = "c";
-      // sensor.
-      //
-    }).bootstrap(BASIC_BOOT);
-  });
-
   it("set up up correct bus transfer events", async () => {
     const unique_id = v4();
     const events = ["activate"];

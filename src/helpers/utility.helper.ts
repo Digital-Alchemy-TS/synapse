@@ -72,10 +72,10 @@ export const md5ToUUID = (md5: string): string =>
     : // eslint-disable-next-line @typescript-eslint/no-magic-numbers
       `${md5.slice(0, 8)}-${md5.slice(8, 12)}-${md5.slice(12, 16)}-${md5.slice(16, 20)}-${md5.slice(20)}`;
 
-export class EntityException extends Error {
+export class SynapseEntityException extends Error {
   constructor(
     public context: TContext,
-    public reason: string,
+    public cause: string,
     message: string,
   ) {
     super(message);

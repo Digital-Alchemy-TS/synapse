@@ -5,8 +5,8 @@ import {
   AddEntityOptions,
   BasicAddParams,
   BuildCallbacks,
-  EntityException,
   SettableConfiguration,
+  SynapseEntityException,
 } from "../..";
 
 type DateTimeSettable =
@@ -95,7 +95,11 @@ export function VirtualDateTime({ context, synapse, logger }: TServiceParams) {
         return true;
       }
       logger.error({ expected: current.date_type || "iso", newValue }, "unknown value type");
-      throw new EntityException(context, "INVALID_DATETIME", `Received invalid datetime format`);
+      throw new SynapseEntityException(
+        context,
+        "SET_INVALID_DATETIME",
+        `Received invalid datetime format`,
+      );
     },
   });
 
