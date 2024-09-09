@@ -8,7 +8,7 @@ export type SensorEvents = {
 
 const DATE_SENSOR_TYPES = new Set(["date", "iso", "dayjs"]);
 
-const DATA_TYPES = new Map<string, "number" | "string" | "date">([
+export const DATA_TYPES = new Map<string, "number" | "string" | "date">([
   ["apparent_power", "number"],
   ["aqi", "number"],
   ["atmospheric_pressure", "number"],

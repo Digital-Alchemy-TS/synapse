@@ -86,4 +86,8 @@ describe("Sensor", () => {
       }).bootstrap(BASIC_BOOT);
     });
   });
+
+  describe("device_class datatypes", () => {
+    //
+  });
 });

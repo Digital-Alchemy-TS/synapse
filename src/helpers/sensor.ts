@@ -347,7 +347,7 @@ type NumberSensors = (
    * Type of state.
    * If not `None`, the sensor is assumed to be numerical and will be displayed as a line-chart in the frontend instead of as discrete values.
    */
-  state_class?: SensorStateClass;
+  state_class?: SensorStateClass | `${SensorStateClass}`;
 };
 
 export type SensorDeviceClasses<STATE_TYPE = unknown> =
