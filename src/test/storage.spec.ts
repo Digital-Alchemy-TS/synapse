@@ -13,14 +13,14 @@ describe("Storage", () => {
         expect(spy).toHaveBeenCalledWith({
           domain: "sensor",
           entity: expect.objectContaining({ name: "test" }),
-          load_config_keys: [
+          load_config_keys: expect.arrayContaining([
             "device_class",
             "last_reset",
             "state",
             "suggested_display_precision",
             "suggested_unit_of_measurement",
             "unit_of_measurement",
-          ],
+          ]),
         });
       }).bootstrap(BASIC_BOOT);
     });

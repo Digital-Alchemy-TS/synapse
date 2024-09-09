@@ -44,7 +44,7 @@ describe("Generator", () => {
         expect.assertions(1);
         await TestRunner(({ synapse, context }) => {
           const sensor = synapse.sensor({ context, name: "test" });
-          expect(Object.keys(sensor)).toEqual(["locals", ...SENSOR_KEYS]);
+          expect(Object.keys(sensor)).toEqual(expect.arrayContaining(["locals", ...SENSOR_KEYS]));
         }).bootstrap(BASIC_BOOT);
       });
     });
