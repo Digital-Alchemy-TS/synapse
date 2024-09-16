@@ -1,13 +1,13 @@
 import { v4 } from "uuid";
 
-import { BASIC_BOOT, TestRunner } from "../helpers";
+import { synapseTestRunner } from "../../mock";
 
 describe("Sensor", () => {
   afterEach(() => jest.restoreAllMocks());
 
   it("loads the correct keys from storage", async () => {
     expect.assertions(1);
-    await TestRunner(({ synapse, context }) => {
+    await synapseTestRunner.run(({ synapse, context }) => {
       const spy = jest.spyOn(synapse.storage, "add");
       synapse.sensor({ context, name: "test" });
       expect(spy).toHaveBeenCalledWith(
@@ -22,7 +22,7 @@ describe("Sensor", () => {
           ],
         }),
       );
-    }).bootstrap(BASIC_BOOT);
+    });
   });
 
   it("set up up correct bus transfer events", async () => {
@@ -30,7 +30,7 @@ describe("Sensor", () => {
     const events = ["activate"];
     expect.assertions(events.length);
 
-    await TestRunner(({ hass, event, synapse, context, config, internal }) => {
+    await synapseTestRunner.run(({ hass, event, synapse, context, config, internal }) => {
       synapse.scene({ context, name: "test", unique_id });
       // - run through each event
       events.forEach(name => {
@@ -48,13 +48,13 @@ describe("Sensor", () => {
         // profit
         expect(fn).toHaveBeenCalled();
       });
-    }).bootstrap(BASIC_BOOT);
+    });
   });
 
   describe("configuration combinations", () => {
     it("does not allow state_class with options", async () => {
       expect.assertions(1);
-      await TestRunner(({ synapse, context }) => {
+      await synapseTestRunner.run(({ synapse, context }) => {
         expect(() => {
           synapse.sensor({
             context,
@@ -66,12 +66,12 @@ describe("Sensor", () => {
             state_class: "foo",
           });
         }).toThrow();
-      }).bootstrap(BASIC_BOOT);
+      });
     });
 
     it("does not allow native_unit_of_measurement with options", async () => {
       expect.assertions(1);
-      await TestRunner(({ synapse, context }) => {
+      await synapseTestRunner.run(({ synapse, context }) => {
         expect(() => {
           synapse.sensor({
             context,
@@ -83,7 +83,7 @@ describe("Sensor", () => {
             sensor_type: "string",
           });
         }).toThrow();
-      }).bootstrap(BASIC_BOOT);
+      });
     });
   });
 

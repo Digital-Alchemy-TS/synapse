@@ -92,11 +92,7 @@ export function TestRunner(
 export const BASIC_BOOT = {
   configuration: {
     boilerplate: { LOG_LEVEL: "silent" },
-    hass: {
-      AUTO_CONNECT_SOCKET: false,
-      AUTO_SCAN_CALL_PROXY: false,
-      MOCK_SOCKET: true,
-    },
+
     synapse: {
       ASSUME_INSTALLED: true,
       SQLITE_DB,

@@ -2,13 +2,13 @@ import dayjs from "dayjs";
 import { v4 } from "uuid";
 
 import { SynapseDateFormat } from "../../extensions";
-import { BASIC_BOOT, TestRunner } from "../helpers";
+import { synapseTestRunner } from "../../mock";
 
 describe("Date", () => {
   afterEach(() => jest.restoreAllMocks());
 
   it("loads the correct keys from storage", async () => {
-    await TestRunner(({ synapse, context }) => {
+    await synapseTestRunner.run(({ synapse, context }) => {
       const spy = jest.spyOn(synapse.storage, "add");
       synapse.date({ context, name: "test" });
       expect(spy).toHaveBeenCalledWith(
@@ -16,7 +16,7 @@ describe("Date", () => {
           load_config_keys: ["native_value"],
         }),
       );
-    }).bootstrap(BASIC_BOOT);
+    });
   });
 
   describe("serialization", () => {
@@ -25,7 +25,7 @@ describe("Date", () => {
       it("events with correct types", async () => {
         const unique_id = v4();
         expect.assertions(1);
-        await TestRunner(({ synapse, context, config, hass, internal }) => {
+        await synapseTestRunner.run(({ synapse, context, config, hass, internal }) => {
           const entity = synapse.date<{ date_type: "date" }>({
             context,
             date_type: "date",
@@ -39,24 +39,24 @@ describe("Date", () => {
             [config.synapse.EVENT_NAMESPACE, "set_value", internal.boot.application.name].join("/"),
             { data: { unique_id } },
           );
-        }).bootstrap(BASIC_BOOT);
+        });
       });
 
       it("loads from blank", async () => {
         expect.assertions(1);
-        await TestRunner(({ synapse, context }) => {
+        await synapseTestRunner.run(({ synapse, context }) => {
           const entity = synapse.date<{ date_type: "date" }>({
             context,
             date_type: "date",
             name: "test",
           });
           expect(entity.native_value).toEqual(dayjs().startOf("day").toDate());
-        }).bootstrap(BASIC_BOOT);
+        });
       });
 
       it("loads from defaulted", async () => {
         expect.assertions(1);
-        await TestRunner(({ synapse, context }) => {
+        await synapseTestRunner.run(({ synapse, context }) => {
           const d = dayjs("2024-09-01").toDate();
           const entity = synapse.date<{ date_type: "date" }>({
             context,
@@ -65,12 +65,12 @@ describe("Date", () => {
             native_value: d,
           });
           expect(entity.native_value).toEqual(d);
-        }).bootstrap(BASIC_BOOT);
+        });
       });
 
       it("can assign and retrieve", async () => {
         expect.assertions(1);
-        await TestRunner(({ synapse, context }) => {
+        await synapseTestRunner.run(({ synapse, context }) => {
           const d = dayjs("2024-09-01").toDate();
           const entity = synapse.date<{ date_type: "date" }>({
             context,
@@ -81,12 +81,12 @@ describe("Date", () => {
           const now = dayjs();
           entity.native_value = now.toDate();
           expect(entity.native_value).toEqual(now.startOf("day").toDate());
-        }).bootstrap(BASIC_BOOT);
+        });
       });
 
       it("will allow some unexpected types", async () => {
         expect.assertions(4);
-        await TestRunner(({ synapse, context }) => {
+        await synapseTestRunner.run(({ synapse, context }) => {
           const ref = dayjs("2024-09-01");
           const entity = synapse.date<{ date_type: "date" }>({
             context,
@@ -106,12 +106,12 @@ describe("Date", () => {
           expect(entity.native_value).toEqual(ref.toDate());
           entity.native_value = undefined;
           expect(entity.native_value).toEqual(dayjs().startOf("day").toDate());
-        }).bootstrap(BASIC_BOOT);
+        });
       });
 
       it("throws for invalid types", async () => {
         expect.assertions(4);
-        await TestRunner(({ synapse, context }) => {
+        await synapseTestRunner.run(({ synapse, context }) => {
           const entity = synapse.date<{ date_type: "date" }>({
             context,
             date_type: "date",
@@ -132,14 +132,14 @@ describe("Date", () => {
             // @ts-expect-error it's the test
             entity.native_value = "invalid date";
           }).toThrow();
-        }).bootstrap(BASIC_BOOT);
+        });
       });
     });
 
     describe("other", () => {
       it("does not affect other properties", async () => {
         expect.assertions(2);
-        await TestRunner(({ synapse, context }) => {
+        await synapseTestRunner.run(({ synapse, context }) => {
           const entity = synapse.date({
             context,
             name: "test",
@@ -149,7 +149,7 @@ describe("Date", () => {
           expect(entity.disabled).toBe(true);
           entity.disabled = false;
           expect(entity.disabled).toBe(false);
-        }).bootstrap(BASIC_BOOT);
+        });
       });
     });
 
@@ -157,7 +157,7 @@ describe("Date", () => {
       it("events with correct types", async () => {
         const unique_id = v4();
         expect.assertions(1);
-        await TestRunner(({ synapse, context, config, hass, internal }) => {
+        await synapseTestRunner.run(({ synapse, context, config, hass, internal }) => {
           const entity = synapse.date<{ date_type: "dayjs" }>({
             context,
             date_type: "dayjs",
@@ -171,24 +171,24 @@ describe("Date", () => {
             [config.synapse.EVENT_NAMESPACE, "set_value", internal.boot.application.name].join("/"),
             { data: { unique_id } },
           );
-        }).bootstrap(BASIC_BOOT);
+        });
       });
 
       it("loads from blank", async () => {
         expect.assertions(1);
-        await TestRunner(({ synapse, context }) => {
+        await synapseTestRunner.run(({ synapse, context }) => {
           const entity = synapse.date({
             context,
             date_type: "dayjs",
             name: "test",
           });
           expect(entity.native_value).toBeInstanceOf(dayjs);
-        }).bootstrap(BASIC_BOOT);
+        });
       });
 
       it("loads from defaulted", async () => {
         expect.assertions(1);
-        await TestRunner(({ synapse, context }) => {
+        await synapseTestRunner.run(({ synapse, context }) => {
           const entity = synapse.date({
             context,
             date_type: "dayjs",
@@ -196,12 +196,12 @@ describe("Date", () => {
             native_value: dayjs(TESTING_DATE),
           });
           expect(entity.native_value).toEqual(dayjs(TESTING_DATE));
-        }).bootstrap(BASIC_BOOT);
+        });
       });
 
       it("can assign and retrieve", async () => {
         expect.assertions(1);
-        await TestRunner(({ synapse, context }) => {
+        await synapseTestRunner.run(({ synapse, context }) => {
           const entity = synapse.date<{ date_type: "dayjs" }>({
             context,
             date_type: "dayjs",
@@ -210,12 +210,12 @@ describe("Date", () => {
           });
           entity.native_value = dayjs(Date.now());
           expect(entity.native_value).toEqual(dayjs().startOf("day"));
-        }).bootstrap(BASIC_BOOT);
+        });
       });
 
       it("will allow some unexpected types", async () => {
         expect.assertions(4);
-        await TestRunner(({ synapse, context }) => {
+        await synapseTestRunner.run(({ synapse, context }) => {
           const entity = synapse.date<{ date_type: "dayjs" }>({
             context,
             date_type: "dayjs",
@@ -240,12 +240,12 @@ describe("Date", () => {
           expect(entity.native_value).toEqual(dayjs(timeless));
           entity.native_value = undefined;
           expect(entity.native_value).toBeInstanceOf(dayjs);
-        }).bootstrap(BASIC_BOOT);
+        });
       });
 
       it("throws for invalid types", async () => {
         expect.assertions(4);
-        await TestRunner(({ synapse, context }) => {
+        await synapseTestRunner.run(({ synapse, context }) => {
           const entity = synapse.date<{ date_type: "dayjs" }>({
             context,
             date_type: "dayjs",
@@ -267,7 +267,7 @@ describe("Date", () => {
             // @ts-expect-error it's the test
             entity.native_value = new Date("invalid date string");
           }).toThrow();
-        }).bootstrap(BASIC_BOOT);
+        });
       });
     });
 
@@ -275,7 +275,7 @@ describe("Date", () => {
       it("events with correct types", async () => {
         const unique_id = v4();
         expect.assertions(1);
-        await TestRunner(({ synapse, context, config, hass, internal }) => {
+        await synapseTestRunner.run(({ synapse, context, config, hass, internal }) => {
           const entity = synapse.date<{ date_type: "iso" }>({
             context,
             date_type: "iso",
@@ -289,24 +289,24 @@ describe("Date", () => {
             [config.synapse.EVENT_NAMESPACE, "set_value", internal.boot.application.name].join("/"),
             { data: { unique_id } },
           );
-        }).bootstrap(BASIC_BOOT);
+        });
       });
 
       it("loads from blank", async () => {
         expect.assertions(1);
-        await TestRunner(({ synapse, context }) => {
+        await synapseTestRunner.run(({ synapse, context }) => {
           const entity = synapse.date({
             context,
             date_type: "iso",
             name: "test",
           });
           expect(entity.native_value).toBe(dayjs().format("YYYY-MM-DD"));
-        }).bootstrap(BASIC_BOOT);
+        });
       });
 
       it("loads from defaulted ISO string", async () => {
         expect.assertions(1);
-        await TestRunner(({ synapse, context }) => {
+        await synapseTestRunner.run(({ synapse, context }) => {
           const isoDate = dayjs(TESTING_DATE).format("YYYY-MM-DD") as SynapseDateFormat;
           const entity = synapse.date({
             context,
@@ -315,12 +315,12 @@ describe("Date", () => {
             native_value: isoDate,
           });
           expect(entity.native_value).toEqual(isoDate);
-        }).bootstrap(BASIC_BOOT);
+        });
       });
 
       it("can assign and retrieve ISO format string", async () => {
         expect.assertions(1);
-        await TestRunner(({ synapse, context }) => {
+        await synapseTestRunner.run(({ synapse, context }) => {
           const entity = synapse.date<{ date_type: "iso" }>({
             context,
             date_type: "iso",
@@ -329,12 +329,12 @@ describe("Date", () => {
           const now = new Date().toISOString();
           entity.native_value = now as SynapseDateFormat;
           expect(entity.native_value).toEqual(dayjs().format("YYYY-MM-DD"));
-        }).bootstrap(BASIC_BOOT);
+        });
       });
 
       it("handles various acceptable formats and serializes to ISO", async () => {
         // expect.assertions(4);
-        await TestRunner(({ synapse, context }) => {
+        await synapseTestRunner.run(({ synapse, context }) => {
           const entity = synapse.date<{ date_type: "iso" }>({
             context,
             name: "test",
@@ -360,12 +360,12 @@ describe("Date", () => {
           // Undefined should default to undefined
           entity.native_value = undefined;
           expect(entity.native_value).toBe(today);
-        }).bootstrap(BASIC_BOOT);
+        });
       });
 
       it("throws for invalid types", async () => {
         expect.assertions(4);
-        await TestRunner(({ synapse, context }) => {
+        await synapseTestRunner.run(({ synapse, context }) => {
           const entity = synapse.date<{ date_type: "iso" }>({
             context,
             name: "test",
@@ -385,7 +385,7 @@ describe("Date", () => {
             // @ts-expect-error it's the test
             entity.native_value = "invalid string";
           }).toThrow();
-        }).bootstrap(BASIC_BOOT);
+        });
       });
     });
   });
@@ -395,7 +395,7 @@ describe("Date", () => {
     const events = ["set_value"];
     expect.assertions(events.length);
 
-    await TestRunner(({ hass, event, synapse, context, config, internal }) => {
+    await synapseTestRunner.run(({ hass, event, synapse, context, config, internal }) => {
       synapse.date({ context, name: "test", unique_id });
       // - run through each event
       events.forEach(name => {
@@ -413,6 +413,6 @@ describe("Date", () => {
         // profit
         expect(fn).toHaveBeenCalled();
       });
-    }).bootstrap(BASIC_BOOT);
+    });
   });
 });

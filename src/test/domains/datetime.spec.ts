@@ -1,7 +1,7 @@
 import dayjs from "dayjs";
 import { v4 } from "uuid";
 
-import { BASIC_BOOT, TestRunner } from "../helpers";
+import { synapseTestRunner } from "../../mock";
 
 const TESTING_DATE = `2024-01-01T00:00:00.000Z`;
 
@@ -10,7 +10,7 @@ describe("DateTime", () => {
 
   it("loads the correct keys from storage", async () => {
     expect.assertions(1);
-    await TestRunner(({ synapse, context }) => {
+    await synapseTestRunner.run(({ synapse, context }) => {
       const spy = jest.spyOn(synapse.storage, "add");
       synapse.datetime({ context, name: "test" });
       expect(spy).toHaveBeenCalledWith(
@@ -18,7 +18,7 @@ describe("DateTime", () => {
           load_config_keys: ["native_value"],
         }),
       );
-    }).bootstrap(BASIC_BOOT);
+    });
   });
 
   describe("serialization", () => {
@@ -26,7 +26,7 @@ describe("DateTime", () => {
       it("events with correct types", async () => {
         const unique_id = v4();
         expect.assertions(1);
-        await TestRunner(({ synapse, context, config, hass, internal }) => {
+        await synapseTestRunner.run(({ synapse, context, config, hass, internal }) => {
           const entity = synapse.datetime<{ date_type: "date" }>({
             context,
             date_type: "date",
@@ -40,24 +40,24 @@ describe("DateTime", () => {
             [config.synapse.EVENT_NAMESPACE, "set_value", internal.boot.application.name].join("/"),
             { data: { unique_id } },
           );
-        }).bootstrap(BASIC_BOOT);
+        });
       });
 
       it("loads from blank", async () => {
         expect.assertions(1);
-        await TestRunner(({ synapse, context }) => {
+        await synapseTestRunner.run(({ synapse, context }) => {
           const entity = synapse.datetime({
             context,
             date_type: "date",
             name: "test",
           });
           expect(entity.native_value).toBeInstanceOf(Date);
-        }).bootstrap(BASIC_BOOT);
+        });
       });
 
       it("loads from defaulted", async () => {
         expect.assertions(1);
-        await TestRunner(({ synapse, context }) => {
+        await synapseTestRunner.run(({ synapse, context }) => {
           const entity = synapse.datetime({
             context,
             date_type: "date",
@@ -65,12 +65,12 @@ describe("DateTime", () => {
             native_value: new Date(TESTING_DATE),
           });
           expect(entity.native_value).toEqual(new Date(TESTING_DATE));
-        }).bootstrap(BASIC_BOOT);
+        });
       });
 
       it("can assign and retrieve", async () => {
         expect.assertions(1);
-        await TestRunner(({ synapse, context }) => {
+        await synapseTestRunner.run(({ synapse, context }) => {
           const entity = synapse.datetime<{ date_type: "date" }>({
             context,
             date_type: "date",
@@ -80,12 +80,12 @@ describe("DateTime", () => {
           const now = Date.now();
           entity.native_value = new Date(now);
           expect(entity.native_value).toEqual(new Date(now));
-        }).bootstrap(BASIC_BOOT);
+        });
       });
 
       it("will allow some unexpected types", async () => {
         expect.assertions(4);
-        await TestRunner(({ synapse, context }) => {
+        await synapseTestRunner.run(({ synapse, context }) => {
           const entity = synapse.datetime<{ date_type: "date" }>({
             context,
             date_type: "date",
@@ -104,12 +104,12 @@ describe("DateTime", () => {
           expect(entity.native_value).toEqual(new Date(now));
           entity.native_value = undefined;
           expect(entity.native_value).toBeInstanceOf(Date);
-        }).bootstrap(BASIC_BOOT);
+        });
       });
 
       it("throws for invalid types", async () => {
         expect.assertions(4);
-        await TestRunner(({ synapse, context }) => {
+        await synapseTestRunner.run(({ synapse, context }) => {
           const entity = synapse.datetime<{ date_type: "date" }>({
             context,
             date_type: "date",
@@ -130,7 +130,7 @@ describe("DateTime", () => {
           expect(() => {
             entity.native_value = new Date("invalid date string");
           }).toThrow();
-        }).bootstrap(BASIC_BOOT);
+        });
       });
     });
 
@@ -138,7 +138,7 @@ describe("DateTime", () => {
       it("events with correct types", async () => {
         const unique_id = v4();
         expect.assertions(1);
-        await TestRunner(({ synapse, context, config, hass, internal }) => {
+        await synapseTestRunner.run(({ synapse, context, config, hass, internal }) => {
           const entity = synapse.datetime<{ date_type: "dayjs" }>({
             context,
             date_type: "dayjs",
@@ -152,23 +152,23 @@ describe("DateTime", () => {
             [config.synapse.EVENT_NAMESPACE, "set_value", internal.boot.application.name].join("/"),
             { data: { unique_id } },
           );
-        }).bootstrap(BASIC_BOOT);
+        });
       });
       it("loads from blank", async () => {
         expect.assertions(1);
-        await TestRunner(({ synapse, context }) => {
+        await synapseTestRunner.run(({ synapse, context }) => {
           const entity = synapse.datetime({
             context,
             date_type: "dayjs",
             name: "test",
           });
           expect(entity.native_value).toBeInstanceOf(dayjs);
-        }).bootstrap(BASIC_BOOT);
+        });
       });
 
       it("loads from defaulted", async () => {
         expect.assertions(1);
-        await TestRunner(({ synapse, context }) => {
+        await synapseTestRunner.run(({ synapse, context }) => {
           const entity = synapse.datetime({
             context,
             date_type: "dayjs",
@@ -176,12 +176,12 @@ describe("DateTime", () => {
             native_value: dayjs(TESTING_DATE),
           });
           expect(entity.native_value).toEqual(dayjs(TESTING_DATE));
-        }).bootstrap(BASIC_BOOT);
+        });
       });
 
       it("can assign and retrieve", async () => {
         expect.assertions(1);
-        await TestRunner(({ synapse, context }) => {
+        await synapseTestRunner.run(({ synapse, context }) => {
           const entity = synapse.datetime<{ date_type: "dayjs" }>({
             context,
             date_type: "dayjs",
@@ -191,12 +191,12 @@ describe("DateTime", () => {
           const now = Date.now();
           entity.native_value = dayjs(now);
           expect(entity.native_value).toEqual(dayjs(now));
-        }).bootstrap(BASIC_BOOT);
+        });
       });
 
       it("will allow some unexpected types", async () => {
         expect.assertions(4);
-        await TestRunner(({ synapse, context }) => {
+        await synapseTestRunner.run(({ synapse, context }) => {
           const entity = synapse.datetime<{ date_type: "dayjs" }>({
             context,
             date_type: "dayjs",
@@ -215,12 +215,12 @@ describe("DateTime", () => {
           expect(entity.native_value).toEqual(dayjs(now));
           entity.native_value = undefined;
           expect(entity.native_value).toBeInstanceOf(dayjs);
-        }).bootstrap(BASIC_BOOT);
+        });
       });
 
       it("throws for invalid types", async () => {
         expect.assertions(4);
-        await TestRunner(({ synapse, context }) => {
+        await synapseTestRunner.run(({ synapse, context }) => {
           const entity = synapse.datetime<{ date_type: "dayjs" }>({
             context,
             date_type: "dayjs",
@@ -242,7 +242,7 @@ describe("DateTime", () => {
             // @ts-expect-error it's the test
             entity.native_value = new Date("invalid date string");
           }).toThrow();
-        }).bootstrap(BASIC_BOOT);
+        });
       });
     });
 
@@ -250,7 +250,7 @@ describe("DateTime", () => {
       it("events with correct types", async () => {
         const unique_id = v4();
         expect.assertions(1);
-        await TestRunner(({ synapse, context, config, hass, internal }) => {
+        await synapseTestRunner.run(({ synapse, context, config, hass, internal }) => {
           const entity = synapse.datetime<{ date_type: "iso" }>({
             context,
             date_type: "iso",
@@ -264,24 +264,24 @@ describe("DateTime", () => {
             [config.synapse.EVENT_NAMESPACE, "set_value", internal.boot.application.name].join("/"),
             { data: { unique_id } },
           );
-        }).bootstrap(BASIC_BOOT);
+        });
       });
 
       it("loads from blank", async () => {
         expect.assertions(1);
-        await TestRunner(({ synapse, context }) => {
+        await synapseTestRunner.run(({ synapse, context }) => {
           const entity = synapse.datetime({
             context,
             date_type: "iso",
             name: "test",
           });
           expect(entity.native_value).toEqual(new Date().toISOString());
-        }).bootstrap(BASIC_BOOT);
+        });
       });
 
       it("loads from defaulted", async () => {
         expect.assertions(1);
-        await TestRunner(({ synapse, context }) => {
+        await synapseTestRunner.run(({ synapse, context }) => {
           const entity = synapse.datetime({
             context,
             date_type: "iso",
@@ -289,12 +289,12 @@ describe("DateTime", () => {
             native_value: TESTING_DATE,
           });
           expect(entity.native_value).toEqual(new Date(TESTING_DATE).toISOString());
-        }).bootstrap(BASIC_BOOT);
+        });
       });
 
       it("can assign and retrieve", async () => {
         expect.assertions(1);
-        await TestRunner(({ synapse, context }) => {
+        await synapseTestRunner.run(({ synapse, context }) => {
           const entity = synapse.datetime<{ date_type: "iso" }>({
             context,
             date_type: "iso",
@@ -304,12 +304,12 @@ describe("DateTime", () => {
           const now = Date.now();
           entity.native_value = new Date(now).toISOString();
           expect(entity.native_value).toEqual(new Date(now).toISOString());
-        }).bootstrap(BASIC_BOOT);
+        });
       });
 
       it("will allow some unexpected types", async () => {
         expect.assertions(4);
-        await TestRunner(({ synapse, context }) => {
+        await synapseTestRunner.run(({ synapse, context }) => {
           const entity = synapse.datetime<{ date_type: "iso" }>({
             context,
             date_type: "iso",
@@ -328,12 +328,12 @@ describe("DateTime", () => {
           expect(entity.native_value).toEqual(dayjs(now).toISOString());
           entity.native_value = undefined;
           expect(entity.native_value).toEqual(new Date().toISOString());
-        }).bootstrap(BASIC_BOOT);
+        });
       });
 
       it("throws for invalid types", async () => {
         expect.assertions(3);
-        await TestRunner(({ synapse, context }) => {
+        await synapseTestRunner.run(({ synapse, context }) => {
           const entity = synapse.datetime<{ date_type: "iso" }>({
             context,
             name: "test",
@@ -349,14 +349,14 @@ describe("DateTime", () => {
           expect(() => {
             entity.native_value = "invalid date string";
           }).toThrow();
-        }).bootstrap(BASIC_BOOT);
+        });
       });
     });
 
     describe("other", () => {
       it("does not affect other properties", async () => {
         expect.assertions(2);
-        await TestRunner(({ synapse, context }) => {
+        await synapseTestRunner.run(({ synapse, context }) => {
           const entity = synapse.datetime<{ date_type: "iso" }>({
             context,
             date_type: "iso",
@@ -367,7 +367,7 @@ describe("DateTime", () => {
           expect(entity.disabled).toBe(true);
           entity.disabled = false;
           expect(entity.disabled).toBe(false);
-        }).bootstrap(BASIC_BOOT);
+        });
       });
     });
   });
@@ -377,7 +377,7 @@ describe("DateTime", () => {
     const events = ["set_value"];
     expect.assertions(events.length);
 
-    await TestRunner(({ hass, event, synapse, context, config, internal }) => {
+    await synapseTestRunner.run(({ hass, event, synapse, context, config, internal }) => {
       synapse.datetime({ context, name: "test", unique_id });
       // - run through each event
       events.forEach(name => {
@@ -395,6 +395,6 @@ describe("DateTime", () => {
         // profit
         expect(fn).toHaveBeenCalled();
       });
-    }).bootstrap(BASIC_BOOT);
+    });
   });
 });
