@@ -3,7 +3,10 @@ import { v4 } from "uuid";
 import { synapseTestRunner } from "../mock";
 
 describe("Storage", () => {
-  afterEach(() => jest.restoreAllMocks());
+  afterEach(async () => {
+    await synapseTestRunner.teardown();
+    jest.restoreAllMocks();
+  });
 
   describe("init", () => {
     it("creates storage at construction", async () => {

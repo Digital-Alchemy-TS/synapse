@@ -11,7 +11,10 @@ type SensorParams = {
 };
 
 describe("Locals", () => {
-  afterEach(() => jest.restoreAllMocks());
+  afterEach(async () => {
+    await synapseTestRunner.teardown();
+    jest.restoreAllMocks();
+  });
 
   it("exists", async () => {
     expect.assertions(1);

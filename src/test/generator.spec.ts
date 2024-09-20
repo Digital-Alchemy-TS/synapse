@@ -3,7 +3,10 @@ import { v4 } from "uuid";
 import { synapseTestRunner } from "../mock";
 
 describe("Generator", () => {
-  afterEach(() => jest.restoreAllMocks());
+  afterEach(async () => {
+    await synapseTestRunner.teardown();
+    jest.restoreAllMocks();
+  });
 
   // #MARK: isRegistered
   describe("operators", () => {

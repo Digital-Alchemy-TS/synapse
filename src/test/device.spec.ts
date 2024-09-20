@@ -6,6 +6,7 @@ import { synapseTestRunner } from "../mock";
 
 describe("Device", () => {
   afterEach(async () => {
+    await synapseTestRunner.teardown();
     jest.restoreAllMocks();
   });
 

@@ -1,6 +1,6 @@
 import { is, TServiceParams } from "@digital-alchemy/core";
 import { createHash } from "crypto";
-import { existsSync, readFileSync } from "fs";
+import fs from "fs";
 import { hostname } from "os";
 import { join } from "path";
 import { dirname } from "path";
@@ -25,10 +25,10 @@ export function DeviceExtension({ config, lifecycle, logger, internal, synapse }
     }
     const path = dirname(fileURLToPath(import.meta.url));
     const file = join(path, "..", "..", "package.json");
-    if (existsSync(file)) {
+    if (fs.existsSync(file)) {
       logger.trace("loading package");
       try {
-        const contents = readFileSync(file, "utf8");
+        const contents = fs.readFileSync(file, "utf8");
         const data = JSON.parse(contents) as { version: string };
         return data?.version;
       } catch (error) {
