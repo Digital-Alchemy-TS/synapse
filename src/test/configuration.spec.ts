@@ -14,7 +14,10 @@ const INSTALLED = {
 } as HassConfig;
 
 describe("Configuration", () => {
-  afterEach(() => jest.restoreAllMocks());
+  afterEach(async () => {
+    await synapseTestRunner.teardown();
+    jest.restoreAllMocks();
+  });
 
   // #MARK: isRegistered
   describe("isRegistered", () => {
@@ -28,7 +31,7 @@ describe("Configuration", () => {
     it("fails for not installed", async () => {
       expect.assertions(1);
       await synapseTestRunner
-        .configure({ synapse: { ASSUME_INSTALLED: false } })
+        .configure({ mock_synapse: { INSTALL_STATE: "ignore" } })
         .run(({ synapse, lifecycle, hass }: TServiceParams) => {
           jest.spyOn(hass.fetch, "getConfig").mockImplementation(async () => NOT_INSTALLED);
           lifecycle.onReady(() => {
@@ -39,20 +42,25 @@ describe("Configuration", () => {
 
     it("fails for installed but no device", async () => {
       expect.assertions(1);
-      await synapseTestRunner.run(({ synapse, hass, lifecycle }: TServiceParams) => {
-        jest.spyOn(hass.fetch, "getConfig").mockImplementation(async () => INSTALLED);
-        lifecycle.onReady(() => {
-          hass.device.current = [];
-          expect(synapse.configure.isRegistered()).toBe(false);
+      await synapseTestRunner
+        .configure({ mock_synapse: { INSTALL_STATE: "ignore" } })
+        .run(({ synapse, hass, lifecycle }: TServiceParams) => {
+          jest.spyOn(hass.fetch, "getConfig").mockImplementation(async () => INSTALLED);
+          lifecycle.onReady(() => {
+            hass.device.current = [];
+            expect(synapse.configure.isRegistered()).toBe(false);
+          });
         });
-      });
     });
 
     it("passes for installed and with device", async () => {
       expect.assertions(1);
       const METADATA_UNIQUE_ID = v4();
       await synapseTestRunner
-        .configure({ synapse: { METADATA_UNIQUE_ID } })
+        .configure({
+          mock_synapse: { INSTALL_STATE: "ignore" },
+          synapse: { METADATA_UNIQUE_ID },
+        })
         .run(({ synapse, hass, lifecycle }: TServiceParams) => {
           jest.spyOn(hass.fetch, "getConfig").mockImplementation(async () => INSTALLED);
           lifecycle.onReady(() => {
@@ -70,7 +78,7 @@ describe("Configuration", () => {
     it("passes when ASSUME_INSTALLED is true by default", async () => {
       expect.assertions(1);
       await synapseTestRunner
-        .configure({ synapse: { ASSUME_INSTALLED: true } })
+        // .configure({ synapse: { ASSUME_INSTALLED: true } })
         .run(({ synapse, lifecycle }: TServiceParams) => {
           lifecycle.onReady(async () => {
             expect(await synapse.configure.checkInstallState()).toBe(true);
@@ -81,7 +89,7 @@ describe("Configuration", () => {
     it("fails when ASSUME_INSTALLED is false and integration does not exist", async () => {
       expect.assertions(1);
       await synapseTestRunner
-        .configure({ synapse: { ASSUME_INSTALLED: false } })
+        // .configure({ synapse: { ASSUME_INSTALLED: false } })
         .run(({ synapse, hass, lifecycle }: TServiceParams) => {
           jest.spyOn(hass.fetch, "getConfig").mockImplementation(async () => NOT_INSTALLED);
           lifecycle.onReady(async () => {
@@ -95,7 +103,7 @@ describe("Configuration", () => {
     it("passes when ASSUME_INSTALLED is false and integration does exist", async () => {
       expect.assertions(1);
       await synapseTestRunner
-        .configure({ synapse: { ASSUME_INSTALLED: false } })
+        // .configure({ synapse: { ASSUME_INSTALLED: false } })
         .run(({ synapse, hass, lifecycle }: TServiceParams) => {
           jest.spyOn(hass.fetch, "getConfig").mockImplementation(async () => INSTALLED);
           lifecycle.onReady(async () => {

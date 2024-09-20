@@ -40,10 +40,6 @@ export function Configure({ lifecycle, config, logger, internal, hass, synapse }
    * kinda pointless otherwise
    */
   async function checkInstallState() {
-    if (config.synapse.ASSUME_INSTALLED) {
-      extensionInstalled = true;
-      return true;
-    }
     const hassConfig = await hass.fetch.getConfig();
     const installed = hassConfig.components.some(i => i.startsWith("synapse"));
     if (installed) {

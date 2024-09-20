@@ -94,6 +94,8 @@ export const formatObjectId = (input: string) =>
     .trim()
     .toLowerCase()
     .replaceAll(/[^\d_a-z]+/g, "_")
+    // TODO there's probably a better thing to write that'll make lint happy
+    // eslint-disable-next-line sonarjs/slow-regex, sonarjs/anchor-precedence
     .replaceAll(/^_+|_+$/g, "")
     .replaceAll(/_+/g, "_");
 

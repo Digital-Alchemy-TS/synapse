@@ -13,16 +13,19 @@ export function SocketExtension({
   const getIdentifier = () => internal.boot.application.name;
   const name = (a: string) => [config.synapse.EVENT_NAMESPACE, a, getIdentifier()].join("/");
 
-  // * onPostConfig
-  lifecycle.onPostConfig(async function onPostConfig() {
-    if (!config.synapse.EMIT_HEARTBEAT) {
-      return;
-    }
-    logger.trace({ name: onPostConfig }, `starting heartbeat`);
-    scheduler.interval({
+  function setupHeartbeat() {
+    logger.trace({ name: setupHeartbeat }, `starting heartbeat`);
+    return scheduler.interval({
       exec: async () => await hass.socket.fireEvent(name("heartbeat")),
       interval: config.synapse.HEARTBEAT_INTERVAL * SECOND,
     });
+  }
+  // * onPostConfig
+  lifecycle.onPostConfig(() => {
+    if (!config.synapse.EMIT_HEARTBEAT) {
+      return;
+    }
+    synapse.socket.setupHeartbeat();
   });
 
   // * onConnect
@@ -61,5 +64,5 @@ export function SocketExtension({
     await hass.socket.fireEvent(name("update"), { data, unique_id });
   }
 
-  return { send };
+  return { send, setupHeartbeat };
 }

@@ -1,3 +1,4 @@
+/* eslint-disable sonarjs/pseudo-random */
 import { SECOND, TServiceParams } from "@digital-alchemy/core";
 
 type LocalData = {
@@ -33,7 +34,7 @@ export function EntityGenerator({ scheduler, synapse, context, logger }: TServic
     });
 
     sensor.onUpdate(() => {
-      // sensor.attributes.
+      // sensor.u
     });
 
     const binary_sensor = synapse.binary_sensor({

@@ -73,12 +73,16 @@
     "uuid": "^10.0.0"
   },
   "jest": {
+    "extensionsToTreatAsEsm": [
+      ".ts"
+    ],
     "collectCoverage": true,
     "coverageReporters": [
       "text",
       "cobertura"
     ],
     "coveragePathIgnorePatterns": [
+      "src/mock/",
       "src/test/"
     ],
     "preset": "ts-jest",
@@ -89,14 +93,18 @@
       "json",
       "node"
     ],
+    "setupFiles": [
+      "<rootDir>/test-setup.ts"
+    ],
     "testMatch": [
-      "**/?(*.)+(spec|test).ts"
+      "**/test/?(*.)+(spec|test).ts"
     ],
     "transform": {
       "^.+\\.ts$": [
         "ts-jest",
         {
-          "tsconfig": "tsconfig.spec.json"
+          "tsconfig": "tsconfig.spec.json",
+          "useESM": true
         }
       ]
     }

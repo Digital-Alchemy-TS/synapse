@@ -103,6 +103,7 @@ export function VirtualSensor({ context, synapse, logger }: TServiceParams) {
       "suggested_display_precision",
       "suggested_unit_of_measurement",
     ] as (keyof Generic)[],
+    // eslint-disable-next-line sonarjs/no-invariant-returns
     validate(current, key, value: unknown) {
       if (key !== "state") {
         return true;

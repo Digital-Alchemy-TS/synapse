@@ -1,13 +1,39 @@
-import { CreateLibrary, createModule } from "@digital-alchemy/core";
+import { CreateLibrary, createModule, StringConfig } from "@digital-alchemy/core";
 import { LIB_HASS } from "@digital-alchemy/hass";
 import { LIB_MOCK_ASSISTANT } from "@digital-alchemy/hass/mock-assistant";
+import { join } from "path";
+import { cwd } from "process";
 
 import { LIB_SYNAPSE } from "../synapse.module";
 import { MockSynapseConfiguration } from "./extensions";
 
+enum CleanupOptions {
+  before = "before",
+  after = "after",
+  none = "none",
+}
+
+enum InstallState {
+  none = "none",
+  registered = "registered",
+  configured = "configured",
+  ignore = "ignore",
+}
+
 export const LIB_MOCK_SYNAPSE = CreateLibrary({
-  configuration: {},
-  depends: [LIB_HASS, LIB_SYNAPSE],
+  configuration: {
+    CLEANUP_DB: {
+      default: "after",
+      enum: Object.values(CleanupOptions),
+      type: "string",
+    } as StringConfig<`${CleanupOptions}`>,
+    INSTALL_STATE: {
+      default: "configured",
+      enum: Object.values(InstallState),
+      type: "string",
+    } as StringConfig<`${InstallState}`>,
+  },
+  depends: [LIB_HASS, LIB_SYNAPSE, LIB_MOCK_ASSISTANT],
   name: "mock_synapse",
   priorityInit: [],
   services: {
@@ -26,4 +52,10 @@ export const synapseTestRunner = createModule
   .extend()
   .toTest()
   .appendLibrary(LIB_MOCK_SYNAPSE)
-  .appendLibrary(LIB_MOCK_ASSISTANT);
+  .appendLibrary(LIB_MOCK_ASSISTANT)
+  .configure({
+    synapse: {
+      EMIT_HEARTBEAT: false,
+      SQLITE_DB: join(cwd(), "jest_sqlite.db"),
+    },
+  });
