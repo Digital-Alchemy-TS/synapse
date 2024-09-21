@@ -35,7 +35,7 @@
     "uuid": "*"
   },
   "devDependencies": {
-    "@cspell/eslint-plugin": "^8.14.2",
+    "@cspell/eslint-plugin": "^8.14.4",
     "@digital-alchemy/core": "^24.8.4",
     "@digital-alchemy/hass": "^24.9.3",
     "@eslint/compat": "^1.1.1",
@@ -47,8 +47,8 @@
     "@types/node": "^22.5.5",
     "@types/node-ssdp": "^4.0.4",
     "@types/uuid": "^10.0.0",
-    "@typescript-eslint/eslint-plugin": "8.5.0",
-    "@typescript-eslint/parser": "8.5.0",
+    "@typescript-eslint/eslint-plugin": "8.6.0",
+    "@typescript-eslint/parser": "8.6.0",
     "better-sqlite3": "^11.3.0",
     "dayjs": "^1.11.13",
     "eslint": "9.10.0",
@@ -113,5 +113,5 @@
     "@digital-alchemy/core": "portal:/home/zoe/DigitalAlchemyTS/core",
     "@digital-alchemy/hass": "portal:/home/zoe/DigitalAlchemyTS/hass"
   },
-  "packageManager": "yarn@4.4.1"
+  "packageManager": "yarn@4.5.0"
 }
