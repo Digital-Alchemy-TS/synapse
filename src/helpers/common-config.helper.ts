@@ -1,6 +1,6 @@
 import { CronExpression, is, TBlackHole } from "@digital-alchemy/core";
 import { ByIdProxy, PICK_ENTITY, TEntityUpdateCallback } from "@digital-alchemy/hass";
-import { CamelCase, Except } from "type-fest";
+import { CamelCase } from "type-fest";
 
 import { CreateRemovableCallback, TEventMap } from "./base-domain.helper";
 import { TSynapseEntityStorage } from "./storage";
@@ -159,7 +159,7 @@ export type SynapseEntityProxy<
   ATTRIBUTES extends object,
   LOCALS extends object,
   PROXY = ProxyBase<CONFIGURATION, EVENT_MAP, ATTRIBUTES, LOCALS>,
-> = Except<PROXY, Extract<keyof PROXY, NON_SETTABLE>>;
+> = Omit<PROXY, Extract<keyof PROXY, NON_SETTABLE>>;
 
 export type BuildCallbacks<EVENT_MAP extends TEventMap> = {
   [EVENT_NAME in Extract<

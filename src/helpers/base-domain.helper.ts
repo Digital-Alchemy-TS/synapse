@@ -1,6 +1,7 @@
 import { TBlackHole, TContext } from "@digital-alchemy/core";
 import { TRawDomains } from "@digital-alchemy/hass";
 import { createHash } from "crypto";
+import { EmptyObject } from "type-fest";
 
 import { EntityConfigCommon } from "./common-config.helper";
 import { TSynapseId } from "./utility.helper";
@@ -17,6 +18,7 @@ export type CreateRemovableCallback<DATA extends unknown = unknown> = (
 export type DomainGeneratorOptions<
   CONFIGURATION extends object,
   EVENT_MAP extends Record<string, object>,
+  SERIALIZE_TYPES extends unknown = unknown,
 > = {
   /**
    * The domain to map the code to on the python side
@@ -38,7 +40,27 @@ export type DomainGeneratorOptions<
    * What to use instead of `undefined` / `None`
    */
   default_config?: Partial<CONFIGURATION>;
-};
+  /**
+   * run as part of the setter process
+   *
+   * ensure that data is valid before handing off to internals
+   */
+  validate?: (current: CONFIGURATION, key: keyof CONFIGURATION, value: unknown) => void | never;
+} & (
+  | {
+      serialize: (
+        property: keyof CONFIGURATION,
+        data: SERIALIZE_TYPES,
+        options: CONFIGURATION,
+      ) => string;
+      unserialize: (
+        property: keyof CONFIGURATION,
+        data: string,
+        options: CONFIGURATION,
+      ) => SERIALIZE_TYPES;
+    }
+  | EmptyObject
+);
 
 export type TEventMap = Record<string, object>;
 
@@ -72,6 +94,8 @@ export const formatObjectId = (input: string) =>
     .trim()
     .toLowerCase()
     .replaceAll(/[^\d_a-z]+/g, "_")
+    // TODO there's probably a better thing to write that'll make lint happy
+    // eslint-disable-next-line sonarjs/slow-regex, sonarjs/anchor-precedence
     .replaceAll(/^_+|_+$/g, "")
     .replaceAll(/_+/g, "_");
 

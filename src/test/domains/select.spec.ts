@@ -1,12 +1,12 @@
 import { v4 } from "uuid";
 
-import { BASIC_BOOT, TestRunner } from "../helpers";
+import { synapseTestRunner } from "../../mock";
 
 describe("Select", () => {
   afterEach(() => jest.restoreAllMocks());
 
   it("loads the correct keys from storage", async () => {
-    await TestRunner(({ synapse, context }) => {
+    await synapseTestRunner.run(({ synapse, context }) => {
       const spy = jest.spyOn(synapse.storage, "add");
       synapse.select({ context, name: "test" });
       expect(spy).toHaveBeenCalledWith(
@@ -14,7 +14,7 @@ describe("Select", () => {
           load_config_keys: ["current_option", "options"],
         }),
       );
-    }).bootstrap(BASIC_BOOT);
+    });
   });
 
   it("set up up correct bus transfer events", async () => {
@@ -22,7 +22,7 @@ describe("Select", () => {
     const events = ["select_option"];
     expect.assertions(events.length);
 
-    await TestRunner(({ hass, event, synapse, context, config, internal }) => {
+    await synapseTestRunner.run(({ hass, event, synapse, context, config, internal }) => {
       synapse.select({ context, name: "test", unique_id });
       // - run through each event
       events.forEach(name => {
@@ -40,6 +40,6 @@ describe("Select", () => {
         // profit
         expect(fn).toHaveBeenCalled();
       });
-    }).bootstrap(BASIC_BOOT);
+    });
   });
 });

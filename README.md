@@ -1,5 +1,8 @@
-[![codecov](https://codecov.io/github/Digital-Alchemy-TS/synapse/graph/badge.svg?token=IBGLY3RY68)](https://codecov.io/github/Digital-Alchemy-TS/synapse)
+[![stars](https://img.shields.io/github/stars/Digital-Alchemy-TS/synapse)](https://github.com/Digital-Alchemy-TS/synapse)
+![discord](https://img.shields.io/discord/1219758743848489147?label=Discord&logo=discord)
 
+[![codecov](https://codecov.io/github/Digital-Alchemy-TS/synapse/graph/badge.svg?token=IBGLY3RY68)](https://codecov.io/github/Digital-Alchemy-TS/synapse)
+[![version](https://img.shields.io/github/package-json/version/Digital-Alchemy-TS/synapse)](https://www.npmjs.com/package/@digital-alchemy/synapse)
 ---
 
 ## 📘 Description
@@ -9,7 +12,6 @@ Welcome to `@digital-alchemy/synapse`!
 This project builds on the functions provided by `@digital-alchemy/hass` to provide the ability to generate entities within your Home Assistant install. With the help of a [custom component](https://github.com/Digital-Alchemy-TS/synapse-extension), you can gate logic behind switches, report states with sensors, attach functions to buttons, and more!
 
 - [Extended docs](https://docs.digital-alchemy.app)
-- [Discord](https://discord.gg/JkZ35Gv97Y)
 
 ## 💾 Install
 

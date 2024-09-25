@@ -1,13 +1,13 @@
 import { v4 } from "uuid";
 
-import { BASIC_BOOT, TestRunner } from "../helpers";
+import { synapseTestRunner } from "../../mock";
 
 describe("Button", () => {
   afterEach(() => jest.restoreAllMocks());
 
   it("loads the correct keys from storage", async () => {
     expect.assertions(1);
-    await TestRunner(({ synapse, context }) => {
+    await synapseTestRunner.run(({ synapse, context }) => {
       const spy = jest.spyOn(synapse.storage, "add");
       synapse.button({ context, name: "test" });
       expect(spy).toHaveBeenCalledWith(
@@ -15,7 +15,7 @@ describe("Button", () => {
           load_config_keys: ["device_class"],
         }),
       );
-    }).bootstrap(BASIC_BOOT);
+    });
   });
 
   it("set up up correct bus transfer events", async () => {
@@ -23,7 +23,7 @@ describe("Button", () => {
     const events = ["press"];
     expect.assertions(events.length);
 
-    await TestRunner(({ hass, event, synapse, context, config, internal }) => {
+    await synapseTestRunner.run(({ hass, event, synapse, context, config, internal }) => {
       synapse.button({ context, name: "test", unique_id });
       // - run through each event
       events.forEach(name => {
@@ -41,6 +41,6 @@ describe("Button", () => {
         // profit
         expect(fn).toHaveBeenCalled();
       });
-    }).bootstrap(BASIC_BOOT);
+    });
   });
 });

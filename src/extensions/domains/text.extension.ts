@@ -40,7 +40,6 @@ export function VirtualText({ context, synapse }: TServiceParams) {
     // @ts-expect-error its fine
     domain: "text",
     load_config_keys: ["mode", "native_max", "native_min", "pattern", "native_value"],
-    map_state: "native_value",
   });
 
   return function <PARAMS extends BasicAddParams>({

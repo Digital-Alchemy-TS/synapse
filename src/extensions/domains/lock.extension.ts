@@ -32,7 +32,7 @@ export type LockConfiguration = {
    */
   is_opening?: SettableConfiguration<boolean>;
   /**
-   *
+   * Indication of whether the lock is currently open. Used to determine state.
    */
   is_open?: SettableConfiguration<boolean>;
   supported_features?: number;

@@ -51,7 +51,27 @@ const DOMAINS = {
   camera: VirtualCamera,
   climate: VirtualClimate,
   cover: VirtualCover,
+  /**
+   * ### Customize date type
+   *
+   * Provides `YYYY-MM-DD` format by default
+   *
+   * > Available options: `iso` | `date` | `dayjs`
+   *
+   * ```typescript
+   * synapse.date<{ date_type: "dayjs" }>({ ... })
+   * ```
+   */
   date: VirtualDate,
+  /**
+   * ### Customize datetime type
+   *
+   * > Available options: `iso` | `date` | `dayjs`
+   *
+   * ```typescript
+   * synapse.datetime<{ date_type: "dayjs" }>({ ... })
+   * ```
+   */
   datetime: VirtualDateTime,
   fan: VirtualFan,
   image: VirtualImage,
@@ -65,16 +85,12 @@ const DOMAINS = {
   scene: VirtualScene,
   select: VirtualSelect,
   /**
-   * ### Customizing Types
+   * ### Customize state
    *
-   * Use type params to fine tune sensor
+   * > Available options: `number` | `string`
    *
    * ```typescript
-   * synapse.sensor<{
-   *   state: number;
-   *   locals: { example: boolean }
-   *   attributes: {  }
-   *  }>({ ... })
+   * synapse.sensor<{ state: number }>({ ... })
    * ```
    */
   sensor: VirtualSensor,
@@ -91,26 +107,19 @@ const DOMAINS = {
 
 export const LIB_SYNAPSE = CreateLibrary({
   configuration: {
-    ASSUME_INSTALLED: {
-      default: false,
-      description: "Used with testing",
-      type: "boolean",
-    },
-    ASSUME_REGISTERED: {
-      default: false,
-      description: "Used with testing",
-      type: "boolean",
-    },
     EMIT_HEARTBEAT: {
       default: true,
-      description: ["Emit a heartbeat pulse so the extension knows the service is alive"],
+      description: [
+        "Emit a heartbeat pulse so the extension knows the service is alive",
+        "Disable for tests",
+      ],
       type: "boolean",
     },
     EVENT_NAMESPACE: {
       default: "digital_alchemy",
       description: [
         "You almost definitely do not want to change this",
-        "Must be matched on the python integration side",
+        "Must be matched on the python integration side (probably don't change this)",
       ],
       type: "string",
     },
@@ -142,7 +151,7 @@ export const LIB_SYNAPSE = CreateLibrary({
   priorityInit: ["generator", "storage", "locals"],
   services: {
     /**
-     * internal
+     * @internal
      */
     configure: Configure,
 
@@ -152,13 +161,41 @@ export const LIB_SYNAPSE = CreateLibrary({
     device: DeviceExtension,
 
     /**
-     * Zeroconf discovery
+     * @internal
+     *
+     * Discovery features
      */
     discovery: DiscoveryExtension,
+
+    /**
+     * @internal
+     *
+     * Used to assist creation of domains
+     */
     generator: DomainGenerator,
+
+    /**
+     * @internal
+     *
+     * Used to power `synapseEntity.locals`
+     */
     locals: SynapseLocals,
+
+    /**
+     * @internal
+     */
     socket: SocketExtension,
+
+    /**
+     * @internal
+     *
+     * Used to persist entity state
+     */
     sqlite: SQLite,
+
+    /**
+     * @internal
+     */
     storage: StorageExtension,
     ...DOMAINS,
   },

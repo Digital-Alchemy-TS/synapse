@@ -1,12 +1,12 @@
 import { v4 } from "uuid";
 
-import { BASIC_BOOT, TestRunner } from "../helpers";
+import { synapseTestRunner } from "../../mock";
 
 describe("Number", () => {
   afterEach(() => jest.restoreAllMocks());
 
   it("loads the correct keys from storage", async () => {
-    await TestRunner(({ synapse, context }) => {
+    await synapseTestRunner.run(({ synapse, context }) => {
       const spy = jest.spyOn(synapse.storage, "add");
       synapse.number({ context, name: "test" });
       expect(spy).toHaveBeenCalledWith(
@@ -22,7 +22,7 @@ describe("Number", () => {
           ],
         }),
       );
-    }).bootstrap(BASIC_BOOT);
+    });
   });
 
   it("set up up correct bus transfer events", async () => {
@@ -30,7 +30,7 @@ describe("Number", () => {
     const events = ["set_value"];
     expect.assertions(events.length);
 
-    await TestRunner(({ hass, event, synapse, context, config, internal }) => {
+    await synapseTestRunner.run(({ hass, event, synapse, context, config, internal }) => {
       synapse.number({ context, name: "test", unique_id });
       // - run through each event
       events.forEach(name => {
@@ -48,6 +48,6 @@ describe("Number", () => {
         // profit
         expect(fn).toHaveBeenCalled();
       });
-    }).bootstrap(BASIC_BOOT);
+    });
   });
 });

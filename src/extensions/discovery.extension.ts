@@ -56,4 +56,6 @@ export function DiscoveryExtension({
       },
     });
   });
+
+  return { APP_METADATA };
 }

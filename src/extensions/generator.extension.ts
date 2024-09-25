@@ -40,12 +40,12 @@ export function DomainGenerator({
   const registered = new Set<string>();
 
   // #MARK: create
-  function create<CONFIGURATION extends object, EVENT_MAP extends TEventMap>({
-    domain,
-    context,
-    bus_events = [],
-    load_config_keys = [],
-  }: DomainGeneratorOptions<CONFIGURATION, EVENT_MAP>) {
+  function create<
+    CONFIGURATION extends object,
+    EVENT_MAP extends TEventMap,
+    SERIALIZE_TYPES extends unknown = unknown,
+  >(options: DomainGeneratorOptions<CONFIGURATION, EVENT_MAP, SERIALIZE_TYPES>) {
+    const { domain, context, bus_events = [], load_config_keys = [], ...extra } = options;
     logger.trace({ bus_events, context }, "registering domain [%s]", domain);
 
     // 🚌🚏 Bus transfer
@@ -146,12 +146,17 @@ export function DomainGenerator({
             }
             return false;
           },
-          get(_, property: string) {
+
+          // #MARK: get
+          get(_, property: Extract<keyof CONFIGURATION, string>) {
             if (!is.undefined(dynamicAttach[property])) {
               return dynamicAttach[property];
             }
             if (storage.isStored(property)) {
-              return storage.get(property);
+              const out = storage.get(property);
+              return "unserialize" in extra
+                ? extra.unserialize(property, out as string, entity)
+                : out;
             }
             switch (property) {
               case "locals": {
@@ -186,14 +191,41 @@ export function DomainGenerator({
           ownKeys() {
             return keys;
           },
-          set(_, property: string, newValue) {
+
+          // #MARK: set
+          set(_, property: Extract<keyof CONFIGURATION, string>, newValue) {
+            // * replace all locals
             if (property === "locals") {
               return locals.replace(newValue);
             }
+            // * manage entity config properties
             if (storage.isStored(property)) {
+              // if the domain provides a serialization process, do that before storing
+              try {
+                if ("validate" in extra) {
+                  extra.validate(entity, property, newValue);
+                }
+                if ("serialize" in extra) {
+                  newValue = extra.serialize(property, newValue, entity);
+                }
+              } catch (error) {
+                logger.error(
+                  {
+                    context: entity.context,
+                    error,
+                    name: entity.name,
+                    newValue,
+                    property,
+                    unique_id: entity.unique_id,
+                  },
+                  "set failed",
+                );
+                return false;
+              }
               storage.set(property, newValue);
               return true;
             }
+            // * nothing else is settable right now
             return false;
           },
         });

@@ -1,9 +1,11 @@
 import { is, TServiceParams } from "@digital-alchemy/core";
 import { createHash } from "crypto";
-import { existsSync, readFileSync } from "fs";
+import fs from "fs";
 import { hostname } from "os";
 import { join } from "path";
+import { dirname } from "path";
 import { cwd } from "process";
+import { fileURLToPath } from "url";
 
 import { HassDeviceMetadata, md5ToUUID, TSynapseDeviceId } from "../helpers";
 
@@ -21,11 +23,12 @@ export function DeviceExtension({ config, lifecycle, logger, internal, synapse }
     if (!is.empty(synapseVersion)) {
       return synapseVersion;
     }
-    const file = join(__dirname, "..", "..", "package.json");
-    if (existsSync(file)) {
+    const path = dirname(fileURLToPath(import.meta.url));
+    const file = join(path, "..", "..", "package.json");
+    if (fs.existsSync(file)) {
       logger.trace("loading package");
       try {
-        const contents = readFileSync(file, "utf8");
+        const contents = fs.readFileSync(file, "utf8");
         const data = JSON.parse(contents) as { version: string };
         return data?.version;
       } catch (error) {

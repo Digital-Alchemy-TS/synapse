@@ -1,12 +1,12 @@
 import { v4 } from "uuid";
 
-import { BASIC_BOOT, TestRunner } from "../helpers";
+import { synapseTestRunner } from "../../mock";
 
 describe("Time", () => {
   afterEach(() => jest.restoreAllMocks());
 
   it("loads the correct keys from storage", async () => {
-    await TestRunner(({ synapse, context }) => {
+    await synapseTestRunner.run(({ synapse, context }) => {
       const spy = jest.spyOn(synapse.storage, "add");
       synapse.time({ context, name: "test" });
       expect(spy).toHaveBeenCalledWith(
@@ -14,7 +14,7 @@ describe("Time", () => {
           load_config_keys: ["native_value"],
         }),
       );
-    }).bootstrap(BASIC_BOOT);
+    });
   });
 
   it("set up up correct bus transfer events", async () => {
@@ -22,7 +22,7 @@ describe("Time", () => {
     const events = ["set_value"];
     expect.assertions(events.length + 2);
 
-    await TestRunner(({ hass, event, synapse, context, config, internal }) => {
+    await synapseTestRunner.run(({ hass, event, synapse, context, config, internal }) => {
       const inline = jest.fn();
       const dynamic = jest.fn();
       const entity = synapse.time({ context, name: "test", set_value: inline, unique_id });
@@ -44,6 +44,6 @@ describe("Time", () => {
         expect(inline).toHaveBeenCalled();
         expect(dynamic).toHaveBeenCalled();
       });
-    }).bootstrap(BASIC_BOOT);
+    });
   });
 });
