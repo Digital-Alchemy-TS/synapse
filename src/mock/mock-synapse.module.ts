@@ -1,8 +1,6 @@
 import { CreateLibrary, createModule, StringConfig } from "@digital-alchemy/core";
 import { LIB_HASS } from "@digital-alchemy/hass";
 import { LIB_MOCK_ASSISTANT } from "@digital-alchemy/hass/mock-assistant";
-import { join } from "path";
-import { cwd } from "process";
 
 import { LIB_SYNAPSE } from "../synapse.module";
 import { MockSynapseConfiguration } from "./extensions";
@@ -52,10 +50,4 @@ export const synapseTestRunner = createModule
   .extend()
   .toTest()
   .appendLibrary(LIB_MOCK_SYNAPSE)
-  .appendLibrary(LIB_MOCK_ASSISTANT)
-  .configure({
-    synapse: {
-      EMIT_HEARTBEAT: false,
-      SQLITE_DB: join(cwd(), "jest_sqlite.db"),
-    },
-  });
+  .appendLibrary(LIB_MOCK_ASSISTANT);

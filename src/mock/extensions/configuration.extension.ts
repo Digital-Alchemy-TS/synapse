@@ -1,13 +1,19 @@
 import { TServiceParams } from "@digital-alchemy/core";
 import { rmSync } from "fs";
+import { join } from "path";
+import { cwd } from "process";
 
 export function MockSynapseConfiguration({
   logger,
   synapse,
   config,
   lifecycle,
+  internal,
   mock_assistant,
 }: TServiceParams) {
+  internal.boilerplate.configuration.set("synapse", "EMIT_HEARTBEAT", false);
+  internal.boilerplate.configuration.set("synapse", "SQLITE_DB", join(cwd(), "jest_sqlite.db"));
+
   lifecycle.onPreInit(() => {
     if (config.mock_synapse.CLEANUP_DB !== "before") {
       return;
@@ -32,7 +38,7 @@ export function MockSynapseConfiguration({
   function setupInstalled() {
     const current = mock_assistant.config.current();
     const cleaned = current?.components?.filter(i => i === "synapse") ?? [];
-    mock_assistant.config.replace({
+    mock_assistant.config.merge({
       ...current,
       components: cleaned,
     });
@@ -43,7 +49,7 @@ export function MockSynapseConfiguration({
   function setupUninstalled() {
     const current = mock_assistant.config.current();
     const cleaned = current?.components?.filter(i => i === "synapse") ?? [];
-    mock_assistant.config.replace({
+    mock_assistant.config.merge({
       ...current,
       components: ["synapse", ...cleaned],
     });
