@@ -34,7 +34,7 @@ export function DomainGenerator({
     const exec = async (data: DATA) =>
       await internal.safeExec(async () => await callback(data, remove));
     event.on(eventName, exec);
-    return { remove };
+    return is.removeFn(remove);
   }
 
   const registered = new Set<string>();
@@ -61,7 +61,8 @@ export function DomainGenerator({
         event: [config.synapse.EVENT_NAMESPACE, name, getIdentifier()].join("/"),
         exec: ({ data }: BaseEvent) => {
           logger.trace({ data, name }, `receive`);
-          event.emit(`synapse/${name}/${data.unique_id}`, data);
+          const target = `synapse/${name}/${data.unique_id}`;
+          event.emit(target, data);
         },
       });
     });
@@ -179,7 +180,7 @@ export function DomainGenerator({
                     event.removeListener(unique_id, removableCallback);
                   }
                   event.on(unique_id, removableCallback);
-                  return { remove };
+                  return is.removeFn(remove);
                 };
               }
             }
