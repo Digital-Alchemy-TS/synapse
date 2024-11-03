@@ -2,7 +2,14 @@ import { is, TServiceParams } from "@digital-alchemy/core";
 import { createHash } from "crypto";
 import { hostname, userInfo } from "os";
 
-export function Configure({ lifecycle, config, logger, internal, hass, synapse }: TServiceParams) {
+export function ConfigurationService({
+  lifecycle,
+  config,
+  logger,
+  internal,
+  hass,
+  synapse,
+}: TServiceParams) {
   let extensionInstalled = false;
 
   function uniqueProperties(): string[] {

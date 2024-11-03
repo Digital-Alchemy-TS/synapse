@@ -19,7 +19,7 @@ type SynapseSqlite = {
   update: (unique_id: TSynapseId, content: object) => void;
 };
 
-export function SQLite({
+export function SQLiteService({
   lifecycle,
   config,
   logger,

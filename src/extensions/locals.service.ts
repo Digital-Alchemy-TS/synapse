@@ -9,7 +9,7 @@ import {
   TSynapseId,
 } from "../helpers";
 
-export function SynapseLocals({ synapse, logger, internal }: TServiceParams) {
+export function SynapseLocalsService({ synapse, logger, internal }: TServiceParams) {
   // #MARK: updateLocal
   function updateLocal(unique_id: TSynapseId, key: string, content: unknown) {
     const database = synapse.sqlite.getDatabase();

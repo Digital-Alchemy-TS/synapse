@@ -11,7 +11,7 @@ import { HassDeviceMetadata, md5ToUUID, TSynapseDeviceId } from "../helpers";
 
 const host = hostname();
 
-export function DeviceExtension({ config, lifecycle, logger, internal, synapse }: TServiceParams) {
+export function DeviceService({ config, lifecycle, logger, internal, synapse }: TServiceParams) {
   let synapseVersion: string;
   const DEVICE_REGISTRY = new Map<string, HassDeviceMetadata>();
 

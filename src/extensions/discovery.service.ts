@@ -2,7 +2,7 @@ import { TServiceParams } from "@digital-alchemy/core";
 import { hostname, userInfo } from "os";
 import { gzipSync } from "zlib";
 
-export function DiscoveryExtension({
+export function DiscoveryService({
   config,
   lifecycle,
   logger,

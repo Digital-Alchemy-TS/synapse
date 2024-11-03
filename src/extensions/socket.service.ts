@@ -1,7 +1,7 @@
 import { SECOND, TServiceParams } from "@digital-alchemy/core";
 import { TUniqueId } from "@digital-alchemy/hass";
 
-export function SocketExtension({
+export function SynapseSocketService({
   logger,
   lifecycle,
   hass,
@@ -15,10 +15,10 @@ export function SocketExtension({
 
   function setupHeartbeat() {
     logger.trace({ name: setupHeartbeat }, `starting heartbeat`);
-    return scheduler.interval({
-      exec: async () => await hass.socket.fireEvent(name("heartbeat")),
-      interval: config.synapse.HEARTBEAT_INTERVAL * SECOND,
-    });
+    return scheduler.setInterval(
+      async () => await hass.socket.fireEvent(name("heartbeat")),
+      config.synapse.HEARTBEAT_INTERVAL * SECOND,
+    );
   }
   // * onPostConfig
   lifecycle.onPostConfig(() => {

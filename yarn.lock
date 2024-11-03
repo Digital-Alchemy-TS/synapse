@@ -2309,9 +2309,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@digital-alchemy/hass@npm:^24.10.2":
-  version: 24.10.2
-  resolution: "@digital-alchemy/hass@npm:24.10.2"
+"@digital-alchemy/hass@npm:^24.11.1":
+  version: 24.11.1
+  resolution: "@digital-alchemy/hass@npm:24.11.1"
   dependencies:
     "@digital-alchemy/core": "npm:^24.10.8"
     dayjs: "npm:^1.11.13"
@@ -2321,7 +2321,7 @@ __metadata:
     ws: "npm:^8.18.0"
   bin:
     mock-assistant: scripts/mock-assistant.sh
-  checksum: 10/e8e06bcf09a85eac659188de1cb643cab83f37993a1abd7e1d5cfb8b52fe8df35e8f550a99c336cd334cb7373fb5096e160242afb5a5041b2a319da494f794dd
+  checksum: 10/5e5657544009ef524daf8a78f4bcc919108523bae8aced056f4542f81f2c39b42d155a74535070085f0ba17d265aa999f3daca1f9171e164e7dbfdd84b5b7ffd
   languageName: node
   linkType: hard
 
@@ -2331,7 +2331,7 @@ __metadata:
   dependencies:
     "@cspell/eslint-plugin": "npm:^8.15.5"
     "@digital-alchemy/core": "npm:^24.10.8"
-    "@digital-alchemy/hass": "npm:^24.10.2"
+    "@digital-alchemy/hass": "npm:^24.11.1"
     "@eslint/compat": "npm:^1.2.2"
     "@eslint/eslintrc": "npm:^3.1.0"
     "@eslint/js": "npm:^9.14.0"
@@ -2340,7 +2340,7 @@ __metadata:
     "@types/node": "npm:^22.8.6"
     "@types/node-cron": "npm:^3.0.11"
     "@types/uuid": "npm:^10.0.0"
-    "@types/ws": "npm:^8.5.12"
+    "@types/ws": "npm:^8.5.13"
     "@typescript-eslint/eslint-plugin": "npm:8.12.2"
     "@typescript-eslint/parser": "npm:8.12.2"
     better-sqlite3: "npm:^11.5.0"
@@ -3249,12 +3249,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/ws@npm:^8.5.12":
-  version: 8.5.12
-  resolution: "@types/ws@npm:8.5.12"
+"@types/ws@npm:^8.5.13":
+  version: 8.5.13
+  resolution: "@types/ws@npm:8.5.13"
   dependencies:
     "@types/node": "npm:*"
-  checksum: 10/d8a3ddfb5ff8fea992a043113579d61ac1ea21e8464415af9e2b01b205ed19d817821ad64ca1b3a90062d1df1c23b0f586d8351d25ca6728844df99a74e8f76d
+  checksum: 10/21369beafa75c91ae3b00d3a2671c7408fceae1d492ca2abd5ac7c8c8bf4596d513c1599ebbddeae82c27c4a2d248976d0d714c4b3d34362b2ae35b964e2e637
   languageName: node
   linkType: hard
 
