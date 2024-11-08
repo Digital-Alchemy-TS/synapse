@@ -4,13 +4,13 @@ import { join } from "path";
 import { cwd } from "process";
 
 import {
-  Configure,
-  DeviceExtension,
-  DiscoveryExtension,
-  DomainGenerator,
-  SocketExtension,
-  StorageExtension,
-  SynapseLocals,
+  ConfigurationService,
+  DeviceService,
+  DiscoveryService,
+  DomainGeneratorService,
+  StorageService,
+  SynapseLocalsService,
+  SynapseSocketService,
   VirtualAlarmControlPanel,
   VirtualBinarySensor,
   VirtualButton,
@@ -41,7 +41,7 @@ import {
   VirtualValve,
   VirtualWaterHeater,
 } from "./extensions";
-import { SQLite } from "./extensions/sqlite.extension";
+import { SQLiteService } from "./extensions/sqlite.service";
 import { HassDeviceMetadata } from "./helpers";
 
 const DOMAINS = {
@@ -153,50 +153,50 @@ export const LIB_SYNAPSE = CreateLibrary({
     /**
      * @internal
      */
-    configure: Configure,
+    configure: ConfigurationService,
 
     /**
      * Internal tools to create the device that registers with entities
      */
-    device: DeviceExtension,
+    device: DeviceService,
 
     /**
      * @internal
      *
      * Discovery features
      */
-    discovery: DiscoveryExtension,
+    discovery: DiscoveryService,
 
     /**
      * @internal
      *
      * Used to assist creation of domains
      */
-    generator: DomainGenerator,
+    generator: DomainGeneratorService,
 
     /**
      * @internal
      *
      * Used to power `synapseEntity.locals`
      */
-    locals: SynapseLocals,
+    locals: SynapseLocalsService,
 
     /**
      * @internal
      */
-    socket: SocketExtension,
+    socket: SynapseSocketService,
 
     /**
      * @internal
      *
      * Used to persist entity state
      */
-    sqlite: SQLite,
+    sqlite: SQLiteService,
 
     /**
      * @internal
      */
-    storage: StorageExtension,
+    storage: StorageService,
     ...DOMAINS,
   },
 });

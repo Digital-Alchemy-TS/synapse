@@ -1,5 +1,5 @@
 import { CronExpression, InternalError, is, TServiceParams } from "@digital-alchemy/core";
-import { TRawDomains } from "@digital-alchemy/hass";
+import { TRawDomains, TUniqueId } from "@digital-alchemy/hass";
 
 import {
   AddStateOptions,
@@ -15,7 +15,7 @@ import {
 
 const LATE_POST_CONFIG = -1;
 
-export function StorageExtension({
+export function StorageService({
   logger,
   context,
   lifecycle,
@@ -99,6 +99,9 @@ export function StorageExtension({
       get: key => CURRENT_VALUE[key],
       isStored: key => isCommonConfigKey(key) || load_config_keys.includes(key),
       keys: () => load,
+      purge() {
+        //
+      },
       set: (key: Extract<keyof CONFIGURATION, string>, value) => {
         const unique_id = entity.unique_id as TSynapseId;
         if (NO_LIVE_UPDATE.has(key)) {
@@ -106,12 +109,10 @@ export function StorageExtension({
         }
         CURRENT_VALUE[key] = value;
         if (initialized) {
-          setImmediate(async () => {
-            await synapse.sqlite.update(unique_id, registry.get(unique_id).export());
-            if (hass.socket.connectionState === "connected") {
-              await synapse.socket.send(unique_id, CURRENT_VALUE);
-            }
-          });
+          synapse.sqlite.update(unique_id, registry.get(unique_id).export());
+          if (hass.socket.connectionState === "connected") {
+            setImmediate(async () => await synapse.socket.send(unique_id, CURRENT_VALUE));
+          }
         }
       },
       unique_id: entity.unique_id,
@@ -141,5 +142,10 @@ export function StorageExtension({
     return storage;
   }
 
-  return { add, dump, find: (id: TSynapseId) => registry.get(id) };
+  return {
+    add,
+    dump,
+    find: <CONFIGURATION extends object>(id: TSynapseId | TUniqueId) =>
+      registry.get(id as TSynapseId) as unknown as TSynapseEntityStorage<CONFIGURATION>,
+  };
 }
