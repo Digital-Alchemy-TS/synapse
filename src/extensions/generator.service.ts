@@ -1,4 +1,4 @@
-import { is, SINGLE, START, TAnyFunction, TServiceParams } from "@digital-alchemy/core";
+import { is, SINGLE, START, TAnyFunction, TContext, TServiceParams } from "@digital-alchemy/core";
 import {
   ANY_ENTITY,
   ByIdProxy,
@@ -85,6 +85,7 @@ export function DomainGeneratorService({
     // #MARK: addEntity
     function addEntity<ATTRIBUTES extends object, LOCALS extends object>(
       entity: AddEntityOptions<CONFIGURATION, EVENT_MAP, ATTRIBUTES, LOCALS>,
+      clone = false,
     ) {
       // * defaults
       // - unique_id - required for comms
@@ -94,17 +95,30 @@ export function DomainGeneratorService({
       // - suggested_object_id - required on python side due to the way the code is set up
       entity.suggested_object_id ??= formatObjectId(entity.name);
       const unique_id = entity.unique_id as TUniqueId;
-      const currentProxy = knownEntities.has(unique_id);
+      const currentProxy = knownEntities.get(unique_id);
 
-      if (currentProxy) {
-        return currentProxy;
+      if (currentProxy && !clone) {
+        logger.trace({ clone, currentProxy }, `returning existing proxy`);
+        return currentProxy as unknown as SynapseEntityProxy<
+          CONFIGURATION,
+          EVENT_MAP,
+          ATTRIBUTES,
+          LOCALS
+        >;
+      } else if (currentProxy) {
+        logger.debug({ unique_id }, `creating clone`);
       }
 
-      const data = { domain, entity, load_config_keys };
-
       type mergedConfig = CONFIGURATION & EntityConfigCommon<ATTRIBUTES, LOCALS>;
+
       // * initialize storage
-      const storage = synapse.storage.add<LOCALS, ATTRIBUTES, mergedConfig>(data);
+      const storage = clone
+        ? synapse.storage.find<mergedConfig>(unique_id)
+        : synapse.storage.add<LOCALS, ATTRIBUTES, mergedConfig>({
+            domain,
+            entity,
+            load_config_keys,
+          });
 
       // * map bus events
       bus_events.forEach(bus_event => {
@@ -214,7 +228,26 @@ export function DomainGeneratorService({
 
             // #MARK: child
             case "child": {
-              //
+              return function (context: TContext) {
+                const child = addEntity(
+                  {
+                    // copy input data
+                    ...entity,
+                    // override context
+                    context,
+                    // remove any hard coded events
+                    ...Object.fromEntries(bus_events.map(i => [i, undefined])),
+                  },
+                  true,
+                ) as unknown as GenericSynapseEntity;
+                const remove = is.removeFn(() => {
+                  listeners.delete(remove);
+                  child.removeAllListeners();
+                });
+                child.addListener(is.removeFn(() => listeners.delete(remove)));
+                listeners.add(remove);
+                return child;
+              };
             }
 
             // #MARK: storage

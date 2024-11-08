@@ -1,5 +1,5 @@
 import { CronExpression, InternalError, is, TServiceParams } from "@digital-alchemy/core";
-import { TRawDomains } from "@digital-alchemy/hass";
+import { TRawDomains, TUniqueId } from "@digital-alchemy/hass";
 
 import {
   AddStateOptions,
@@ -142,5 +142,10 @@ export function StorageService({
     return storage;
   }
 
-  return { add, dump, find: (id: TSynapseId) => registry.get(id) };
+  return {
+    add,
+    dump,
+    find: <CONFIGURATION extends object>(id: TSynapseId | TUniqueId) =>
+      registry.get(id as TSynapseId) as unknown as TSynapseEntityStorage<CONFIGURATION>,
+  };
 }

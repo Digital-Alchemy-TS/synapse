@@ -1,4 +1,4 @@
-import { CronExpression, is, TBlackHole } from "@digital-alchemy/core";
+import { CronExpression, is, TBlackHole, TContext } from "@digital-alchemy/core";
 import {
   ByIdProxy,
   ENTITY_STATE,
@@ -211,7 +211,7 @@ type ProxyBase<
      *
      * duplicate the entity proxy, used for management of listeners
      */
-    child: () => ProxyBase<CONFIGURATION, EVENT_MAP, ATTRIBUTES, LOCALS>;
+    child: (context: TContext) => ProxyBase<CONFIGURATION, EVENT_MAP, ATTRIBUTES, LOCALS>;
   };
 
 /**

@@ -43,14 +43,11 @@ export function EntityGenerator({ scheduler, synapse, context, logger }: TServic
       name: "blinking",
       suggested_object_id: "blinking_the_binary_sensor",
     });
-    scheduler.interval({
-      exec() {
-        const number = Math.floor(Math.random() * SECOND);
-        sensor.storage.set("state", number);
-        binary_sensor.storage.set("is_on", !binary_sensor.storage.get("is_on"));
-      },
-      interval: SECOND,
-    });
+    scheduler.setInterval(() => {
+      const number = Math.floor(Math.random() * SECOND);
+      sensor.storage.set("state", number);
+      binary_sensor.storage.set("is_on", !binary_sensor.storage.get("is_on"));
+    }, SECOND);
     const button = synapse.button({
       context,
       device_class: "identify",
