@@ -123,7 +123,6 @@ export function VirtualSensor({ context, synapse, logger }: TServiceParams) {
       PARAMS["attributes"],
       PARAMS["locals"]
     >,
-    // eslint-disable-next-line sonarjs/cognitive-complexity
   ) => {
     if ("options" in options) {
       if ("state_class" in options || "native_unit_of_measurement" in options) {
