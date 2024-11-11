@@ -2293,9 +2293,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@digital-alchemy/core@npm:^24.10.8":
-  version: 24.10.8
-  resolution: "@digital-alchemy/core@npm:24.10.8"
+"@digital-alchemy/core@npm:^24.11.1":
+  version: 24.11.1
+  resolution: "@digital-alchemy/core@npm:24.11.1"
   dependencies:
     chalk: "npm:^5.3.0"
     dayjs: "npm:^1.11.13"
@@ -2304,24 +2304,24 @@ __metadata:
     js-yaml: "npm:^4.1.0"
     minimist: "npm:^1.2.8"
     node-cron: "npm:^3.0.3"
-    uuid: "npm:^11.0.2"
-  checksum: 10/4c294f2600290dfa401c31b8925c7c56958c05b1123cb0932e7bda4be78fa3b2a8d08e35243f9adf124b3efd368d69fd3b1cd73637ff34cf8ee264a6fe0ac897
+    uuid: "npm:^11.0.3"
+  checksum: 10/a811dd5dc7aa145f5ab2f6f57bf35b087bdfd0b632702e604f70706d30a512ec44987e80eeea2144c3483b8d1ca5331e405468305c293c72fafc47a0eaf1e126
   languageName: node
   linkType: hard
 
-"@digital-alchemy/hass@npm:^24.11.1":
-  version: 24.11.1
-  resolution: "@digital-alchemy/hass@npm:24.11.1"
+"@digital-alchemy/hass@npm:^24.11.2":
+  version: 24.11.2
+  resolution: "@digital-alchemy/hass@npm:24.11.2"
   dependencies:
-    "@digital-alchemy/core": "npm:^24.10.8"
+    "@digital-alchemy/core": "npm:^24.11.1"
     dayjs: "npm:^1.11.13"
     semver: "npm:^7.6.3"
     type-fest: "npm:^4.26.1"
-    uuid: "npm:^11.0.2"
+    uuid: "npm:^11.0.3"
     ws: "npm:^8.18.0"
   bin:
     mock-assistant: scripts/mock-assistant.sh
-  checksum: 10/5e5657544009ef524daf8a78f4bcc919108523bae8aced056f4542f81f2c39b42d155a74535070085f0ba17d265aa999f3daca1f9171e164e7dbfdd84b5b7ffd
+  checksum: 10/0106be8271b2fe4966484d491792af7ca389f847c6018fb8574d45a636875a574445c796068805243f15e39e0ca390a7ef7ea259126863f03923eb67083eb403
   languageName: node
   linkType: hard
 
@@ -2330,8 +2330,8 @@ __metadata:
   resolution: "@digital-alchemy/synapse@workspace:."
   dependencies:
     "@cspell/eslint-plugin": "npm:^8.16.0"
-    "@digital-alchemy/core": "npm:^24.10.8"
-    "@digital-alchemy/hass": "npm:^24.11.1"
+    "@digital-alchemy/core": "npm:^24.11.1"
+    "@digital-alchemy/hass": "npm:^24.11.2"
     "@eslint/compat": "npm:^1.2.2"
     "@eslint/eslintrc": "npm:^3.1.0"
     "@eslint/js": "npm:^9.14.0"
@@ -2349,7 +2349,7 @@ __metadata:
     eslint: "npm:9.14.0"
     eslint-config-prettier: "npm:9.1.0"
     eslint-plugin-import: "npm:^2.31.0"
-    eslint-plugin-jsonc: "npm:^2.16.0"
+    eslint-plugin-jsonc: "npm:^2.18.1"
     eslint-plugin-no-unsanitized: "npm:^4.1.2"
     eslint-plugin-prettier: "npm:^5.2.1"
     eslint-plugin-security: "npm:^3.0.1"
@@ -2366,7 +2366,7 @@ __metadata:
     tsx: "npm:^4.19.2"
     type-fest: "npm:^4.26.1"
     typescript: "npm:^5.6.3"
-    uuid: "npm:^11.0.2"
+    uuid: "npm:^11.0.3"
     ws: "npm:^8.18.0"
   peerDependencies:
     "@digital-alchemy/core": "*"
@@ -5039,14 +5039,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"eslint-compat-utils@npm:^0.5.0":
-  version: 0.5.1
-  resolution: "eslint-compat-utils@npm:0.5.1"
+"eslint-compat-utils@npm:^0.6.0":
+  version: 0.6.0
+  resolution: "eslint-compat-utils@npm:0.6.0"
   dependencies:
     semver: "npm:^7.5.4"
   peerDependencies:
     eslint: ">=6.0.0"
-  checksum: 10/ac65ac1c6107cf19f63f5fc17cea361c9cb1336be7356f23dbb0fac10979974b4622e13e950be43cbf431801f2c07f7dab448573181ccf6edc0b86d5b5304511
+  checksum: 10/726534ad9a873485790e190999136ac80d4ccf363345242c3669cc49fd08f2cfa7b03477e81d292419067152d898db20f4f198acfe2e7ff1fff9bbc97effb441
   languageName: node
   linkType: hard
 
@@ -5069,6 +5069,21 @@ __metadata:
     is-core-module: "npm:^2.13.0"
     resolve: "npm:^1.22.4"
   checksum: 10/d52e08e1d96cf630957272e4f2644dcfb531e49dcfd1edd2e07e43369eb2ec7a7d4423d417beee613201206ff2efa4eb9a582b5825ee28802fc7c71fcd53ca83
+  languageName: node
+  linkType: hard
+
+"eslint-json-compat-utils@npm:^0.2.1":
+  version: 0.2.1
+  resolution: "eslint-json-compat-utils@npm:0.2.1"
+  dependencies:
+    esquery: "npm:^1.6.0"
+  peerDependencies:
+    eslint: "*"
+    jsonc-eslint-parser: ^2.4.0
+  peerDependenciesMeta:
+    "@eslint/json":
+      optional: true
+  checksum: 10/083272c0cdbc6acd9fe9bfe939e0c76493a426400141203d7f0e76344d5874c5a88535c59300045e4c6f95baa5084eff512013f82bcd9e7426404c785e2ea55d
   languageName: node
   linkType: hard
 
@@ -5153,12 +5168,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"eslint-plugin-jsonc@npm:^2.16.0":
-  version: 2.16.0
-  resolution: "eslint-plugin-jsonc@npm:2.16.0"
+"eslint-plugin-jsonc@npm:^2.18.1":
+  version: 2.18.1
+  resolution: "eslint-plugin-jsonc@npm:2.18.1"
   dependencies:
     "@eslint-community/eslint-utils": "npm:^4.2.0"
-    eslint-compat-utils: "npm:^0.5.0"
+    eslint-compat-utils: "npm:^0.6.0"
+    eslint-json-compat-utils: "npm:^0.2.1"
     espree: "npm:^9.6.1"
     graphemer: "npm:^1.4.0"
     jsonc-eslint-parser: "npm:^2.0.4"
@@ -5166,7 +5182,7 @@ __metadata:
     synckit: "npm:^0.6.0"
   peerDependencies:
     eslint: ">=6.0.0"
-  checksum: 10/bec880a4d6f0cd8ba37ae3a6528477d3161b41ca7b885ed43c34bed95d09b30fd1d277bfa9e487164f5a8aad265f3b075a4b479c20811fe0dd18c25b6835cf56
+  checksum: 10/f44c02ed3bc4a2857de4e1ac02ca604d30aefb278af0ac2ce33154e9e027ea0b0b677770d4df5e548278da40ecaeb40d0516848f86e6f665e4e05cb0ed6fe143
   languageName: node
   linkType: hard
 
@@ -9513,12 +9529,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"uuid@npm:^11.0.2":
-  version: 11.0.2
-  resolution: "uuid@npm:11.0.2"
+"uuid@npm:^11.0.3":
+  version: 11.0.3
+  resolution: "uuid@npm:11.0.3"
   bin:
     uuid: dist/esm/bin/uuid
-  checksum: 10/b98082f398fa2ece8cacc2264402f739256ca70def4bb82e3a14ec70777d189c01ce1054764c3b59b8fc098b62b135a15d1b24914712904c988822e2ac9b4f44
+  checksum: 10/251385563195709eb0697c74a834764eef28e1656d61174e35edbd129288acb4d95a43f4ce8a77b8c2fc128e2b55924296a0945f964b05b9173469d045625ff2
   languageName: node
   linkType: hard
 
