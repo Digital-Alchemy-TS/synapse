@@ -2309,6 +2309,22 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@digital-alchemy/core@npm:^24.11.1":
+  version: 24.11.1
+  resolution: "@digital-alchemy/core@npm:24.11.1"
+  dependencies:
+    chalk: "npm:^5.3.0"
+    dayjs: "npm:^1.11.13"
+    dotenv: "npm:^16.4.5"
+    ini: "npm:^5.0.0"
+    js-yaml: "npm:^4.1.0"
+    minimist: "npm:^1.2.8"
+    node-cron: "npm:^3.0.3"
+    uuid: "npm:^11.0.3"
+  checksum: 10/a811dd5dc7aa145f5ab2f6f57bf35b087bdfd0b632702e604f70706d30a512ec44987e80eeea2144c3483b8d1ca5331e405468305c293c72fafc47a0eaf1e126
+  languageName: node
+  linkType: hard
+
 "@digital-alchemy/hass@npm:^24.11.1":
   version: 24.11.1
   resolution: "@digital-alchemy/hass@npm:24.11.1"
@@ -2330,7 +2346,7 @@ __metadata:
   resolution: "@digital-alchemy/synapse@workspace:."
   dependencies:
     "@cspell/eslint-plugin": "npm:^8.16.0"
-    "@digital-alchemy/core": "npm:^24.10.8"
+    "@digital-alchemy/core": "npm:^24.11.1"
     "@digital-alchemy/hass": "npm:^24.11.1"
     "@eslint/compat": "npm:^1.2.2"
     "@eslint/eslintrc": "npm:^3.1.0"
@@ -9519,6 +9535,15 @@ __metadata:
   bin:
     uuid: dist/esm/bin/uuid
   checksum: 10/b98082f398fa2ece8cacc2264402f739256ca70def4bb82e3a14ec70777d189c01ce1054764c3b59b8fc098b62b135a15d1b24914712904c988822e2ac9b4f44
+  languageName: node
+  linkType: hard
+
+"uuid@npm:^11.0.3":
+  version: 11.0.3
+  resolution: "uuid@npm:11.0.3"
+  bin:
+    uuid: dist/esm/bin/uuid
+  checksum: 10/251385563195709eb0697c74a834764eef28e1656d61174e35edbd129288acb4d95a43f4ce8a77b8c2fc128e2b55924296a0945f964b05b9173469d045625ff2
   languageName: node
   linkType: hard
 
