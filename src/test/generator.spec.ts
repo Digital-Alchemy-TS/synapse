@@ -1,3 +1,4 @@
+import { PICK_ENTITY } from "@digital-alchemy/hass";
 import { v4 } from "uuid";
 
 import { synapseTestRunner } from "../mock";
@@ -73,14 +74,35 @@ describe("Generator", () => {
     describe("get", () => {
       const unique_id = v4();
 
-      it("getEntity returns refBy.unique_id", async () => {
-        expect.assertions(1);
-        jest.spyOn(console, "trace").mockImplementationOnce(() => undefined);
-        await synapseTestRunner.run(({ synapse, context, hass }) => {
-          const sensor = synapse.sensor({ context, name: "test", unique_id });
-          const spy = jest.spyOn(hass.refBy, "unique_id");
-          sensor.getEntity();
-          expect(spy).toHaveBeenCalledWith(unique_id);
+      describe("getEntity", () => {
+        it("getEntity stores and returns reference when entityRefs is empty", async () => {
+          expect.assertions(3);
+          jest.spyOn(console, "trace").mockImplementationOnce(() => undefined);
+          await synapseTestRunner.run(({ synapse, context, hass }) => {
+            const sensor = synapse.sensor({ context, name: "test", unique_id });
+            const mockId = "new-id" as unknown as PICK_ENTITY;
+            const mockRef = { entity_id: mockId };
+
+            jest.spyOn(hass.idBy, "unique_id").mockReturnValueOnce(mockId);
+            jest.spyOn(hass.refBy, "id").mockReturnValueOnce(mockRef);
+
+            const result = sensor.getEntity();
+            expect(hass.idBy.unique_id).toHaveBeenCalledWith(unique_id);
+            expect(result).toBe(mockRef); // Should return the newly created reference
+            expect(entityRefs.get(mockId)).toBe(mockRef); // Ensure it’s stored in entityRefs
+          });
+        });
+
+        it("getEntity attempts to look up by unique_id", async () => {
+          expect.assertions(2);
+          jest.spyOn(console, "trace").mockImplementationOnce(() => undefined);
+          await synapseTestRunner.run(({ synapse, context, hass }) => {
+            const sensor = synapse.sensor({ context, name: "test", unique_id });
+            const spy = jest.spyOn(hass.idBy, "unique_id");
+            sensor.getEntity();
+            expect(spy).toHaveBeenCalledWith(unique_id);
+            expect(spy).toHaveReturnedWith(undefined);
+          });
         });
       });
 
