@@ -49,5 +49,6 @@ export const synapseTestRunner = createModule
   .fromLibrary(LIB_SYNAPSE)
   .extend()
   .toTest()
+  .setOptions({ configSources: { argv: false, env: false, file: false } })
   .appendLibrary(LIB_MOCK_SYNAPSE)
   .appendLibrary(LIB_MOCK_ASSISTANT);

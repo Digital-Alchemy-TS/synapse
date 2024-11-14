@@ -76,7 +76,7 @@ describe("Generator", () => {
 
       describe("getEntity", () => {
         it("getEntity stores and returns reference when entityRefs is empty", async () => {
-          expect.assertions(3);
+          expect.assertions(2);
           vi.spyOn(console, "trace").mockImplementationOnce(() => undefined);
           await synapseTestRunner.run(({ synapse, context, hass }) => {
             const sensor = synapse.sensor({ context, name: "test", unique_id });

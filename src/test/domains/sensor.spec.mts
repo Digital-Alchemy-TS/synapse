@@ -86,8 +86,4 @@ describe("Sensor", () => {
       });
     });
   });
-
-  describe("device_class datatypes", () => {
-    //
-  });
 });
