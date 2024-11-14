@@ -7,7 +7,7 @@
   "scripts": {
     "start:mock": "tsx src/mock/main.ts",
     "build": "rm -rf dist; tsc",
-    "test": "./scripts/test.sh",
+    "test": "vitest --no-file-parallelism",
     "lint": "eslint src",
     "prepublishOnly": "npm run build",
     "upgrade": "yarn up '@digital-alchemy/*'",

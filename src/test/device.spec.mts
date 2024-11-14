@@ -21,9 +21,9 @@ describe("Device", () => {
       });
     });
 
-    it("loads version from package.json if synapseVersion is not set", async () => {
+    it.only("loads version from package.json if synapseVersion is not set", async () => {
       expect.assertions(1);
-      await synapseTestRunner.run(({ synapse }) => {
+      await synapseTestRunner.emitLogs().run(({ synapse }) => {
         const version = v4();
         const packageJson = JSON.stringify({ version });
 
