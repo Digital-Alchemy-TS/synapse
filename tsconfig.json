@@ -16,6 +16,8 @@
     "noUnusedParameters": true,
     "rootDir": "./src",
     "skipDefaultLibCheck": true,
+    "types": ["vitest/globals"],
+    "rewriteRelativeImportExtensions": true,
     "skipLibCheck": true,
     "noUncheckedIndexedAccess": true,
     "sourceMap": true,
@@ -27,7 +29,7 @@
     "allowSyntheticDefaultImports": true
   },
   "include": [
-    "src/**/*.ts"
+    "src/**/*.mts"
   ],
   "exclude": [
     "node_modules",
