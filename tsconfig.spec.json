@@ -8,6 +8,6 @@
     "noImplicitAny": false,
     "esModuleInterop": true
   },
-  "include": ["src/**/*.ts", "src/**/*.spec.ts"],
+  "include": ["src/**/*.mts", "src/**/*.spec.mts"],
   "exclude": ["node_modules", "tmp", "dist"]
 }
