@@ -2269,19 +2269,35 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@digital-alchemy/hass@npm:^24.11.3":
-  version: 24.11.3
-  resolution: "@digital-alchemy/hass@npm:24.11.3"
+"@digital-alchemy/core@npm:^24.11.4":
+  version: 24.11.4
+  resolution: "@digital-alchemy/core@npm:24.11.4"
   dependencies:
-    "@digital-alchemy/core": "npm:^24.11.3"
+    chalk: "npm:^5.3.0"
+    dayjs: "npm:^1.11.13"
+    dotenv: "npm:^16.4.5"
+    ini: "npm:^5.0.0"
+    js-yaml: "npm:^4.1.0"
+    minimist: "npm:^1.2.8"
+    node-cron: "npm:^3.0.3"
+    uuid: "npm:^11.0.3"
+  checksum: 10/8cae1cca33651a5171e23008e659c0b2769e5575a04233c9c3374837e2cf8fcfa7ae9d16d9fb730e639c0efd910dc6e87b775296c9b7f5fb0e2151bf21a41a0e
+  languageName: node
+  linkType: hard
+
+"@digital-alchemy/hass@npm:^24.11.4":
+  version: 24.11.4
+  resolution: "@digital-alchemy/hass@npm:24.11.4"
+  dependencies:
+    "@digital-alchemy/core": "npm:^24.11.4"
     dayjs: "npm:^1.11.13"
     semver: "npm:^7.6.3"
-    type-fest: "npm:^4.27.0"
+    type-fest: "npm:^4.28.0"
     uuid: "npm:^11.0.3"
     ws: "npm:^8.18.0"
   bin:
     mock-assistant: scripts/mock-assistant.sh
-  checksum: 10/bcc9bfa40a643fd2cc6ecc9bc4d49cb3d867ea3356c1c16be40ebae7e22516f5dedc55122b1c9e663babae8db6dcf68f14dd37f586a2374ac323311cff842b56
+  checksum: 10/184eeef2d0ed5a029cbeff767327b721187a4d954f71e81903fa8cb4613935d5dc5e0c3b1457a030c018c64aa4fe7bc6cb1cb2df4b934786d37324990b26daa2
   languageName: node
   linkType: hard
 
@@ -2291,7 +2307,7 @@ __metadata:
   dependencies:
     "@cspell/eslint-plugin": "npm:^8.16.0"
     "@digital-alchemy/core": "npm:^24.11.3"
-    "@digital-alchemy/hass": "npm:^24.11.3"
+    "@digital-alchemy/hass": "npm:^24.11.4"
     "@eslint/compat": "npm:^1.2.3"
     "@eslint/eslintrc": "npm:^3.2.0"
     "@eslint/js": "npm:^9.15.0"
@@ -8292,6 +8308,13 @@ __metadata:
   version: 4.27.0
   resolution: "type-fest@npm:4.27.0"
   checksum: 10/13be3937f39ef94012ca622aa69c7edb87850b9b61ad7742e9d410b7a98fe28ee54b508ebb50fac5be2f8563fbc7b417a3d1ef129b9b092d6f3f67b7e1fca96f
+  languageName: node
+  linkType: hard
+
+"type-fest@npm:^4.28.0":
+  version: 4.28.0
+  resolution: "type-fest@npm:4.28.0"
+  checksum: 10/2fc54972af0aff1846786c11beeb2e446a1a6ea19b07ba80db1d3f24894002e0ed3de7f40d2a1007fe2e6e6da264a3790a844d744825dba3d31505d1983df2a5
   languageName: node
   linkType: hard
 
