@@ -12,6 +12,7 @@ import {
 export function SynapseLocalsService({ synapse, logger, internal }: TServiceParams) {
   // #MARK: updateLocal
   function updateLocal(unique_id: TSynapseId, key: string, content: unknown) {
+    logger.trace({ key, unique_id }, "updateLocal");
     const database = synapse.sqlite.getDatabase();
 
     const value_json = JSON.stringify(content);
@@ -33,6 +34,7 @@ export function SynapseLocalsService({ synapse, logger, internal }: TServicePara
    */
   function loadLocals(unique_id: TSynapseId) {
     if (!internal.boot.completedLifecycleEvents.has("PostConfig")) {
+      logger.warn("cannot load locals before [PostConfig]");
       return undefined;
     }
     logger.trace({ unique_id }, "initial load of locals");
@@ -62,6 +64,7 @@ export function SynapseLocalsService({ synapse, logger, internal }: TServicePara
         if (!locals.has(key)) {
           return true;
         }
+        logger.trace({ key, unique_id }, "delete local");
         const database = synapse.sqlite.getDatabase();
         database.prepare(DELETE_LOCALS_QUERY).run([unique_id, key]);
         locals.delete(key);
@@ -102,6 +105,7 @@ export function SynapseLocalsService({ synapse, logger, internal }: TServicePara
       set(_, property: string, value) {
         locals ??= loadLocals(unique_id);
         if (!locals) {
+          logger.trace("ignoring set attempt, locals not available");
           return false;
         }
         if (is.equal(locals.get(property), value)) {
@@ -122,8 +126,10 @@ export function SynapseLocalsService({ synapse, logger, internal }: TServicePara
       replace: (data: LOCALS) => {
         locals ??= loadLocals(unique_id);
         if (!locals) {
+          logger.trace("ignoring replace attempt, locals not available");
           return false;
         }
+        logger.debug("replace locals");
         const incoming = Object.keys(data);
         const current = is.unique([...Object.keys(defaults), ...locals.keys()]);
 

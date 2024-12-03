@@ -13,10 +13,20 @@ export function SynapseSocketService({
   const getIdentifier = () => internal.boot.application.name;
   const name = (a: string) => [config.synapse.EVENT_NAMESPACE, a, getIdentifier()].join("/");
 
+  const emitted = new Set<number>();
+
+  async function emitHeartBeat() {
+    logger.trace("heartbeat");
+    const now = Date.now();
+    emitted.add(now);
+    await hass.socket.fireEvent(name("heartbeat"), { now });
+    scheduler.setTimeout(() => emitted.delete(now), SECOND);
+  }
+
   function setupHeartbeat() {
     logger.trace({ name: setupHeartbeat }, `starting heartbeat`);
     return scheduler.setInterval(
-      async () => await hass.socket.fireEvent(name("heartbeat")),
+      async () => await emitHeartBeat(),
       config.synapse.HEARTBEAT_INTERVAL * SECOND,
     );
   }
@@ -31,6 +41,7 @@ export function SynapseSocketService({
   // * onConnect
   hass.socket.onConnect(async function onConnect() {
     if (!config.synapse.EMIT_HEARTBEAT) {
+      logger.warn("heartbeat disabled");
       return;
     }
     logger.debug({ name: onConnect }, `reconnect heartbeat`);

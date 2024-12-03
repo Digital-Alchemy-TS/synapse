@@ -145,6 +145,14 @@ export const LIB_SYNAPSE = CreateLibrary({
       description: "Location to persist entity state at",
       type: "string",
     },
+    TRACE_SIBLING_HEARTBEATS: {
+      default: false,
+      description: [
+        "Set to true to output debug info about other synapse apps emitting heartbeats to the same instance of Home Assistant",
+        "Logs emitted at trace level, for debugging only",
+      ],
+      type: "boolean",
+    },
   },
   depends: [LIB_HASS],
   name: "synapse",

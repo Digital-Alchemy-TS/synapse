@@ -32,12 +32,16 @@ export function SQLiteService({
   let Driver: SynapseSqliteDriver = SQLiteDriver;
 
   lifecycle.onPostConfig(() => {
+    logger.trace("create if not exists tables");
     database = new Driver(config.synapse.SQLITE_DB);
     database.prepare(ENTITY_CREATE).run();
     database.prepare(LOCALS_CREATE).run();
   });
 
-  lifecycle.onShutdownStart(() => database.close());
+  lifecycle.onShutdownStart(() => {
+    logger.trace("close database");
+    database.close();
+  });
 
   // #MARK: update
   function update(unique_id: TSynapseId, content: object) {
@@ -51,6 +55,7 @@ export function SQLiteService({
     const state_json = JSON.stringify(content);
     const now = new Date().toISOString();
     const insert = database.prepare(ENTITY_UPSERT);
+    logger.trace({ entity_id, unique_id }, "update entity");
     insert.run({
       application_name,
       entity_id,
@@ -62,13 +67,17 @@ export function SQLiteService({
     });
   }
 
+  // #MARK: loadRow
   function loadRow<LOCALS extends object = object>(unique_id: TSynapseId) {
+    logger.trace({ unique_id }, "load entity");
     const row = database
       .prepare<[TSynapseId, string], HomeAssistantEntityRow<LOCALS>>(SELECT_QUERY)
       .get(unique_id, application_name);
     if (!row) {
+      logger.debug("entity not found in database");
       return undefined;
     }
+    logger.trace({ entity_id: row.entity_id, unique_id }, "load entity");
     return row;
   }
 
@@ -83,7 +92,7 @@ export function SQLiteService({
       return data;
     }
     // - if new: insert then try again
-    logger.debug({ name: load, unique_id }, `creating new sqlite entry`);
+    logger.trace({ name: load, unique_id }, `creating new sqlite entry`);
     update(unique_id, defaults);
     return loadRow<LOCALS>(unique_id);
   }

@@ -40,7 +40,7 @@ export type NumberEvents = {
   set_value: { value: number };
 };
 
-export function VirtualNumber({ context, synapse }: TServiceParams) {
+export function VirtualNumber({ context, synapse, logger }: TServiceParams) {
   const generate = synapse.generator.create<NumberConfiguration, NumberEvents>({
     bus_events: ["set_value"],
     context,
@@ -63,7 +63,10 @@ export function VirtualNumber({ context, synapse }: TServiceParams) {
   }: AddEntityOptions<NumberConfiguration, NumberEvents, PARAMS["attributes"], PARAMS["locals"]>) {
     const entity = generate.addEntity(options);
     if (managed) {
-      entity.onSetValue(({ value }) => entity.storage.set("native_value", value));
+      entity.onSetValue(({ value }) => {
+        logger.trace({ value }, "[managed] onSetValue");
+        entity.storage.set("native_value", value);
+      });
     }
     return entity;
   };

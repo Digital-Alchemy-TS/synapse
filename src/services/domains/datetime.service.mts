@@ -115,7 +115,10 @@ export function VirtualDateTime({ context, synapse, logger }: TServiceParams) {
   >) {
     const entity = generate.addEntity(options);
     if (managed) {
-      entity.onSetValue(({ value }) => entity.storage.set("native_value", value));
+      entity.onSetValue(({ value }) => {
+        logger.trace({ value }, "[managed] onSetValue");
+        entity.storage.set("native_value", value);
+      });
     }
     type DynamicCallbacks = BuildCallbacks<DateTimeEvents<CallbackType<PARAMS["date_type"]>>>;
     type TypedVirtualDateTime = Omit<typeof entity, keyof DynamicCallbacks | "native_value"> &

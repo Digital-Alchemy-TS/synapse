@@ -47,7 +47,7 @@ export type AlarmControlPanelEvents = {
   alarm_disarm: { code: string };
 };
 
-export function VirtualAlarmControlPanel({ context, synapse }: TServiceParams) {
+export function VirtualAlarmControlPanel({ context, synapse, logger }: TServiceParams) {
   const generate = synapse.generator.create<
     AlarmControlPanelConfiguration,
     AlarmControlPanelEvents
@@ -84,13 +84,34 @@ export function VirtualAlarmControlPanel({ context, synapse }: TServiceParams) {
   >) {
     const entity = generate.addEntity(options);
     if (managed) {
-      entity.onArmCustomBypass(() => entity.storage.set("state", "armed_away"));
-      entity.onTrigger(() => entity.storage.set("state", "triggered"));
-      entity.onArmVacation(() => entity.storage.set("state", "armed_vacation"));
-      entity.onArmNight(() => entity.storage.set("state", "armed_night"));
-      entity.onArmAway(() => entity.storage.set("state", "armed_away"));
-      entity.onArmHome(() => entity.storage.set("state", "armed_home"));
-      entity.onAlarmDisarm(() => entity.storage.set("state", "disarmed"));
+      entity.onArmCustomBypass(() => {
+        logger.trace("[managed] onArmCustomBypass");
+        entity.storage.set("state", "armed_away");
+      });
+      entity.onTrigger(() => {
+        logger.trace("[managed] onTrigger");
+        entity.storage.set("state", "triggered");
+      });
+      entity.onArmVacation(() => {
+        logger.trace("[managed] onArmVacation");
+        entity.storage.set("state", "armed_vacation");
+      });
+      entity.onArmNight(() => {
+        logger.trace("[managed] onArmNight");
+        entity.storage.set("state", "armed_night");
+      });
+      entity.onArmAway(() => {
+        logger.trace("[managed] onArmAway");
+        entity.storage.set("state", "armed_away");
+      });
+      entity.onArmHome(() => {
+        logger.trace("[managed] onArmHome");
+        entity.storage.set("state", "armed_home");
+      });
+      entity.onAlarmDisarm(() => {
+        logger.trace("[managed] onAlarmDisarm");
+        entity.storage.set("state", "disarmed");
+      });
     }
     return entity;
   };

@@ -103,7 +103,10 @@ export function VirtualDate({ context, synapse, logger }: TServiceParams) {
   }: AddEntityOptions<DateConfiguration, DateEvents, PARAMS["attributes"], PARAMS["locals"]>) {
     const entity = generate.addEntity(options);
     if (managed) {
-      entity.onSetValue(({ value }) => entity.storage.set("native_value", value));
+      entity.onSetValue(({ value }) => {
+        logger.trace({ value }, "[managed] onSetValue");
+        entity.storage.set("native_value", value);
+      });
     }
 
     type DynamicCallbacks = BuildCallbacks<DateEvents<CallbackType<PARAMS["date_type"]>>>;

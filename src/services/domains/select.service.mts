@@ -28,7 +28,7 @@ export type SelectEvents<OPTIONS extends string = string> = {
   select_option: { option: OPTIONS };
 };
 
-export function VirtualSelect({ context, synapse }: TServiceParams) {
+export function VirtualSelect({ context, synapse, logger }: TServiceParams) {
   const generate = synapse.generator.create<SelectConfiguration, SelectEvents>({
     bus_events: ["select_option"],
     context,
@@ -48,7 +48,10 @@ export function VirtualSelect({ context, synapse }: TServiceParams) {
   >) {
     const entity = generate.addEntity(options);
     if (managed) {
-      entity.onSelectOption(({ option }) => entity.storage.set("current_option", option));
+      entity.onSelectOption(({ option }) => {
+        logger.trace({ option }, "[managed] onSelectOption");
+        entity.storage.set("current_option", option);
+      });
     }
     type DynamicCallbacks = BuildCallbacks<SelectEvents<PARAMS["options"]>>;
     type TypedVirtualSelect = Omit<typeof entity, keyof DynamicCallbacks> &

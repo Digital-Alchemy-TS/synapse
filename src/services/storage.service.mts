@@ -59,6 +59,7 @@ export function StorageService({
         const current_value = storage.get(key);
         const new_value = config.current() as CONFIGURATION[typeof key];
         if (new_value === current_value) {
+          logger.trace({ key, unique_id: entity.unique_id }, "ignoring noop");
           return;
         }
         logger.trace(
@@ -100,7 +101,7 @@ export function StorageService({
       isStored: key => isCommonConfigKey(key) || load_config_keys.includes(key),
       keys: () => load,
       purge() {
-        //
+        logger.warn("you should report this... I think");
       },
       set: (key: Extract<keyof CONFIGURATION, string>, value) => {
         const unique_id = entity.unique_id as TSynapseId;
@@ -109,6 +110,7 @@ export function StorageService({
         }
         CURRENT_VALUE[key] = value;
         if (initialized) {
+          logger.trace({ key, unique_id }, "update locals");
           synapse.sqlite.update(unique_id, registry.get(unique_id).export());
           if (hass.socket.connectionState === "connected") {
             setImmediate(async () => await synapse.socket.send(unique_id, CURRENT_VALUE));

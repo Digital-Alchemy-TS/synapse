@@ -54,7 +54,7 @@ export type LockEvents = {
   };
 };
 
-export function VirtualLock({ context, synapse }: TServiceParams) {
+export function VirtualLock({ context, synapse, logger }: TServiceParams) {
   const generate = synapse.generator.create<LockConfiguration, LockEvents>({
     bus_events: ["lock", "unlock", "open"],
     context,
@@ -79,9 +79,18 @@ export function VirtualLock({ context, synapse }: TServiceParams) {
   }: AddEntityOptions<LockConfiguration, LockEvents, PARAMS["attributes"], PARAMS["locals"]>) {
     const entity = generate.addEntity(options);
     if (managed) {
-      entity.onLock(({}) => entity.storage.set("is_locked", true));
-      entity.onUnlock(({}) => entity.storage.set("is_locked", false));
-      entity.onOpen(({}) => entity.storage.set("is_open", true));
+      entity.onLock(({}) => {
+        logger.trace("[managed] onLock");
+        entity.storage.set("is_locked", true);
+      });
+      entity.onUnlock(({}) => {
+        logger.trace("[managed] onUnlock");
+        entity.storage.set("is_locked", false);
+      });
+      entity.onOpen(({}) => {
+        logger.trace("[managed] onOpen");
+        entity.storage.set("is_open", true);
+      });
     }
     return entity;
   };

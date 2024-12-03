@@ -27,7 +27,7 @@ export type SwitchEvents = {
   };
 };
 
-export function VirtualSwitch({ context, synapse }: TServiceParams) {
+export function VirtualSwitch({ context, synapse, logger }: TServiceParams) {
   const generate = synapse.generator.create<SwitchConfiguration, SwitchEvents>({
     bus_events: ["turn_on", "turn_off", "toggle"],
     context,
@@ -41,9 +41,18 @@ export function VirtualSwitch({ context, synapse }: TServiceParams) {
   }: AddEntityOptions<SwitchConfiguration, SwitchEvents, PARAMS["attributes"], PARAMS["locals"]>) {
     const entity = generate.addEntity(options);
     if (managed) {
-      entity.onToggle(() => entity.storage.set("is_on", !entity.storage.get("is_on")));
-      entity.onTurnOff(() => entity.storage.set("is_on", false));
-      entity.onTurnOn(() => entity.storage.set("is_on", true));
+      entity.onToggle(() => {
+        logger.trace("[managed] onToggle");
+        entity.storage.set("is_on", !entity.storage.get("is_on"));
+      });
+      entity.onTurnOff(() => {
+        logger.trace("[managed] onTurnOff");
+        entity.storage.set("is_on", false);
+      });
+      entity.onTurnOn(() => {
+        logger.trace("[managed] onTurnOn");
+        entity.storage.set("is_on", true);
+      });
     }
     return entity;
   };

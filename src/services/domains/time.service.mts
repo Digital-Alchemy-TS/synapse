@@ -17,7 +17,7 @@ export type TimeEvents = {
   set_value: { value: SynapseTimeFormat };
 };
 
-export function VirtualTime({ context, synapse }: TServiceParams) {
+export function VirtualTime({ context, synapse, logger }: TServiceParams) {
   const generate = synapse.generator.create<TimeConfiguration, TimeEvents>({
     bus_events: ["set_value"],
     context,
@@ -32,7 +32,10 @@ export function VirtualTime({ context, synapse }: TServiceParams) {
   }: AddEntityOptions<TimeConfiguration, TimeEvents, PARAMS["attributes"], PARAMS["locals"]>) {
     const entity = generate.addEntity(options);
     if (managed) {
-      entity.onSetValue(({ value }) => entity.storage.set("native_value", value));
+      entity.onSetValue(({ value }) => {
+        logger.trace({ value }, "[managed] onSetValue");
+        entity.storage.set("native_value", value);
+      });
     }
     return entity;
   };

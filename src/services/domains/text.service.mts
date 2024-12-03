@@ -33,7 +33,7 @@ export type TextEvents = {
   set_value: { value: string };
 };
 
-export function VirtualText({ context, synapse }: TServiceParams) {
+export function VirtualText({ context, synapse, logger }: TServiceParams) {
   const generate = synapse.generator.create<TextConfiguration, TextEvents>({
     bus_events: ["set_value"],
     context,
@@ -48,7 +48,10 @@ export function VirtualText({ context, synapse }: TServiceParams) {
   }: AddEntityOptions<TextConfiguration, TextEvents, PARAMS["attributes"], PARAMS["locals"]>) {
     const entity = generate.addEntity(options);
     if (managed) {
-      entity.onSetValue(({ value }) => entity.storage.set("native_value", value));
+      entity.onSetValue(({ value }) => {
+        logger.trace({ value }, "[managed] onSetValue");
+        entity.storage.set("native_value", value);
+      });
     }
     return entity;
   };
