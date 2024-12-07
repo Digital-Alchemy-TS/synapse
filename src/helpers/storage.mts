@@ -17,10 +17,11 @@ export type TSynapseEntityStorage<CONFIGURATION extends object = object> = {
 export type AddStateOptions<
   ATTRIBUTES extends object,
   LOCALS extends object,
-  CONFIGURATION extends EntityConfigCommon<ATTRIBUTES, LOCALS>,
+  CONFIGURATION extends EntityConfigCommon<ATTRIBUTES, LOCALS, DATA>,
+  DATA extends object,
 > = {
   domain: TRawDomains;
-  entity: AddEntityOptions<CONFIGURATION, Record<string, object>, ATTRIBUTES, LOCALS>;
+  entity: AddEntityOptions<CONFIGURATION, Record<string, object>, ATTRIBUTES, LOCALS, DATA>;
   /**
    * initial import from typescript defs
    */
@@ -28,7 +29,8 @@ export type AddStateOptions<
     CONFIGURATION,
     Record<string, object>,
     ATTRIBUTES,
-    LOCALS
+    LOCALS,
+    DATA
   >)[];
 } & TSerialize;
 

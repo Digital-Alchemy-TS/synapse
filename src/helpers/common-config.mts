@@ -12,7 +12,11 @@ import { CreateRemovableCallback, TEventMap } from "./base-domain.mts";
 import { TSynapseEntityStorage } from "./storage.mts";
 import { TSynapseDeviceId } from "./utility.mts";
 
-export type EntityConfigCommon<ATTRIBUTES extends object, LOCALS extends object> = {
+export type EntityConfigCommon<
+  ATTRIBUTES extends object,
+  LOCALS extends object,
+  DATA extends object,
+> = {
   /**
    * Use a different device to register this entity
    */
@@ -33,8 +37,8 @@ export type EntityConfigCommon<ATTRIBUTES extends object, LOCALS extends object>
    * This ID uniquely identifies the entity, through `entity_id` renames
    */
   unique_id?: string;
-  disabled?: SettableConfiguration<boolean>;
-  icon?: SettableConfiguration<string>;
+  disabled?: SettableConfiguration<boolean, DATA>;
+  icon?: SettableConfiguration<string, DATA>;
   /**
    * An entity with a category will:
    * - Not be exposed to cloud, Alexa, or Google Assistant components
@@ -67,14 +71,14 @@ export type EntityConfigCommon<ATTRIBUTES extends object, LOCALS extends object>
    *
    * List gets merged with `onUpdate` array in the configs, is convenient shorthand
    */
-  bind?: Updatable[];
+  bind?: Updatable<DATA>[];
 };
 
 export const isCommonConfigKey = <ATTRIBUTES extends object, LOCALS extends object>(
   key: string,
-): key is keyof EntityConfigCommon<ATTRIBUTES, LOCALS> => COMMON_CONFIG_KEYS.has(key);
+): key is keyof EntityConfigCommon<ATTRIBUTES, LOCALS, object> => COMMON_CONFIG_KEYS.has(key);
 
-export type SettableConfiguration<TYPE extends unknown, DATA extends object = object> =
+export type SettableConfiguration<TYPE extends unknown, DATA extends object> =
   /**
    * Straight provide the value.
    * If this changes in the definition (hard coded value usually), then the entity config will be reset
@@ -164,13 +168,18 @@ export type NON_SETTABLE =
 
 export type NonReactive<CONFIGURATION extends object> = {
   [KEY in Extract<keyof CONFIGURATION, string>]: CONFIGURATION[KEY] extends SettableConfiguration<
-    infer TYPE
+    infer TYPE,
+    object
   >
     ? TYPE
     : CONFIGURATION[KEY];
 };
 
-export type CommonMethods<CONFIGURATION extends object, LOCALS extends object> = {
+export type CommonMethods<
+  CONFIGURATION extends object,
+  LOCALS extends object,
+  DATA extends object,
+> = {
   /**
    * Look up the actual entity_id that is mapped to this entity by unique_id
    */
@@ -210,7 +219,7 @@ export type CommonMethods<CONFIGURATION extends object, LOCALS extends object> =
   /**
    * @internal
    */
-  storage: TSynapseEntityStorage<CONFIGURATION & EntityConfigCommon<object, LOCALS>>;
+  storage: TSynapseEntityStorage<CONFIGURATION & EntityConfigCommon<object, LOCALS, DATA>>;
   /**
    * add a listener that can be removed with the removeAllListeners call
    *
@@ -239,16 +248,17 @@ type ProxyBase<
   EVENT_MAP extends TEventMap,
   ATTRIBUTES extends object,
   LOCALS extends object,
-> = CommonMethods<CONFIGURATION, LOCALS> &
+  DATA extends object,
+> = CommonMethods<CONFIGURATION, LOCALS, DATA> &
   NonReactive<CONFIGURATION> &
   BuildCallbacks<EVENT_MAP> &
-  EntityConfigCommon<ATTRIBUTES, LOCALS> & {
+  EntityConfigCommon<ATTRIBUTES, LOCALS, DATA> & {
     /**
      * @internal
      *
      * duplicate the entity proxy, used for management of listeners
      */
-    child: (context: TContext) => ProxyBase<CONFIGURATION, EVENT_MAP, ATTRIBUTES, LOCALS>;
+    child: (context: TContext) => ProxyBase<CONFIGURATION, EVENT_MAP, ATTRIBUTES, LOCALS, DATA>;
   };
 
 /**
@@ -261,7 +271,8 @@ export type SynapseEntityProxy<
   EVENT_MAP extends TEventMap,
   ATTRIBUTES extends object,
   LOCALS extends object,
-  PROXY = ProxyBase<CONFIGURATION, EVENT_MAP, ATTRIBUTES, LOCALS>,
+  DATA extends object,
+  PROXY = ProxyBase<CONFIGURATION, EVENT_MAP, ATTRIBUTES, LOCALS, DATA>,
 > = Omit<PROXY, Extract<keyof PROXY, NON_SETTABLE>>;
 
 export type BuildCallbacks<EVENT_MAP extends TEventMap> = {
@@ -270,4 +281,10 @@ export type BuildCallbacks<EVENT_MAP extends TEventMap> = {
     string
   > as CamelCase<`on-${EVENT_NAME}`>]: CreateRemovableCallback<EVENT_MAP[EVENT_NAME]>;
 };
-export type GenericSynapseEntity = SynapseEntityProxy<object, TEventMap, object, object>;
+export type GenericSynapseEntity<DATA extends object = object> = SynapseEntityProxy<
+  object,
+  TEventMap,
+  object,
+  object,
+  DATA
+>;

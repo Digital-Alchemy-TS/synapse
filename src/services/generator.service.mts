@@ -83,8 +83,8 @@ export function DomainGeneratorService({
     busTransfer(bus_events);
 
     // #MARK: addEntity
-    function addEntity<ATTRIBUTES extends object, LOCALS extends object>(
-      entity: AddEntityOptions<CONFIGURATION, EVENT_MAP, ATTRIBUTES, LOCALS>,
+    function addEntity<ATTRIBUTES extends object, LOCALS extends object, DATA extends object>(
+      entity: AddEntityOptions<CONFIGURATION, EVENT_MAP, ATTRIBUTES, LOCALS, DATA>,
       clone = false,
     ) {
       // * defaults
@@ -104,18 +104,19 @@ export function DomainGeneratorService({
           CONFIGURATION,
           EVENT_MAP,
           ATTRIBUTES,
-          LOCALS
+          LOCALS,
+          DATA
         >;
       } else if (currentProxy) {
         logger.debug({ unique_id }, `creating clone`);
       }
 
-      type mergedConfig = CONFIGURATION & EntityConfigCommon<ATTRIBUTES, LOCALS>;
+      type mergedConfig = CONFIGURATION & EntityConfigCommon<ATTRIBUTES, LOCALS, DATA>;
 
       // * initialize storage
       const storage = clone
         ? synapse.storage.find<mergedConfig>(unique_id)
-        : synapse.storage.add<LOCALS, ATTRIBUTES, mergedConfig>({
+        : synapse.storage.add<LOCALS, ATTRIBUTES, mergedConfig, DATA>({
             domain,
             entity,
             load_config_keys,
@@ -167,7 +168,8 @@ export function DomainGeneratorService({
         CONFIGURATION,
         EVENT_MAP,
         ATTRIBUTES,
-        LOCALS
+        LOCALS,
+        DATA
       >;
 
       const listeners = new Set<() => void>();
@@ -401,6 +403,7 @@ export function DomainGeneratorService({
 
   return {
     create,
+    knownEntities,
     removableListener,
   };
 }

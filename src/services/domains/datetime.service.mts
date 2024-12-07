@@ -5,33 +5,34 @@ import {
   AddEntityOptions,
   BasicAddParams,
   BuildCallbacks,
+  CallbackData,
   SettableConfiguration,
   SynapseEntityException,
 } from "../../helpers/index.mts";
 
-type DateTimeSettable =
+type DateTimeSettable<DATA extends object> =
   | {
       date_type?: "iso";
       /**
        * iso date string
        */
-      native_value?: SettableConfiguration<string>;
+      native_value?: SettableConfiguration<string, DATA>;
     }
   | {
       date_type: "dayjs";
-      native_value?: SettableConfiguration<Dayjs>;
+      native_value?: SettableConfiguration<Dayjs, DATA>;
     }
   | {
       date_type: "date";
-      native_value?: SettableConfiguration<Date>;
+      native_value?: SettableConfiguration<Date, DATA>;
     };
 
-export type DateTimeConfiguration = {
+export type DateTimeConfiguration<DATA extends object> = {
   /**
    * default: true
    */
   managed?: boolean;
-} & DateTimeSettable;
+} & DateTimeSettable<DATA>;
 
 export type DateTimeEvents<VALUE extends SerializeTypes = string> = {
   set_value: { value: VALUE };
@@ -53,22 +54,26 @@ type SerializeTypes = string | Date | Dayjs;
 
 export function VirtualDateTime({ context, synapse, logger }: TServiceParams) {
   // #MARK: generator
-  const generate = synapse.generator.create<DateTimeConfiguration, DateTimeEvents, SerializeTypes>({
+  const generate = synapse.generator.create<
+    DateTimeConfiguration<object>,
+    DateTimeEvents,
+    SerializeTypes
+  >({
     bus_events: ["set_value"],
     context,
     // @ts-expect-error its fine
     domain: "datetime",
     load_config_keys: ["native_value"],
-    serialize(property: keyof DateTimeConfiguration, data: SerializeTypes) {
+    serialize(property: keyof DateTimeConfiguration<object>, data: SerializeTypes) {
       if (property !== "native_value") {
         return data as string;
       }
       return dayjs(data).toISOString();
     },
     unserialize(
-      property: keyof DateTimeConfiguration,
+      property: keyof DateTimeConfiguration<object>,
       data: string,
-      options: DateTimeConfiguration,
+      options: DateTimeConfiguration<object>,
     ): SerializeTypes {
       if (property !== "native_value") {
         return data as SerializeTypes;
@@ -86,7 +91,11 @@ export function VirtualDateTime({ context, synapse, logger }: TServiceParams) {
         }
       }
     },
-    validate(current: DateTimeConfiguration, key: keyof DateTimeConfiguration, newValue: unknown) {
+    validate(
+      current: DateTimeConfiguration<object>,
+      key: keyof DateTimeConfiguration<object>,
+      newValue: unknown,
+    ) {
       if (key !== "native_value") {
         return true;
       }
@@ -104,17 +113,22 @@ export function VirtualDateTime({ context, synapse, logger }: TServiceParams) {
   });
 
   // #MARK: builder
-  return function <PARAMS extends DateTimeParams>({
+  return function <
+    PARAMS extends DateTimeParams,
+    DATA extends object = CallbackData<PARAMS["locals"], PARAMS["attributes"]>,
+  >({
     managed = true,
     ...options
   }: AddEntityOptions<
-    DateTimeConfiguration,
+    DateTimeConfiguration<DATA>,
     DateTimeEvents,
     PARAMS["attributes"],
-    PARAMS["locals"]
+    PARAMS["locals"],
+    DATA
   >) {
     options.native_value ??= dayjs();
-    const entity = generate.addEntity(options);
+    // @ts-expect-error it's fine
+    const entity = generate.addEntity<PARAMS["attributes"], PARAMS["locals"], DATA>(options);
     if (managed) {
       entity.onSetValue(({ value }) => {
         logger.trace({ value }, "[managed] onSetValue");

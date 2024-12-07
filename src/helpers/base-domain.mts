@@ -3,7 +3,7 @@ import { TRawDomains } from "@digital-alchemy/hass";
 import { createHash } from "crypto";
 import { EmptyObject } from "type-fest";
 
-import { EntityConfigCommon } from "./common-config.mts";
+import { EntityConfigCommon, NonReactive } from "./common-config.mts";
 import { TSynapseId } from "./utility.mts";
 
 export type RemovableCallback<DATA extends unknown = unknown> = (
@@ -71,9 +71,10 @@ export type AddEntityOptions<
   EVENT_MAP extends Record<string, object>,
   ATTRIBUTES extends object,
   LOCALS extends object,
+  DATA extends object,
 > = {
   context: TContext;
-} & EntityConfigCommon<ATTRIBUTES, LOCALS> &
+} & EntityConfigCommon<ATTRIBUTES, LOCALS, DATA> &
   CONFIGURATION &
   Partial<{
     [EVENT in keyof EVENT_MAP]: RemovableCallback<EVENT_MAP[EVENT]>;
@@ -102,3 +103,12 @@ export const formatObjectId = (input: string) =>
     .replaceAll(/_+/g, "_");
 
 export const LATE_READY = -1;
+
+export type CallbackData<
+  LOCALS extends object,
+  ATTRIBUTES extends object,
+  EXTRA extends object = {},
+> = {
+  locals: LOCALS;
+  attributes: ATTRIBUTES;
+} & NonReactive<Omit<EXTRA, "managed">>;

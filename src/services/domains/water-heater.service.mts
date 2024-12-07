@@ -1,8 +1,14 @@
 import { TServiceParams } from "@digital-alchemy/core";
 
-import { AddEntityOptions, BasicAddParams, SettableConfiguration } from "../../helpers/index.mts";
+import {
+  AddEntityOptions,
+  BasicAddParams,
+  CallbackData,
+  SettableConfiguration,
+} from "../../helpers/index.mts";
+import { DateConfiguration } from "./date.service.mts";
 
-export type WaterHeaterConfiguration<OPERATIONS extends string = string> = {
+export type WaterHeaterConfiguration<DATA extends object, OPERATIONS extends string = string> = {
   /**
    * The minimum temperature that can be set.
    */
@@ -14,19 +20,19 @@ export type WaterHeaterConfiguration<OPERATIONS extends string = string> = {
   /**
    * The current temperature.
    */
-  current_temperature?: SettableConfiguration<number>;
+  current_temperature?: SettableConfiguration<number, DATA>;
   /**
    * The temperature we are trying to reach.
    */
-  target_temperature?: SettableConfiguration<number>;
+  target_temperature?: SettableConfiguration<number, DATA>;
   /**
    * Upper bound of the temperature we are trying to reach.
    */
-  target_temperature_high?: SettableConfiguration<number>;
+  target_temperature_high?: SettableConfiguration<number, DATA>;
   /**
    * Lower bound of the temperature we are trying to reach.
    */
-  target_temperature_low?: SettableConfiguration<number>;
+  target_temperature_low?: SettableConfiguration<number, DATA>;
   /**
    * One of TEMP_CELSIUS, TEMP_FAHRENHEIT, or TEMP_KELVIN.
    */
@@ -34,7 +40,7 @@ export type WaterHeaterConfiguration<OPERATIONS extends string = string> = {
   /**
    * The current operation mode.
    */
-  current_operation?: SettableConfiguration<OPERATIONS>;
+  current_operation?: SettableConfiguration<OPERATIONS, DATA>;
   /**
    * List of possible operation modes.
    */
@@ -43,7 +49,7 @@ export type WaterHeaterConfiguration<OPERATIONS extends string = string> = {
    * List of supported features.
    */
   supported_features?: number;
-  is_away_mode_on?: SettableConfiguration<boolean>;
+  is_away_mode_on?: SettableConfiguration<boolean, DATA>;
 };
 
 export type WaterHeaterEvents = {
@@ -68,7 +74,7 @@ export type WaterHeaterEvents = {
 };
 
 export function VirtualWaterHeater({ context, synapse }: TServiceParams) {
-  const generate = synapse.generator.create<WaterHeaterConfiguration, WaterHeaterEvents>({
+  const generate = synapse.generator.create<WaterHeaterConfiguration<object>, WaterHeaterEvents>({
     bus_events: [
       "set_temperature",
       "set_operation_mode",
@@ -95,12 +101,23 @@ export function VirtualWaterHeater({ context, synapse }: TServiceParams) {
     ],
   });
 
-  return <PARAMS extends BasicAddParams>(
+  return <
+    PARAMS extends BasicAddParams,
+    DATA extends object = CallbackData<
+      PARAMS["locals"],
+      PARAMS["attributes"],
+      DateConfiguration<object>
+    >,
+  >(
     options: AddEntityOptions<
-      WaterHeaterConfiguration,
+      WaterHeaterConfiguration<DATA>,
       WaterHeaterEvents,
       PARAMS["attributes"],
-      PARAMS["locals"]
+      PARAMS["locals"],
+      DATA
     >,
-  ) => generate.addEntity(options);
+  ) => {
+    // @ts-expect-error it's fine
+    return generate.addEntity<PARAMS["attributes"], PARAMS["locals"], DATA>(options);
+  };
 }

@@ -4,14 +4,15 @@ import {
   AddEntityOptions,
   BasicAddParams,
   BuildCallbacks,
+  CallbackData,
   SettableConfiguration,
 } from "../../helpers/index.mts";
 
-export type SelectConfiguration<OPTIONS extends string = string> = {
+export type SelectConfiguration<DATA extends object, OPTIONS extends string = string> = {
   /**
    * The current select option
    */
-  current_option?: SettableConfiguration<OPTIONS>;
+  current_option?: SettableConfiguration<OPTIONS, DATA>;
   /**
    * A list of available options as strings
    */
@@ -29,7 +30,7 @@ export type SelectEvents<OPTIONS extends string = string> = {
 };
 
 export function VirtualSelect({ context, synapse, logger }: TServiceParams) {
-  const generate = synapse.generator.create<SelectConfiguration, SelectEvents>({
+  const generate = synapse.generator.create<SelectConfiguration<object>, SelectEvents>({
     bus_events: ["select_option"],
     context,
     // @ts-expect-error its fine
@@ -37,16 +38,26 @@ export function VirtualSelect({ context, synapse, logger }: TServiceParams) {
     load_config_keys: ["current_option", "options"],
   });
 
-  return function <PARAMS extends SelectOptions>({
+  return function <
+    PARAMS extends SelectOptions,
+    DATA extends object = CallbackData<
+      PARAMS["locals"],
+      PARAMS["attributes"],
+      SelectConfiguration<object>
+    >,
+  >({
     managed = true,
     ...options
   }: AddEntityOptions<
-    SelectConfiguration<PARAMS["options"]>,
+    SelectConfiguration<DATA, PARAMS["options"]>,
     SelectEvents<PARAMS["options"]>,
     PARAMS["attributes"],
-    PARAMS["locals"]
+    PARAMS["locals"],
+    DATA
   >) {
-    const entity = generate.addEntity(options);
+    // @ts-expect-error it's fine
+    const entity = generate.addEntity<PARAMS["attributes"], PARAMS["locals"], DATA>(options);
+
     if (managed) {
       entity.onSelectOption(({ option }) => {
         logger.trace({ option }, "[managed] onSelectOption");
@@ -56,7 +67,7 @@ export function VirtualSelect({ context, synapse, logger }: TServiceParams) {
     type DynamicCallbacks = BuildCallbacks<SelectEvents<PARAMS["options"]>>;
     type TypedVirtualSelect = Omit<typeof entity, keyof DynamicCallbacks> &
       DynamicCallbacks &
-      Omit<SelectConfiguration<PARAMS["options"]>, "managed">;
+      Omit<SelectConfiguration<DATA, PARAMS["options"]>, "managed">;
 
     return entity as TypedVirtualSelect;
   };

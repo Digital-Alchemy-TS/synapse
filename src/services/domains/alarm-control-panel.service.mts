@@ -1,6 +1,11 @@
 import { TServiceParams } from "@digital-alchemy/core";
 
-import { AddEntityOptions, BasicAddParams, SettableConfiguration } from "../../helpers/index.mts";
+import {
+  AddEntityOptions,
+  BasicAddParams,
+  CallbackData,
+  SettableConfiguration,
+} from "../../helpers/index.mts";
 
 export type AlarmControlPanelStates =
   | "disarmed"
@@ -14,14 +19,14 @@ export type AlarmControlPanelStates =
   | "disarming"
   | "triggered";
 
-export type AlarmControlPanelConfiguration = {
-  state?: SettableConfiguration<AlarmControlPanelStates>;
+export type AlarmControlPanelConfiguration<DATA extends object> = {
+  state?: SettableConfiguration<AlarmControlPanelStates, DATA>;
   /**
    * Whether the code is required for arm actions.
    *
    * default: true
    */
-  code_arm_required?: SettableConfiguration<boolean>;
+  code_arm_required?: SettableConfiguration<boolean, DATA>;
   /**
    * One of the states listed in the code formats section.
    */
@@ -29,7 +34,7 @@ export type AlarmControlPanelConfiguration = {
   /**
    * Last change triggered by.
    */
-  changed_by?: SettableConfiguration<string>;
+  changed_by?: SettableConfiguration<string, DATA>;
   supported_features?: number;
   /**
    * default: true
@@ -49,7 +54,7 @@ export type AlarmControlPanelEvents = {
 
 export function VirtualAlarmControlPanel({ context, synapse, logger }: TServiceParams) {
   const generate = synapse.generator.create<
-    AlarmControlPanelConfiguration,
+    AlarmControlPanelConfiguration<object>,
     AlarmControlPanelEvents
   >({
     bus_events: [
@@ -73,16 +78,25 @@ export function VirtualAlarmControlPanel({ context, synapse, logger }: TServiceP
     ],
   });
 
-  return function <PARAMS extends BasicAddParams>({
+  return function <
+    PARAMS extends BasicAddParams,
+    DATA extends object = CallbackData<
+      PARAMS["locals"],
+      PARAMS["attributes"],
+      AlarmControlPanelConfiguration<object>
+    >,
+  >({
     managed = true,
     ...options
   }: AddEntityOptions<
-    AlarmControlPanelConfiguration,
+    AlarmControlPanelConfiguration<DATA>,
     AlarmControlPanelEvents,
     PARAMS["attributes"],
-    PARAMS["locals"]
+    PARAMS["locals"],
+    DATA
   >) {
-    const entity = generate.addEntity(options);
+    // @ts-expect-error it's fine
+    const entity = generate.addEntity<PARAMS["attributes"], PARAMS["locals"], DATA>(options);
     if (managed) {
       entity.onArmCustomBypass(() => {
         logger.trace("[managed] onArmCustomBypass");

@@ -1,16 +1,21 @@
 import { TServiceParams } from "@digital-alchemy/core";
 
-import { AddEntityOptions, BasicAddParams, SettableConfiguration } from "../../helpers/index.mts";
+import {
+  AddEntityOptions,
+  BasicAddParams,
+  CallbackData,
+  SettableConfiguration,
+} from "../../helpers/index.mts";
 
-export type VacuumConfiguration<FAN_SPEEDS extends string = string> = {
+export type VacuumConfiguration<DATA extends object, FAN_SPEEDS extends string = string> = {
   /**
    * Current battery level.
    */
-  battery_level?: SettableConfiguration<number>;
+  battery_level?: SettableConfiguration<number, DATA>;
   /**
    * The current fan speed.
    */
-  fan_speed?: SettableConfiguration<FAN_SPEEDS>;
+  fan_speed?: SettableConfiguration<FAN_SPEEDS, DATA>;
   /**
    * List of available fan speeds.
    */
@@ -46,7 +51,7 @@ export type VacuumEvents = {
 };
 
 export function VirtualVacuum({ context, synapse }: TServiceParams) {
-  const generate = synapse.generator.create<VacuumConfiguration, VacuumEvents>({
+  const generate = synapse.generator.create<VacuumConfiguration<object>, VacuumEvents>({
     bus_events: [
       "clean_spot",
       "locate",
@@ -63,12 +68,23 @@ export function VirtualVacuum({ context, synapse }: TServiceParams) {
     load_config_keys: ["battery_level", "fan_speed", "fan_speed_list", "supported_features"],
   });
 
-  return <PARAMS extends BasicAddParams>(
+  return <
+    PARAMS extends BasicAddParams,
+    DATA extends object = CallbackData<
+      PARAMS["locals"],
+      PARAMS["attributes"],
+      VacuumConfiguration<object>
+    >,
+  >(
     options: AddEntityOptions<
-      VacuumConfiguration,
+      VacuumConfiguration<DATA>,
       VacuumEvents,
       PARAMS["attributes"],
-      PARAMS["locals"]
+      PARAMS["locals"],
+      DATA
     >,
-  ) => generate.addEntity(options);
+  ) => {
+    // @ts-expect-error it's fine
+    return generate.addEntity<PARAMS["attributes"], PARAMS["locals"], DATA>(options);
+  };
 }

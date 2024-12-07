@@ -72,20 +72,21 @@ export function StorageService({
   function add<
     LOCALS extends object,
     ATTRIBUTES extends object,
-    CONFIGURATION extends EntityConfigCommon<ATTRIBUTES, LOCALS>,
+    CONFIGURATION extends EntityConfigCommon<ATTRIBUTES, LOCALS, DATA>,
+    DATA extends object,
   >({
     entity,
     load_config_keys,
     domain,
     serialize,
-  }: AddStateOptions<ATTRIBUTES, LOCALS, CONFIGURATION>) {
+  }: AddStateOptions<ATTRIBUTES, LOCALS, CONFIGURATION, DATA>) {
     if (registry.has(entity.unique_id as TSynapseId)) {
       throw new InternalError(context, `ENTITY_COLLISION`, `${domain} registry already id`);
     }
     domain_lookup.set(entity.unique_id, domain);
     let initialized = false;
     type ValueData = Record<keyof CONFIGURATION, unknown>;
-    type LoadKeys = keyof EntityConfigCommon<ATTRIBUTES, LOCALS>;
+    type LoadKeys = keyof EntityConfigCommon<ATTRIBUTES, LOCALS, DATA>;
     let CURRENT_VALUE = {} as ValueData;
     const load = [...load_config_keys, ...COMMON_CONFIG_KEYS.values()] as LoadKeys[];
 
@@ -113,7 +114,9 @@ export function StorageService({
        */
       function updateSettableConfig() {
         const current_value = storage.get(key);
-        const new_value = config.current() as CONFIGURATION[typeof key];
+        const new_value = config.current(
+          synapse.generator.knownEntities.get(unique_id),
+        ) as CONFIGURATION[typeof key];
         if (new_value === current_value) {
           logger.trace({ key, unique_id: entity.unique_id }, "ignoring noop");
           return;

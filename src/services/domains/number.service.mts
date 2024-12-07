@@ -3,17 +3,18 @@ import { TServiceParams } from "@digital-alchemy/core";
 import {
   AddEntityOptions,
   BasicAddParams,
+  CallbackData,
   SensorDeviceClasses,
   SettableConfiguration,
 } from "../../helpers/index.mts";
 
-export type NumberConfiguration = SensorDeviceClasses & {
+export type NumberConfiguration<DATA extends object> = SensorDeviceClasses & {
   /**
    * Defines how the number should be displayed in the UI.
    * It's recommended to use the default `auto`.
    * Can be `box` or `slider` to force a display mode.
    */
-  mode?: SettableConfiguration<"auto" | "slider" | "box">;
+  mode?: SettableConfiguration<"auto" | "slider" | "box", DATA>;
   /**
    * The maximum accepted value in the number's native_unit_of_measurement (inclusive)
    */
@@ -29,7 +30,7 @@ export type NumberConfiguration = SensorDeviceClasses & {
   /**
    * The value of the number in the number's native_unit_of_measurement.
    */
-  native_value?: SettableConfiguration<number>;
+  native_value?: SettableConfiguration<number, DATA>;
   /**
    * default: true
    */
@@ -41,7 +42,7 @@ export type NumberEvents = {
 };
 
 export function VirtualNumber({ context, synapse, logger }: TServiceParams) {
-  const generate = synapse.generator.create<NumberConfiguration, NumberEvents>({
+  const generate = synapse.generator.create<NumberConfiguration<object>, NumberEvents>({
     bus_events: ["set_value"],
     context,
     // @ts-expect-error its fine
@@ -57,11 +58,26 @@ export function VirtualNumber({ context, synapse, logger }: TServiceParams) {
     ],
   });
 
-  return function <PARAMS extends BasicAddParams>({
+  return function <
+    PARAMS extends BasicAddParams,
+    DATA extends object = CallbackData<
+      PARAMS["locals"],
+      PARAMS["attributes"],
+      NumberConfiguration<object>
+    >,
+  >({
     managed = true,
     ...options
-  }: AddEntityOptions<NumberConfiguration, NumberEvents, PARAMS["attributes"], PARAMS["locals"]>) {
-    const entity = generate.addEntity(options);
+  }: AddEntityOptions<
+    NumberConfiguration<DATA>,
+    NumberEvents,
+    PARAMS["attributes"],
+    PARAMS["locals"],
+    DATA
+  >) {
+    // @ts-expect-error it's fine
+    const entity = generate.addEntity<PARAMS["attributes"], PARAMS["locals"], DATA>(options);
+
     if (managed) {
       entity.onSetValue(({ value }) => {
         logger.trace({ value }, "[managed] onSetValue");
