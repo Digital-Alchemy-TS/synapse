@@ -8,6 +8,7 @@ import {
   SELECT_LOCALS_QUERY,
   TSynapseId,
 } from "../helpers/index.mts";
+import { bunRewrite } from "./sqlite.service.mts";
 
 export function SynapseLocalsService({ synapse, logger, internal }: TServiceParams) {
   // #MARK: updateLocal
@@ -18,12 +19,14 @@ export function SynapseLocalsService({ synapse, logger, internal }: TServicePara
     const value_json = JSON.stringify(content);
     const last_modified = new Date().toISOString();
 
-    database.prepare(ENTITY_LOCALS_UPSERT).run({
-      key,
-      last_modified,
-      unique_id,
-      value_json,
-    });
+    database.prepare(ENTITY_LOCALS_UPSERT).run(
+      bunRewrite({
+        key,
+        last_modified,
+        unique_id,
+        value_json,
+      }),
+    );
   }
 
   // #MARK: loadLocals

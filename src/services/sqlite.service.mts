@@ -33,7 +33,7 @@ function prefix(data: object) {
     : data;
 }
 
-const clean = <T extends object>(data: T) =>
+export const bunRewrite = <T extends object>(data: T) =>
   Object.fromEntries(
     Object.entries(data).map(([key, value]) => [
       key,
@@ -120,7 +120,7 @@ export async function SQLiteService({
   ): HomeAssistantEntityRow<LOCALS> {
     // - if exists, return existing data
     const data = loadRow<LOCALS>(unique_id);
-    const cleaned = clean(defaults);
+    const cleaned = bunRewrite(defaults);
     registeredDefaults.set(unique_id, cleaned);
     if (data) {
       const current = JSON.parse(data.base_state);
