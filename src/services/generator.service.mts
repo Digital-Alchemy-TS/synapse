@@ -119,6 +119,10 @@ export function DomainGeneratorService({
             domain,
             entity,
             load_config_keys,
+            // @ts-expect-error don't care
+            serialize: "serialize" in extra ? extra.serialize : undefined,
+            // @ts-expect-error don't care
+            unserialize: "unserialize" in extra ? extra.unserialize : undefined,
           });
 
       // * map bus events

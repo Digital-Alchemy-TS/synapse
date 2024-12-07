@@ -1,6 +1,6 @@
 import { ENTITY_STATE, PICK_ENTITY, TRawDomains } from "@digital-alchemy/hass";
 
-import { AddEntityOptions } from "./base-domain.mts";
+import { AddEntityOptions, TSerialize } from "./base-domain.mts";
 import { EntityConfigCommon } from "./common-config.mts";
 import { TSynapseId } from "./utility.mts";
 
@@ -30,7 +30,7 @@ export type AddStateOptions<
     ATTRIBUTES,
     LOCALS
   >)[];
-};
+} & TSerialize;
 
 export type ConfigMapper<KEY extends string> =
   | {

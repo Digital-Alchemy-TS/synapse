@@ -1,5 +1,6 @@
 import { is, TServiceParams } from "@digital-alchemy/core";
 import SQLiteDriver, { Database } from "better-sqlite3";
+import { Database as BunDatabase } from "bun:sqlite";
 
 import {
   ENTITY_CREATE,
@@ -15,7 +16,6 @@ export type SynapseSqliteDriver = typeof SQLiteDriver;
 type SynapseSqlite = {
   getDatabase: () => Database;
   load: (unique_id: TSynapseId, defaults: object) => HomeAssistantEntityRow;
-  setDriver: (driver: SynapseSqliteDriver) => void;
   update: (unique_id: TSynapseId, content: object) => void;
 };
 
@@ -28,8 +28,13 @@ export function SQLiteService({
   synapse,
 }: TServiceParams): SynapseSqlite {
   let database: Database;
+  const isBun = !is.empty(process.versions.bun);
   const application_name = internal.boot.application.name;
-  let Driver: SynapseSqliteDriver = SQLiteDriver;
+  const Driver = (isBun ? SQLiteDriver : BunDatabase) as SynapseSqliteDriver;
+  const prefix = (data: object) =>
+    isBun
+      ? Object.fromEntries(Object.entries(data).map(([key, value]) => [`$${key}`, value]))
+      : data;
 
   lifecycle.onPostConfig(() => {
     logger.trace("create if not exists tables");
@@ -55,16 +60,17 @@ export function SQLiteService({
     const state_json = JSON.stringify(content);
     const now = new Date().toISOString();
     const insert = database.prepare(ENTITY_UPSERT);
-    logger.trace({ entity_id, unique_id }, "update entity");
-    insert.run({
-      application_name,
-      entity_id,
+    const data = prefix({
+      application_name: application_name,
+      entity_id: entity_id,
       first_observed: now,
       last_modified: now,
       last_reported: now,
-      state_json,
-      unique_id,
+      state_json: state_json,
+      unique_id: unique_id,
     });
+    logger.warn({ data }, "update entity");
+    insert.run(data);
   }
 
   // #MARK: loadRow
@@ -100,7 +106,6 @@ export function SQLiteService({
   return {
     getDatabase: () => database,
     load,
-    setDriver: (driver: SynapseSqliteDriver) => (Driver = driver),
     update,
   };
 }

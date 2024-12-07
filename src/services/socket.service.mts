@@ -1,12 +1,17 @@
 import { SECOND, TServiceParams } from "@digital-alchemy/core";
 import { TUniqueId } from "@digital-alchemy/hass";
 
+type HeartBeatPayload = {
+  now: number;
+};
+
 export function SynapseSocketService({
   logger,
   lifecycle,
   hass,
   scheduler,
   config,
+  context,
   synapse,
   internal,
 }: TServiceParams) {
@@ -16,10 +21,9 @@ export function SynapseSocketService({
   const emitted = new Set<number>();
 
   async function emitHeartBeat() {
-    logger.trace("heartbeat");
     const now = Date.now();
     emitted.add(now);
-    await hass.socket.fireEvent(name("heartbeat"), { now });
+    await hass.socket.fireEvent(name("heartbeat"), { now } satisfies HeartBeatPayload);
     scheduler.setTimeout(() => emitted.delete(now), SECOND);
   }
 
@@ -30,8 +34,24 @@ export function SynapseSocketService({
       config.synapse.HEARTBEAT_INTERVAL * SECOND,
     );
   }
+
+  function traceSiblings() {
+    hass.socket.onEvent({
+      context,
+      event: name("heartbeat"),
+      exec({ data }: { data: HeartBeatPayload }) {
+        if (!emitted.has(data.now)) {
+          logger.debug({ data }, "not my heartbeat");
+        }
+      },
+    });
+  }
+
   // * onPostConfig
   lifecycle.onPostConfig(() => {
+    if (config.synapse.TRACE_SIBLING_HEARTBEATS) {
+      synapse.socket.traceSiblings();
+    }
     if (!config.synapse.EMIT_HEARTBEAT) {
       return;
     }
@@ -75,5 +95,5 @@ export function SynapseSocketService({
     await hass.socket.fireEvent(name("update"), { data, unique_id });
   }
 
-  return { send, setupHeartbeat };
+  return { send, setupHeartbeat, traceSiblings };
 }

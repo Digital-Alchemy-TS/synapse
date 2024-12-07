@@ -1,4 +1,5 @@
 import { TServiceParams } from "@digital-alchemy/core";
+import dayjs from "dayjs";
 
 import { AddEntityOptions, BasicAddParams, SettableConfiguration } from "../../helpers/index.mts";
 
@@ -30,6 +31,7 @@ export function VirtualTime({ context, synapse, logger }: TServiceParams) {
     managed = true,
     ...options
   }: AddEntityOptions<TimeConfiguration, TimeEvents, PARAMS["attributes"], PARAMS["locals"]>) {
+    options.native_value ??= dayjs().format("HH:mm:ss") as SynapseTimeFormat;
     const entity = generate.addEntity(options);
     if (managed) {
       entity.onSetValue(({ value }) => {

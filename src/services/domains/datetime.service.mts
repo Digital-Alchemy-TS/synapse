@@ -113,6 +113,7 @@ export function VirtualDateTime({ context, synapse, logger }: TServiceParams) {
     PARAMS["attributes"],
     PARAMS["locals"]
   >) {
+    options.native_value ??= dayjs();
     const entity = generate.addEntity(options);
     if (managed) {
       entity.onSetValue(({ value }) => {

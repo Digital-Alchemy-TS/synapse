@@ -13,8 +13,6 @@ import {
   TSynapseId,
 } from "../helpers/index.mts";
 
-const LATE_POST_CONFIG = -1;
-
 export function StorageService({
   logger,
   context,
@@ -44,14 +42,20 @@ export function StorageService({
     LOCALS extends object,
     ATTRIBUTES extends object,
     CONFIGURATION extends EntityConfigCommon<ATTRIBUTES, LOCALS>,
-  >({ entity, load_config_keys, domain }: AddStateOptions<ATTRIBUTES, LOCALS, CONFIGURATION>) {
+  >({
+    entity,
+    load_config_keys,
+    domain,
+    serialize,
+  }: AddStateOptions<ATTRIBUTES, LOCALS, CONFIGURATION>) {
     if (registry.has(entity.unique_id as TSynapseId)) {
       throw new InternalError(context, `ENTITY_COLLISION`, `${domain} registry already id`);
     }
     domain_lookup.set(entity.unique_id, domain);
     let initialized = false;
+    type ValueData = Record<keyof CONFIGURATION, unknown>;
 
-    let CURRENT_VALUE = {} as Record<keyof CONFIGURATION, unknown>;
+    let CURRENT_VALUE = {} as ValueData;
 
     // #MARK: createSettableConfig
     function createSettableConfig(key: keyof CONFIGURATION, config: ReactiveConfig) {
@@ -96,7 +100,18 @@ export function StorageService({
 
     // #MARK: storage
     const storage = {
-      export: () => ({ ...CURRENT_VALUE }),
+      export: () => {
+        const keys = Object.keys(CURRENT_VALUE) as Extract<keyof typeof CURRENT_VALUE, string>[];
+        return Object.fromEntries(
+          keys.map(i => {
+            if (serialize) {
+              // @ts-expect-error don't care
+              return [i, serialize(i, CURRENT_VALUE[i], undefined)];
+            }
+            return [i, CURRENT_VALUE[i]];
+          }),
+        ) as ValueData;
+      },
       get: key => CURRENT_VALUE[key],
       isStored: key => isCommonConfigKey(key) || load_config_keys.includes(key),
       keys: () => load,
@@ -122,7 +137,7 @@ export function StorageService({
     registry.set(entity.unique_id as TSynapseId, storage as unknown as TSynapseEntityStorage);
 
     // * value loading
-    lifecycle.onPostConfig(function onPostConfig() {
+    lifecycle.onReady(function onReady() {
       // - identify id
       const unique_id = entity.unique_id as TSynapseId;
 
@@ -131,14 +146,16 @@ export function StorageService({
 
       if (is.empty(data?.state_json)) {
         initialized = true;
+        logger.warn({ unique_id }, "initial create entity row");
+        synapse.sqlite.update(unique_id, registry.get(unique_id).export());
         return;
       }
 
       // - load previous value
-      logger.trace({ entity_id: data.entity_id, name: onPostConfig }, `importing value`);
+      logger.warn({ entity_id: data.entity_id, name: onReady }, `importing value`);
       CURRENT_VALUE = JSON.parse(data.state_json);
       initialized = true;
-    }, LATE_POST_CONFIG);
+    });
 
     // * done
     return storage;

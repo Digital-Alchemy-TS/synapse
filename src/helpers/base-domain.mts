@@ -11,6 +11,22 @@ export type RemovableCallback<DATA extends unknown = unknown> = (
   remove: () => void,
 ) => TBlackHole;
 
+export type TSerialize<
+  CONFIGURATION extends object = object,
+  SERIALIZE_TYPES extends unknown = unknown,
+> = {
+  serialize: (
+    property: keyof CONFIGURATION,
+    data: SERIALIZE_TYPES,
+    options: CONFIGURATION,
+  ) => string;
+  unserialize: (
+    property: keyof CONFIGURATION,
+    data: string,
+    options: CONFIGURATION,
+  ) => SERIALIZE_TYPES;
+};
+
 export type CreateRemovableCallback<DATA extends unknown = unknown> = (
   callback: RemovableCallback<DATA>,
 ) => { remove: () => void };
@@ -46,21 +62,7 @@ export type DomainGeneratorOptions<
    * ensure that data is valid before handing off to internals
    */
   validate?: (current: CONFIGURATION, key: keyof CONFIGURATION, value: unknown) => void | never;
-} & (
-  | {
-      serialize: (
-        property: keyof CONFIGURATION,
-        data: SERIALIZE_TYPES,
-        options: CONFIGURATION,
-      ) => string;
-      unserialize: (
-        property: keyof CONFIGURATION,
-        data: string,
-        options: CONFIGURATION,
-      ) => SERIALIZE_TYPES;
-    }
-  | EmptyObject
-);
+} & (TSerialize<CONFIGURATION, SERIALIZE_TYPES> | EmptyObject);
 
 export type TEventMap = Record<string, object>;
 
