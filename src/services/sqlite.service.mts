@@ -53,6 +53,7 @@ export async function SQLiteService({
 
   const application_name = internal.boot.application.name;
   const Driver = await getDriver();
+  const registeredDefaults = new Map<string, object>();
 
   lifecycle.onPostConfig(() => {
     logger.trace("create if not exists tables");
@@ -67,7 +68,7 @@ export async function SQLiteService({
   });
 
   // #MARK: update
-  function update(unique_id: TSynapseId, content: object, base_state: object) {
+  function update(unique_id: TSynapseId, content: object, defaults?: object) {
     const entity_id = hass.entity.registry.current.find(i => i.unique_id === unique_id)?.entity_id;
     if (is.empty(entity_id)) {
       if (synapse.configure.isRegistered()) {
@@ -83,9 +84,10 @@ export async function SQLiteService({
     const state_json = JSON.stringify(content);
     const now = new Date().toISOString();
     const insert = database.prepare(ENTITY_UPSERT);
+    defaults ??= registeredDefaults.get(unique_id);
     const data = prefix({
       application_name: application_name,
-      base_state: JSON.stringify(base_state),
+      base_state: JSON.stringify(defaults),
       entity_id: entity_id,
       first_observed: now,
       last_modified: now,
@@ -119,6 +121,7 @@ export async function SQLiteService({
     // - if exists, return existing data
     const data = loadRow<LOCALS>(unique_id);
     const cleaned = clean(defaults);
+    registeredDefaults.set(unique_id, cleaned);
     if (data) {
       const current = JSON.parse(data.base_state);
       if (is.equal(cleaned, current)) {

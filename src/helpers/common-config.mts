@@ -87,12 +87,12 @@ export type SettableConfiguration<TYPE extends unknown, DATA extends object = ob
    */
   | TYPE
   // Verbose form
-  | ReactiveConfig<TYPE>
+  | ReactiveConfig<TYPE, DATA>
   // Equiv of the `current` for the verbose reactive config
   // If you don't need the other options (or prefer bind), this works great 👍
   | ((data: DATA) => TYPE);
 
-type Updatable = { onUpdate: (callback: () => TBlackHole) => void };
+type Updatable<DATA extends object> = { onUpdate: (callback: (data: DATA) => TBlackHole) => void };
 
 /**
  * > **NOTE**: `onUpdate` list is merged with the `bind` array that is provided to the entity
@@ -113,7 +113,7 @@ export type ReactiveConfig<TYPE extends unknown = unknown, DATA extends object =
   /**
    * Update immediately in response to entity updates
    */
-  onUpdate?: Updatable[];
+  onUpdate?: Updatable<DATA>[];
   /**
    * Every 30s by default
    */
@@ -121,7 +121,7 @@ export type ReactiveConfig<TYPE extends unknown = unknown, DATA extends object =
   /**
    * Calculate current value
    */
-  current(): TYPE;
+  current(data: DATA): TYPE;
 };
 
 export const isReactiveConfig = (key: string, value: unknown): value is ReactiveConfig =>
