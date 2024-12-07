@@ -3,6 +3,7 @@ import { TUniqueId } from "@digital-alchemy/hass";
 
 type HeartBeatPayload = {
   now: number;
+  hash: string;
 };
 
 export function SynapseSocketService({
@@ -22,8 +23,9 @@ export function SynapseSocketService({
 
   async function emitHeartBeat() {
     const now = Date.now();
+    const hash = synapse.storage.hash();
     emitted.add(now);
-    await hass.socket.fireEvent(name("heartbeat"), { now } satisfies HeartBeatPayload);
+    await hass.socket.fireEvent(name("heartbeat"), { hash, now } satisfies HeartBeatPayload);
     scheduler.setTimeout(() => emitted.delete(now), SECOND);
   }
 
@@ -35,22 +37,29 @@ export function SynapseSocketService({
     );
   }
 
-  function traceSiblings() {
-    hass.socket.onEvent({
-      context,
-      event: name("heartbeat"),
-      exec({ data }: { data: HeartBeatPayload }) {
-        if (!emitted.has(data.now)) {
-          logger.debug({ data }, "not my heartbeat");
-        }
-      },
-    });
-  }
-
   // * onPostConfig
   lifecycle.onPostConfig(() => {
+    hass.socket.onEvent({
+      context,
+      event: name("refresh"),
+      async exec({ data }: { data: string }) {
+        logger.error("HIT");
+        await hass.fetch.fetch({
+          method: "post",
+          url: `/api/config/config_entries/entry/${data}/reload`,
+        });
+      },
+    });
     if (config.synapse.TRACE_SIBLING_HEARTBEATS) {
-      synapse.socket.traceSiblings();
+      hass.socket.onEvent({
+        context,
+        event: name("heartbeat"),
+        exec({ data }: { data: HeartBeatPayload }) {
+          if (!emitted.has(data.now)) {
+            logger.debug({ data }, "not my heartbeat");
+          }
+        },
+      });
     }
     if (!config.synapse.EMIT_HEARTBEAT) {
       return;
@@ -65,7 +74,7 @@ export function SynapseSocketService({
       return;
     }
     logger.debug({ name: onConnect }, `reconnect heartbeat`);
-    await hass.socket.fireEvent(name("heartbeat"));
+    await emitHeartBeat();
   });
 
   // * onPreShutdown
@@ -95,5 +104,5 @@ export function SynapseSocketService({
     await hass.socket.fireEvent(name("update"), { data, unique_id });
   }
 
-  return { send, setupHeartbeat, traceSiblings };
+  return { send, setupHeartbeat };
 }

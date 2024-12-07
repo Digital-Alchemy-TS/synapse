@@ -1,6 +1,5 @@
 import { is, TServiceParams } from "@digital-alchemy/core";
 import SQLiteDriver, { Database } from "better-sqlite3";
-import { Database as BunDatabase } from "bun:sqlite";
 
 import {
   ENTITY_CREATE,
@@ -19,18 +18,28 @@ type SynapseSqlite = {
   update: (unique_id: TSynapseId, content: object) => void;
 };
 
-export function SQLiteService({
+const isBun = !is.empty(process.versions.bun);
+async function getDriver(): Promise<SynapseSqliteDriver> {
+  if (isBun) {
+    const { Database } = await import("bun:sqlite");
+    return Database as unknown as SynapseSqliteDriver;
+  }
+  const { default: Database } = await import("better-sqlite3");
+  return Database;
+}
+
+export async function SQLiteService({
   lifecycle,
   config,
   logger,
   hass,
   internal,
   synapse,
-}: TServiceParams): SynapseSqlite {
+}: TServiceParams): Promise<SynapseSqlite> {
   let database: Database;
-  const isBun = !is.empty(process.versions.bun);
+
   const application_name = internal.boot.application.name;
-  const Driver = (isBun ? SQLiteDriver : BunDatabase) as SynapseSqliteDriver;
+  const Driver = await getDriver();
   const prefix = (data: object) =>
     isBun
       ? Object.fromEntries(Object.entries(data).map(([key, value]) => [`$${key}`, value]))
@@ -69,7 +78,7 @@ export function SQLiteService({
       state_json: state_json,
       unique_id: unique_id,
     });
-    logger.warn({ data }, "update entity");
+    logger.trace({ ...data }, "update entity");
     insert.run(data);
   }
 

@@ -1,10 +1,11 @@
-import { CronExpression, InternalError, is, TServiceParams } from "@digital-alchemy/core";
+import { CronExpression, DOWN, InternalError, is, TServiceParams, UP } from "@digital-alchemy/core";
 import { TRawDomains, TUniqueId } from "@digital-alchemy/hass";
 
 import {
   AddStateOptions,
   COMMON_CONFIG_KEYS,
   EntityConfigCommon,
+  generateHash,
   isCommonConfigKey,
   isReactiveConfig,
   NO_LIVE_UPDATE,
@@ -166,5 +167,7 @@ export function StorageService({
     dump,
     find: <CONFIGURATION extends object>(id: TSynapseId | TUniqueId) =>
       registry.get(id as TSynapseId) as unknown as TSynapseEntityStorage<CONFIGURATION>,
+    hash: () =>
+      generateHash([...registry.keys()].toSorted((a, b) => (a > b ? UP : DOWN)).join("|")),
   };
 }

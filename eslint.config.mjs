@@ -63,6 +63,7 @@ export default [
       "unicorn/prefer-module": "off",
       "@typescript-eslint/no-magic-numbers": "warn",
       "unicorn/no-object-as-default-parameter": "off",
+      "@typescript-eslint/no-floating-promises": "error",
       "unicorn/no-null": "off",
       "sonarjs/no-empty-function": "off",
       "sonarjs/no-unused-expressions": "off",
