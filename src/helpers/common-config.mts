@@ -62,25 +62,62 @@ export type EntityConfigCommon<ATTRIBUTES extends object, LOCALS extends object>
    * can be used as a sqlite backed cache for entity specific data
    */
   locals?: LOCALS;
+  /**
+   * Automatically trigger reactive config updates in response to updates from these entities
+   *
+   * List gets merged with `onUpdate` array in the configs, is convenient shorthand
+   */
+  bind?: Updatable[];
 };
 
 export const isCommonConfigKey = <ATTRIBUTES extends object, LOCALS extends object>(
   key: string,
 ): key is keyof EntityConfigCommon<ATTRIBUTES, LOCALS> => COMMON_CONFIG_KEYS.has(key);
 
-export type SettableConfiguration<TYPE extends unknown> = TYPE | ReactiveConfig<TYPE>;
+export type SettableConfiguration<TYPE extends unknown, DATA extends object = object> =
+  /**
+   * Straight provide the value.
+   * If this changes in the definition (hard coded value usually), then the entity config will be reset
+   *
+   * This option can be used with assignments
+   *
+   * ```typescript
+   * entity.field = new_value;
+   * ```
+   */
+  | TYPE
+  // Verbose form
+  | ReactiveConfig<TYPE>
+  // Equiv of the `current` for the verbose reactive config
+  // If you don't need the other options (or prefer bind), this works great 👍
+  | ((data: DATA) => TYPE);
 
-export type ReactiveConfig<TYPE extends unknown = unknown> = {
+type Updatable = { onUpdate: (callback: () => TBlackHole) => void };
+
+/**
+ * > **NOTE**: `onUpdate` list is merged with the `bind` array that is provided to the entity
+ * ```typescript
+ * {
+ *   icon: {
+ *     current() {
+ *       return someLogic ? "mdi:cookie-clock" : "mdi:cookie-alert-outline";
+ *     },
+ *     onUpdate: [hassEntityReference, synapseEntityReference],
+ *     // every 30 seconds by default
+ *     schedule: CronExpression.EVERY_SECOND,
+ *   },
+ * }
+ * ```
+ */
+export type ReactiveConfig<TYPE extends unknown = unknown, DATA extends object = object> = {
   /**
    * Update immediately in response to entity updates
    */
-  onUpdate?: { onUpdate: (callback: () => TBlackHole) => void }[];
-
+  onUpdate?: Updatable[];
   /**
    * Every 30s by default
    */
   schedule?: CronExpression | string;
-
   /**
    * Calculate current value
    */

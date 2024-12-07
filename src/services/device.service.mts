@@ -70,6 +70,8 @@ export function DeviceService({ config, lifecycle, logger, internal, synapse }: 
       return id;
     },
 
+    idList: () => [...DEVICE_REGISTRY.keys()],
+
     list() {
       return [...DEVICE_REGISTRY.keys()].map(unique_id => ({
         ...DEVICE_REGISTRY.get(unique_id),

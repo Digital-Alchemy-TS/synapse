@@ -15,7 +15,7 @@ export type SynapseSqliteDriver = typeof SQLiteDriver;
 type SynapseSqlite = {
   getDatabase: () => Database;
   load: (unique_id: TSynapseId, defaults: object) => HomeAssistantEntityRow;
-  update: (unique_id: TSynapseId, content: object) => void;
+  update: (unique_id: TSynapseId, content: object, defaults?: object) => void;
 };
 
 const isBun = !is.empty(process.versions.bun);
@@ -27,6 +27,19 @@ async function getDriver(): Promise<SynapseSqliteDriver> {
   const { default: Database } = await import("better-sqlite3");
   return Database;
 }
+function prefix(data: object) {
+  return isBun
+    ? Object.fromEntries(Object.entries(data).map(([key, value]) => [`$${key}`, value]))
+    : data;
+}
+
+const clean = <T extends object>(data: T) =>
+  Object.fromEntries(
+    Object.entries(data).map(([key, value]) => [
+      key,
+      is.object(value) && "current" in value ? "dynamic" : value,
+    ]),
+  ) as T;
 
 export async function SQLiteService({
   lifecycle,
@@ -40,10 +53,6 @@ export async function SQLiteService({
 
   const application_name = internal.boot.application.name;
   const Driver = await getDriver();
-  const prefix = (data: object) =>
-    isBun
-      ? Object.fromEntries(Object.entries(data).map(([key, value]) => [`$${key}`, value]))
-      : data;
 
   lifecycle.onPostConfig(() => {
     logger.trace("create if not exists tables");
@@ -58,12 +67,17 @@ export async function SQLiteService({
   });
 
   // #MARK: update
-  function update(unique_id: TSynapseId, content: object) {
+  function update(unique_id: TSynapseId, content: object, base_state: object) {
     const entity_id = hass.entity.registry.current.find(i => i.unique_id === unique_id)?.entity_id;
     if (is.empty(entity_id)) {
       if (synapse.configure.isRegistered()) {
-        logger.warn({ name: update, unique_id }, `not exists`);
+        logger.warn(
+          { name: update, unique_id },
+          `app registered, but entity does not exist (reload?)`,
+        );
+        return;
       }
+      logger.warn("app not registered, skipping write");
       return;
     }
     const state_json = JSON.stringify(content);
@@ -71,6 +85,7 @@ export async function SQLiteService({
     const insert = database.prepare(ENTITY_UPSERT);
     const data = prefix({
       application_name: application_name,
+      base_state: JSON.stringify(base_state),
       entity_id: entity_id,
       first_observed: now,
       last_modified: now,
@@ -103,12 +118,20 @@ export async function SQLiteService({
   ): HomeAssistantEntityRow<LOCALS> {
     // - if exists, return existing data
     const data = loadRow<LOCALS>(unique_id);
+    const cleaned = clean(defaults);
     if (data) {
-      return data;
+      const current = JSON.parse(data.base_state);
+      if (is.equal(cleaned, current)) {
+        logger.trace({ unique_id }, "equal defaults");
+        return data;
+      }
+      logger.info({ unique_id }, "hard config change detected, resetting entity");
+      // might do some smart merge logic later 🤷‍♀️
+      // technically no specific action is needed here since the below will override
     }
     // - if new: insert then try again
     logger.trace({ name: load, unique_id }, `creating new sqlite entry`);
-    update(unique_id, defaults);
+    update(unique_id, cleaned, cleaned);
     return loadRow<LOCALS>(unique_id);
   }
 

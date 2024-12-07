@@ -5,6 +5,7 @@ export const ENTITY_CREATE = `CREATE TABLE IF NOT EXISTS HomeAssistantEntity (
   unique_id TEXT NOT NULL UNIQUE,
   entity_id TEXT NOT NULL,
   state_json TEXT NOT NULL,
+  base_state TEXT NOT NULL,
   first_observed DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   last_reported DATETIME NOT NULL,
   last_modified DATETIME NOT NULL,
@@ -21,14 +22,29 @@ export const LOCALS_CREATE = `CREATE TABLE IF NOT EXISTS HomeAssistantEntityLoca
 )`;
 
 export const ENTITY_UPSERT = `INSERT INTO HomeAssistantEntity (
-  unique_id, entity_id, state_json, first_observed, last_reported, last_modified, application_name
+  unique_id,
+  entity_id,
+  state_json,
+  first_observed,
+  last_reported,
+  last_modified,
+  base_state,
+  application_name
 ) VALUES (
-  $unique_id, $entity_id, $state_json, $first_observed, $last_reported, $last_modified, $application_name
+  $unique_id,
+  $entity_id,
+  $state_json,
+  $first_observed,
+  $last_reported,
+  $last_modified,
+  $base_state,
+  $application_name
 ) ON CONFLICT(unique_id) DO UPDATE SET
   entity_id = excluded.entity_id,
   last_reported = excluded.last_reported,
   last_modified = excluded.last_modified,
   state_json = excluded.state_json,
+  base_state = excluded.base_state,
   application_name = excluded.application_name`;
 
 export const ENTITY_LOCALS_UPSERT = `INSERT INTO HomeAssistantEntityLocals (
@@ -68,6 +84,7 @@ export type HomeAssistantEntityRow<LOCALS extends object = object> = {
   first_observed: string;
   last_reported: string;
   last_modified: string;
+  base_state: string;
   application_name: string;
   locals: LOCALS;
 };
