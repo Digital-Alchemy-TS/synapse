@@ -117,6 +117,7 @@ export function DomainGeneratorService({
       const storage = clone
         ? synapse.storage.find<mergedConfig>(unique_id)
         : synapse.storage.add<LOCALS, ATTRIBUTES, mergedConfig, DATA>({
+            bind: entity.bind,
             domain,
             entity,
             load_config_keys,
@@ -393,7 +394,6 @@ export function DomainGeneratorService({
           return false;
         },
       });
-
       knownEntities.set(unique_id, outProxy as unknown as GenericSynapseEntity);
       return outProxy;
     }

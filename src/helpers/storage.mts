@@ -1,7 +1,7 @@
 import { ENTITY_STATE, PICK_ENTITY, TRawDomains } from "@digital-alchemy/hass";
 
 import { AddEntityOptions, TSerialize } from "./base-domain.mts";
-import { EntityConfigCommon } from "./common-config.mts";
+import { EntityConfigCommon, Updatable } from "./common-config.mts";
 import { TSynapseId } from "./utility.mts";
 
 export type TSynapseEntityStorage<CONFIGURATION extends object = object> = {
@@ -21,6 +21,12 @@ export type AddStateOptions<
   DATA extends object,
 > = {
   domain: TRawDomains;
+  /**
+   * Automatically trigger reactive config updates in response to updates from these entities
+   *
+   * List gets merged with `onUpdate` array in the configs, is convenient shorthand
+   */
+  bind?: Updatable<DATA>[];
   entity: AddEntityOptions<CONFIGURATION, Record<string, object>, ATTRIBUTES, LOCALS, DATA>;
   /**
    * initial import from typescript defs

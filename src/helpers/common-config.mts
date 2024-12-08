@@ -96,7 +96,9 @@ export type SettableConfiguration<TYPE extends unknown, DATA extends object> =
   // If you don't need the other options (or prefer bind), this works great 👍
   | ((data: DATA) => TYPE);
 
-type Updatable<DATA extends object> = { onUpdate: (callback: (data: DATA) => TBlackHole) => void };
+export type Updatable<DATA extends object> = {
+  onUpdate: (callback: (data: DATA) => TBlackHole) => void;
+};
 
 /**
  * > **NOTE**: `onUpdate` list is merged with the `bind` array that is provided to the entity
@@ -127,6 +129,9 @@ export type ReactiveConfig<TYPE extends unknown = unknown, DATA extends object =
    */
   current(data: DATA): TYPE;
 };
+
+export const isShortReactiveConfig = (key: string, value: unknown): value is ReactiveConfig =>
+  is.function(value) && key !== "attributes" && !NO_LIVE_UPDATE.has(key);
 
 export const isReactiveConfig = (key: string, value: unknown): value is ReactiveConfig =>
   is.object(value) &&

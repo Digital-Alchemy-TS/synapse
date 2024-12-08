@@ -78,6 +78,7 @@ export function StorageService({
     entity,
     load_config_keys,
     domain,
+    bind = [],
     serialize,
   }: AddStateOptions<ATTRIBUTES, LOCALS, CONFIGURATION, DATA>) {
     if (registry.has(entity.unique_id as TSynapseId)) {
@@ -92,7 +93,11 @@ export function StorageService({
 
     // run through the import
     load.forEach(key => {
-      const value = entity[key];
+      let value = entity[key];
+      if (!NO_LIVE_UPDATE.has(key) && is.function(value)) {
+        // @ts-expect-error fixme
+        value = { current: value } as unknown;
+      }
       if (isReactiveConfig(key, value)) {
         registerReactiveConfig(key, value);
         return;
@@ -114,9 +119,9 @@ export function StorageService({
        */
       function updateSettableConfig() {
         const current_value = storage.get(key);
-        const new_value = config.current(
-          synapse.generator.knownEntities.get(unique_id),
-        ) as CONFIGURATION[typeof key];
+        const known = synapse.generator.knownEntities.get(unique_id);
+        // console.log({ known });
+        const new_value = config.current(known) as CONFIGURATION[typeof key];
         if (new_value === current_value) {
           logger.trace({ key, unique_id: entity.unique_id }, "ignoring noop");
           return;
@@ -134,9 +139,10 @@ export function StorageService({
         schedule: config.schedule || CronExpression.EVERY_30_SECONDS,
       });
 
+      const onUpdate = [...bind, ...(config.onUpdate ?? [])];
       // Track reference entities
-      if (!is.empty(config.onUpdate)) {
-        config.onUpdate.forEach(entity => entity.onUpdate(updateSettableConfig));
+      if (!is.empty(onUpdate)) {
+        onUpdate.forEach(entity => entity.onUpdate(updateSettableConfig));
       }
       lifecycle.onReady(() => updateSettableConfig());
       event.on(unique_id, updateSettableConfig);

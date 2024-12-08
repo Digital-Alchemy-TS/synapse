@@ -8,25 +8,31 @@ import {
   SELECT_LOCALS_QUERY,
   TSynapseId,
 } from "../helpers/index.mts";
-import { bunRewrite } from "./sqlite.service.mts";
+import { prefix } from "./sqlite.service.mts";
 
-export function SynapseLocalsService({ synapse, logger, internal }: TServiceParams) {
+export function SynapseLocalsService({ synapse, logger, internal, event }: TServiceParams) {
   // #MARK: updateLocal
   function updateLocal(unique_id: TSynapseId, key: string, content: unknown) {
-    logger.trace({ key, unique_id }, "updateLocal");
     const database = synapse.sqlite.getDatabase();
+    logger.trace({ key, unique_id }, "updateLocal");
+
+    if (is.undefined(content)) {
+      logger.debug({ key, unique_id }, `delete local (value {undefined})`);
+      database.prepare(DELETE_LOCALS_QUERY).run([unique_id, key]);
+      return;
+    }
 
     const value_json = JSON.stringify(content);
     const last_modified = new Date().toISOString();
+    const param = prefix({
+      key,
+      last_modified,
+      unique_id,
+      value_json,
+    });
+    logger.trace({ param }, "update local");
 
-    database.prepare(ENTITY_LOCALS_UPSERT).run(
-      bunRewrite({
-        key,
-        last_modified,
-        unique_id,
-        value_json,
-      }),
-    );
+    database.prepare(ENTITY_LOCALS_UPSERT).run(param);
   }
 
   // #MARK: loadLocals
@@ -119,13 +125,13 @@ export function SynapseLocalsService({ synapse, logger, internal }: TServicePara
         logger.debug({ unique_id }, `updating [%s]`, property);
         synapse.locals.updateLocal(unique_id, property, value);
         locals.set(property, value);
+        event.emit(unique_id);
         return true;
       },
     });
 
     return {
       proxy,
-
       replace: (data: LOCALS) => {
         locals ??= loadLocals(unique_id);
         if (!locals) {

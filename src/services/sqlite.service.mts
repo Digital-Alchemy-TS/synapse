@@ -27,13 +27,13 @@ async function getDriver(): Promise<SynapseSqliteDriver> {
   const { default: Database } = await import("better-sqlite3");
   return Database;
 }
-function prefix(data: object) {
+export function prefix(data: object) {
   return isBun
     ? Object.fromEntries(Object.entries(data).map(([key, value]) => [`$${key}`, value]))
     : data;
 }
 
-export const bunRewrite = <T extends object>(data: T) =>
+const bunRewrite = <T extends object>(data: T) =>
   Object.fromEntries(
     Object.entries(data).map(([key, value]) => [
       key,
