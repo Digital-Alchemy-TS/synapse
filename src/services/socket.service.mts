@@ -1,27 +1,66 @@
 import { SECOND, TServiceParams } from "@digital-alchemy/core";
 import { TUniqueId } from "@digital-alchemy/hass";
 
+type HeartBeatPayload = {
+  now: number;
+  hash: string;
+};
+
 export function SynapseSocketService({
   logger,
   lifecycle,
   hass,
   scheduler,
   config,
+  context,
   synapse,
   internal,
 }: TServiceParams) {
   const getIdentifier = () => internal.boot.application.name;
   const name = (a: string) => [config.synapse.EVENT_NAMESPACE, a, getIdentifier()].join("/");
 
+  const emitted = new Set<number>();
+
+  async function emitHeartBeat() {
+    const now = Date.now();
+    const hash = synapse.storage.hash();
+    emitted.add(now);
+    await hass.socket.fireEvent(name("heartbeat"), { hash, now } satisfies HeartBeatPayload);
+    scheduler.setTimeout(() => emitted.delete(now), SECOND);
+  }
+
   function setupHeartbeat() {
     logger.trace({ name: setupHeartbeat }, `starting heartbeat`);
     return scheduler.setInterval(
-      async () => await hass.socket.fireEvent(name("heartbeat")),
+      async () => await emitHeartBeat(),
       config.synapse.HEARTBEAT_INTERVAL * SECOND,
     );
   }
+
   // * onPostConfig
   lifecycle.onPostConfig(() => {
+    hass.socket.onEvent({
+      context,
+      event: name("refresh"),
+      async exec({ data }: { data: string }) {
+        logger.error("HIT");
+        await hass.fetch.fetch({
+          method: "post",
+          url: `/api/config/config_entries/entry/${data}/reload`,
+        });
+      },
+    });
+    if (config.synapse.TRACE_SIBLING_HEARTBEATS) {
+      hass.socket.onEvent({
+        context,
+        event: name("heartbeat"),
+        exec({ data }: { data: HeartBeatPayload }) {
+          if (!emitted.has(data.now)) {
+            logger.debug({ data }, "not my heartbeat");
+          }
+        },
+      });
+    }
     if (!config.synapse.EMIT_HEARTBEAT) {
       return;
     }
@@ -31,10 +70,11 @@ export function SynapseSocketService({
   // * onConnect
   hass.socket.onConnect(async function onConnect() {
     if (!config.synapse.EMIT_HEARTBEAT) {
+      logger.warn("heartbeat disabled");
       return;
     }
     logger.debug({ name: onConnect }, `reconnect heartbeat`);
-    await hass.socket.fireEvent(name("heartbeat"));
+    await emitHeartBeat();
   });
 
   // * onPreShutdown

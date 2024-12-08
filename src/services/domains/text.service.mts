@@ -1,8 +1,13 @@
 import { TServiceParams } from "@digital-alchemy/core";
 
-import { AddEntityOptions, BasicAddParams, SettableConfiguration } from "../../helpers/index.mts";
+import {
+  AddEntityOptions,
+  BasicAddParams,
+  CallbackData,
+  SettableConfiguration,
+} from "../../helpers/index.mts";
 
-export type TextConfiguration = {
+export type TextConfiguration<DATA extends object> = {
   /**
    * Defines how the text should be displayed in the UI. Can be text or password.
    */
@@ -18,11 +23,11 @@ export type TextConfiguration = {
   /**
    * A regex pattern that the text value must match to be valid.
    */
-  pattern?: SettableConfiguration<string>;
+  pattern?: SettableConfiguration<string, DATA>;
   /**
    * The value of the text.
    */
-  native_value?: SettableConfiguration<string>;
+  native_value?: SettableConfiguration<string, DATA>;
   /**
    * default: true
    */
@@ -33,8 +38,8 @@ export type TextEvents = {
   set_value: { value: string };
 };
 
-export function VirtualText({ context, synapse }: TServiceParams) {
-  const generate = synapse.generator.create<TextConfiguration, TextEvents>({
+export function VirtualText({ context, synapse, logger }: TServiceParams) {
+  const generate = synapse.generator.create<TextConfiguration<object>, TextEvents>({
     bus_events: ["set_value"],
     context,
     // @ts-expect-error its fine
@@ -42,13 +47,31 @@ export function VirtualText({ context, synapse }: TServiceParams) {
     load_config_keys: ["mode", "native_max", "native_min", "pattern", "native_value"],
   });
 
-  return function <PARAMS extends BasicAddParams>({
+  return function <
+    PARAMS extends BasicAddParams,
+    DATA extends object = CallbackData<
+      PARAMS["locals"],
+      PARAMS["attributes"],
+      TextConfiguration<object>
+    >,
+  >({
     managed = true,
     ...options
-  }: AddEntityOptions<TextConfiguration, TextEvents, PARAMS["attributes"], PARAMS["locals"]>) {
-    const entity = generate.addEntity(options);
+  }: AddEntityOptions<
+    TextConfiguration<DATA>,
+    TextEvents,
+    PARAMS["attributes"],
+    PARAMS["locals"],
+    DATA
+  >) {
+    // @ts-expect-error it's fine
+    const entity = generate.addEntity<PARAMS["attributes"], PARAMS["locals"], DATA>(options);
+
     if (managed) {
-      entity.onSetValue(({ value }) => entity.storage.set("native_value", value));
+      entity.onSetValue(({ value }) => {
+        logger.trace({ value }, "[managed] onSetValue");
+        entity.storage.set("native_value", value);
+      });
     }
     return entity;
   };

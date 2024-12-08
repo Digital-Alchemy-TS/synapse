@@ -5,6 +5,7 @@ import {
   AddEntityOptions,
   BasicAddParams,
   BuildCallbacks,
+  CallbackData,
   SettableConfiguration,
   SynapseEntityException,
 } from "../../helpers/index.mts";
@@ -17,12 +18,12 @@ type MD = `${number}${number}`;
  */
 export type SynapseDateFormat = `${Year}-${MD}-${MD}`;
 
-export type DateConfiguration = {
+export type DateConfiguration<DATA extends object> = {
   /**
    * default: true
    */
   managed?: boolean;
-} & DateSettable;
+} & DateSettable<DATA>;
 
 export type DateEvents<VALUE extends SerializeTypes = SynapseDateFormat> = {
   set_value: { value: VALUE };
@@ -35,10 +36,10 @@ type DateParams = BasicAddParams & {
 };
 type SerializeTypes = SynapseDateFormat | Date | Dayjs;
 
-type DateSettable =
-  | { date_type?: "iso"; native_value?: SettableConfiguration<SynapseDateFormat> }
-  | { date_type: "dayjs"; native_value?: SettableConfiguration<Dayjs> }
-  | { date_type: "date"; native_value?: SettableConfiguration<Date> };
+type DateSettable<DATA extends object> =
+  | { date_type?: "iso"; native_value?: SettableConfiguration<SynapseDateFormat, DATA> }
+  | { date_type: "dayjs"; native_value?: SettableConfiguration<Dayjs, DATA> }
+  | { date_type: "date"; native_value?: SettableConfiguration<Date, DATA> };
 
 const FORMAT = "YYYY-MM-DD";
 
@@ -50,22 +51,22 @@ type CallbackType<D extends TypeOptions = "iso"> = D extends "dayjs"
 
 export function VirtualDate({ context, synapse, logger }: TServiceParams) {
   // #MARK: generator
-  const generate = synapse.generator.create<DateConfiguration, DateEvents, SerializeTypes>({
+  const generate = synapse.generator.create<DateConfiguration<object>, DateEvents, SerializeTypes>({
     bus_events: ["set_value"],
     context,
     // @ts-expect-error its fine
     domain: "date",
     load_config_keys: ["native_value"],
-    serialize(property: keyof DateConfiguration, data: SerializeTypes) {
+    serialize(property: keyof DateConfiguration<object>, data: SerializeTypes) {
       if (property !== "native_value") {
         return data as string;
       }
       return dayjs(data).format(FORMAT);
     },
     unserialize(
-      property: keyof DateTimeConfiguration,
+      property: keyof DateTimeConfiguration<object>,
       data: string,
-      options: DateTimeConfiguration,
+      options: DateTimeConfiguration<object>,
     ): SerializeTypes {
       if (property !== "native_value") {
         return data as SerializeTypes;
@@ -83,7 +84,11 @@ export function VirtualDate({ context, synapse, logger }: TServiceParams) {
         }
       }
     },
-    validate(current: DateConfiguration, key: keyof DateConfiguration, newValue: unknown) {
+    validate(
+      current: DateConfiguration<object>,
+      key: keyof DateConfiguration<object>,
+      newValue: unknown,
+    ) {
       if (key !== "native_value") {
         return true;
       }
@@ -97,13 +102,31 @@ export function VirtualDate({ context, synapse, logger }: TServiceParams) {
   });
 
   // #MARK: builder
-  return function <PARAMS extends DateParams>({
+  return function <
+    PARAMS extends DateParams,
+    DATA extends object = CallbackData<
+      PARAMS["locals"],
+      PARAMS["attributes"],
+      DateConfiguration<object>
+    >,
+  >({
     managed = true,
     ...options
-  }: AddEntityOptions<DateConfiguration, DateEvents, PARAMS["attributes"], PARAMS["locals"]>) {
-    const entity = generate.addEntity(options);
+  }: AddEntityOptions<
+    DateConfiguration<DATA>,
+    DateEvents,
+    PARAMS["attributes"],
+    PARAMS["locals"],
+    DATA
+  >) {
+    options.native_value ??= dayjs();
+    // @ts-expect-error it's fine
+    const entity = generate.addEntity<PARAMS["attributes"], PARAMS["locals"], DATA>(options);
     if (managed) {
-      entity.onSetValue(({ value }) => entity.storage.set("native_value", value));
+      entity.onSetValue(({ value }) => {
+        logger.trace({ value }, "[managed] onSetValue");
+        entity.storage.set("native_value", value);
+      });
     }
 
     type DynamicCallbacks = BuildCallbacks<DateEvents<CallbackType<PARAMS["date_type"]>>>;

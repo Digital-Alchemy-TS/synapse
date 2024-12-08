@@ -83,8 +83,8 @@ export function DomainGeneratorService({
     busTransfer(bus_events);
 
     // #MARK: addEntity
-    function addEntity<ATTRIBUTES extends object, LOCALS extends object>(
-      entity: AddEntityOptions<CONFIGURATION, EVENT_MAP, ATTRIBUTES, LOCALS>,
+    function addEntity<ATTRIBUTES extends object, LOCALS extends object, DATA extends object>(
+      entity: AddEntityOptions<CONFIGURATION, EVENT_MAP, ATTRIBUTES, LOCALS, DATA>,
       clone = false,
     ) {
       // * defaults
@@ -94,6 +94,7 @@ export function DomainGeneratorService({
         : entity.unique_id;
       // - suggested_object_id - required on python side due to the way the code is set up
       entity.suggested_object_id ??= formatObjectId(entity.name);
+
       const unique_id = entity.unique_id as TUniqueId;
       const currentProxy = knownEntities.get(unique_id);
 
@@ -103,21 +104,27 @@ export function DomainGeneratorService({
           CONFIGURATION,
           EVENT_MAP,
           ATTRIBUTES,
-          LOCALS
+          LOCALS,
+          DATA
         >;
       } else if (currentProxy) {
         logger.debug({ unique_id }, `creating clone`);
       }
 
-      type mergedConfig = CONFIGURATION & EntityConfigCommon<ATTRIBUTES, LOCALS>;
+      type mergedConfig = CONFIGURATION & EntityConfigCommon<ATTRIBUTES, LOCALS, DATA>;
 
       // * initialize storage
       const storage = clone
         ? synapse.storage.find<mergedConfig>(unique_id)
-        : synapse.storage.add<LOCALS, ATTRIBUTES, mergedConfig>({
+        : synapse.storage.add<LOCALS, ATTRIBUTES, mergedConfig, DATA>({
+            bind: entity.bind,
             domain,
             entity,
             load_config_keys,
+            // @ts-expect-error don't care
+            serialize: "serialize" in extra ? extra.serialize : undefined,
+            // @ts-expect-error don't care
+            unserialize: "unserialize" in extra ? extra.unserialize : undefined,
           });
 
       // * map bus events
@@ -162,7 +169,8 @@ export function DomainGeneratorService({
         CONFIGURATION,
         EVENT_MAP,
         ATTRIBUTES,
-        LOCALS
+        LOCALS,
+        DATA
       >;
 
       const listeners = new Set<() => void>();
@@ -179,11 +187,13 @@ export function DomainGeneratorService({
         }
         const current = entityRefs.get(id);
         if (current) {
+          logger.trace({ id }, "entity ref from cache");
           return current;
         }
         if (!is.empty(entityRefs)) {
           logger.warn({ existing: [...entityRefs.keys()], new_id: id }, `leaking reference`);
         }
+        logger.trace({ id }, "loading entity ref");
         const ref = hass.refBy.id(id);
         entityRefs.set(id, ref);
         return ref;
@@ -193,9 +203,11 @@ export function DomainGeneratorService({
       const outProxy = new Proxy(thing, {
         deleteProperty(_, property: string) {
           if (property === "locals") {
+            logger.debug({ unique_id }, "delete all locals");
             locals.reset();
             return true;
           }
+          logger.warn({ property }, "cannot delete entity property");
           return false;
         },
 
@@ -229,6 +241,7 @@ export function DomainGeneratorService({
             // #MARK: child
             case "child": {
               return function (context: TContext) {
+                logger.trace({ unique_id }, "generate child");
                 const child = addEntity(
                   {
                     // copy input data
@@ -241,6 +254,7 @@ export function DomainGeneratorService({
                   true,
                 ) as unknown as GenericSynapseEntity;
                 const remove = internal.removeFn(() => {
+                  logger.trace({ unique_id }, "cleanup child");
                   listeners.delete(remove);
                   child.removeAllListeners();
                 });
@@ -258,6 +272,7 @@ export function DomainGeneratorService({
             // #MARK: addListener
             case "addListener": {
               return function (listener: RemoveCallback) {
+                logger.trace({ unique_id }, "add listener");
                 const rm = () => {
                   logger.trace("removing listener");
                   listener();
@@ -270,6 +285,7 @@ export function DomainGeneratorService({
             // #MARK: removeAllListeners
             case "removeAllListeners": {
               return function () {
+                logger.debug({ unique_id }, "removeAllListeners");
                 // remove will delete from set
                 listeners.forEach(remove => remove());
               };
@@ -278,6 +294,7 @@ export function DomainGeneratorService({
             // #MARK: purge
             case "purge": {
               return function () {
+                logger.info({ unique_id }, "purge");
                 listeners.forEach(remove => remove());
                 entityRefs.forEach((entity, key) => {
                   entity.removeAllListeners();
@@ -291,12 +308,14 @@ export function DomainGeneratorService({
             case "onUpdate": {
               type ENTITY_ID = Extract<TUniqueIDMapping[typeof unique_id], ANY_ENTITY>;
               return function (callback: TAnyFunction) {
+                logger.trace({ unique_id }, "attach onUpdate");
                 const removableCallback = async (
                   new_state: ENTITY_STATE<ENTITY_ID>,
                   old_state: ENTITY_STATE<ENTITY_ID>,
                 ) => await internal.safeExec(async () => callback(new_state, old_state, remove));
 
                 function remove() {
+                  logger.trace({ unique_id }, "remove onUpdate");
                   event.removeListener(unique_id, removableCallback);
                   listeners.delete(remove);
                 }
@@ -310,6 +329,7 @@ export function DomainGeneratorService({
             // #MARK: nextState
             case "nextState": {
               return function (timeoutMs?: number) {
+                logger.trace({ timeoutMs, unique_id }, "nextState");
                 return getEntity()?.nextState(timeoutMs);
               };
             }
@@ -317,6 +337,7 @@ export function DomainGeneratorService({
             // #MARK: waitForState
             case "waitForState": {
               return function (state: string | number, timeoutMs?: number) {
+                logger.trace({ state, timeoutMs, unique_id }, "waitForState");
                 return getEntity()?.waitForState(state, timeoutMs);
               };
             }
@@ -338,6 +359,7 @@ export function DomainGeneratorService({
         set(_, property: Extract<keyof CONFIGURATION, string>, newValue) {
           // * replace all locals
           if (property === "locals") {
+            logger.trace({ newValue }, "replace locals");
             return locals.replace(newValue);
           }
           // * manage entity config properties
@@ -364,6 +386,7 @@ export function DomainGeneratorService({
               );
               return false;
             }
+            logger.trace({ property }, "updating storage");
             storage.set(property, newValue);
             return true;
           }
@@ -371,7 +394,6 @@ export function DomainGeneratorService({
           return false;
         },
       });
-
       knownEntities.set(unique_id, outProxy as unknown as GenericSynapseEntity);
       return outProxy;
     }
@@ -381,6 +403,7 @@ export function DomainGeneratorService({
 
   return {
     create,
+    knownEntities,
     removableListener,
   };
 }

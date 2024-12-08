@@ -1,13 +1,18 @@
 import { TServiceParams } from "@digital-alchemy/core";
 import { HumidifierDeviceClass } from "@digital-alchemy/hass";
 
-import { AddEntityOptions, BasicAddParams, SettableConfiguration } from "../../helpers/index.mts";
+import {
+  AddEntityOptions,
+  BasicAddParams,
+  CallbackData,
+  SettableConfiguration,
+} from "../../helpers/index.mts";
 
-export type HumidifierConfiguration = {
+export type HumidifierConfiguration<DATA extends object> = {
   /**
    * Returns the current status of the device.
    */
-  action?: SettableConfiguration<string>;
+  action?: SettableConfiguration<string, DATA>;
   /**
    * The available modes. Requires `SUPPORT_MODES`.
    */
@@ -15,7 +20,7 @@ export type HumidifierConfiguration = {
   /**
    * The current humidity measured by the device.
    */
-  current_humidity?: SettableConfiguration<number>;
+  current_humidity?: SettableConfiguration<number, DATA>;
   /**
    * Type of hygrostat
    */
@@ -23,23 +28,23 @@ export type HumidifierConfiguration = {
   /**
    * Whether the device is on or off.
    */
-  is_on?: SettableConfiguration<boolean>;
+  is_on?: SettableConfiguration<boolean, DATA>;
   /**
    * The maximum humidity.
    */
-  max_humidity?: SettableConfiguration<number>;
+  max_humidity?: SettableConfiguration<number, DATA>;
   /**
    * The minimum humidity.
    */
-  min_humidity?: SettableConfiguration<string>;
+  min_humidity?: SettableConfiguration<string, DATA>;
   /**
    * The current active mode. Requires `SUPPORT_MODES`.
    */
-  mode?: SettableConfiguration<`${HumidifierModes}`>;
+  mode?: SettableConfiguration<`${HumidifierModes}`, DATA>;
   /**
    * The target humidity the device is trying to reach.
    */
-  target_humidity?: SettableConfiguration<number>;
+  target_humidity?: SettableConfiguration<number, DATA>;
 };
 
 export type HumidifierModes =
@@ -66,7 +71,7 @@ export type HumidifierEvents = {
 };
 
 export function VirtualHumidifier({ context, synapse }: TServiceParams) {
-  const generate = synapse.generator.create<HumidifierConfiguration, HumidifierEvents>({
+  const generate = synapse.generator.create<HumidifierConfiguration<object>, HumidifierEvents>({
     bus_events: ["set_humidity", "turn_on", "turn_off"],
     context,
     // @ts-expect-error its fine
@@ -84,12 +89,23 @@ export function VirtualHumidifier({ context, synapse }: TServiceParams) {
     ],
   });
 
-  return <PARAMS extends BasicAddParams>(
+  return <
+    PARAMS extends BasicAddParams,
+    DATA extends object = CallbackData<
+      PARAMS["locals"],
+      PARAMS["attributes"],
+      HumidifierConfiguration<object>
+    >,
+  >(
     options: AddEntityOptions<
-      HumidifierConfiguration,
+      HumidifierConfiguration<DATA>,
       HumidifierEvents,
       PARAMS["attributes"],
-      PARAMS["locals"]
+      PARAMS["locals"],
+      DATA
     >,
-  ) => generate.addEntity(options);
+  ) => {
+    // @ts-expect-error it's fine
+    return generate.addEntity<PARAMS["attributes"], PARAMS["locals"], DATA>(options);
+  };
 }

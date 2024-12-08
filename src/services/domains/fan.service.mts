@@ -1,28 +1,33 @@
 import { TServiceParams } from "@digital-alchemy/core";
 
-import { AddEntityOptions, BasicAddParams, SettableConfiguration } from "../../helpers/index.mts";
+import {
+  AddEntityOptions,
+  BasicAddParams,
+  CallbackData,
+  SettableConfiguration,
+} from "../../helpers/index.mts";
 
-export type FanConfiguration<PRESET_MODES extends string = string> = {
+export type FanConfiguration<DATA extends object, PRESET_MODES extends string = string> = {
   /**
    * The current direction of the fan.
    */
-  current_direction?: SettableConfiguration<string>;
+  current_direction?: SettableConfiguration<string, DATA>;
   /**
    * True if the fan is on.
    */
-  is_on?: SettableConfiguration<boolean>;
+  is_on?: SettableConfiguration<boolean, DATA>;
   /**
    * True if the fan is oscillating.
    */
-  oscillating?: SettableConfiguration<boolean>;
+  oscillating?: SettableConfiguration<boolean, DATA>;
   /**
    * The current speed percentage. Must be a value between 0 (off) and 100.
    */
-  percentage?: SettableConfiguration<number>;
+  percentage?: SettableConfiguration<number, DATA>;
   /**
    * The current preset_mode. One of the values in preset_modes or None if no preset is active.
    */
-  preset_mode?: SettableConfiguration<PRESET_MODES>;
+  preset_mode?: SettableConfiguration<PRESET_MODES, DATA>;
   /**
    * The list of supported preset_modes. This is an arbitrary list of str and should not contain any speeds.
    */
@@ -52,7 +57,7 @@ export type FanEvents = {
 };
 
 export function VirtualFan({ context, synapse }: TServiceParams) {
-  const generate = synapse.generator.create<FanConfiguration, FanEvents>({
+  const generate = synapse.generator.create<FanConfiguration<object>, FanEvents>({
     bus_events: [
       "set_direction",
       "set_preset_mode",
@@ -76,7 +81,23 @@ export function VirtualFan({ context, synapse }: TServiceParams) {
     ],
   });
 
-  return <PARAMS extends BasicAddParams>(
-    options: AddEntityOptions<FanConfiguration, FanEvents, PARAMS["attributes"], PARAMS["locals"]>,
-  ) => generate.addEntity(options);
+  return <
+    PARAMS extends BasicAddParams,
+    DATA extends object = CallbackData<
+      PARAMS["locals"],
+      PARAMS["attributes"],
+      FanConfiguration<object>
+    >,
+  >(
+    options: AddEntityOptions<
+      FanConfiguration<DATA>,
+      FanEvents,
+      PARAMS["attributes"],
+      PARAMS["locals"],
+      DATA
+    >,
+  ) => {
+    // @ts-expect-error it's fine
+    return generate.addEntity<PARAMS["attributes"], PARAMS["locals"], DATA>(options);
+  };
 }

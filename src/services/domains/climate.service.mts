@@ -1,9 +1,15 @@
 import { TServiceParams } from "@digital-alchemy/core";
 import { HVACAction, HVACMode } from "@digital-alchemy/hass";
 
-import { AddEntityOptions, BasicAddParams, SettableConfiguration } from "../../helpers/index.mts";
+import {
+  AddEntityOptions,
+  BasicAddParams,
+  CallbackData,
+  SettableConfiguration,
+} from "../../helpers/index.mts";
 
 export type ClimateConfiguration<
+  DATA extends object,
   PRESET_MODES extends string = string,
   SWING_MODES extends string = string,
   FAN_MODES extends string = string,
@@ -11,15 +17,15 @@ export type ClimateConfiguration<
   /**
    * The current humidity.
    */
-  current_humidity?: SettableConfiguration<number>;
+  current_humidity?: SettableConfiguration<number, DATA>;
   /**
    * The current temperature.
    */
-  current_temperature?: SettableConfiguration<number>;
+  current_temperature?: SettableConfiguration<number, DATA>;
   /**
    * The current fan mode.
    */
-  fan_mode?: SettableConfiguration<FAN_MODES>;
+  fan_mode?: SettableConfiguration<FAN_MODES, DATA>;
   /**
    * The list of available fan modes.
    */
@@ -27,11 +33,11 @@ export type ClimateConfiguration<
   /**
    * The current HVAC action (heating, cooling)
    */
-  hvac_action?: SettableConfiguration<HVACAction>;
+  hvac_action?: SettableConfiguration<HVACAction, DATA>;
   /**
    * The current operation (e.g. heat, cool, idle). Used to determine state.
    */
-  hvac_mode: SettableConfiguration<HVACMode>;
+  hvac_mode: SettableConfiguration<HVACMode, DATA>;
   /**
    * List of available operation modes.
    */
@@ -59,7 +65,7 @@ export type ClimateConfiguration<
   /**
    * The current active preset.
    */
-  preset_mode?: SettableConfiguration<PRESET_MODES>;
+  preset_mode?: SettableConfiguration<PRESET_MODES, DATA>;
   /**
    * The available presets.
    */
@@ -67,7 +73,7 @@ export type ClimateConfiguration<
   /**
    * The swing setting.
    */
-  swing_mode?: SettableConfiguration<SWING_MODES>;
+  swing_mode?: SettableConfiguration<SWING_MODES, DATA>;
   /**
    * Returns the list of available swing modes.
    */
@@ -75,23 +81,23 @@ export type ClimateConfiguration<
   /**
    * The target humidity the device is trying to reach.
    */
-  target_humidity?: SettableConfiguration<number>;
+  target_humidity?: SettableConfiguration<number, DATA>;
   /**
    * The temperature currently set to be reached.
    */
-  target_temperature_high?: SettableConfiguration<number>;
+  target_temperature_high?: SettableConfiguration<number, DATA>;
   /**
    * The upper bound target temperature
    */
-  target_temperature_low?: SettableConfiguration<number>;
+  target_temperature_low?: SettableConfiguration<number, DATA>;
   /**
    * The lower bound target temperature
    */
-  target_temperature_step?: SettableConfiguration<number>;
+  target_temperature_step?: SettableConfiguration<number, DATA>;
   /**
    * The supported step size a target temperature can be increased or decreased
    */
-  target_temperature?: SettableConfiguration<number>;
+  target_temperature?: SettableConfiguration<number, DATA>;
   /**
    * The unit of temperature measurement for the system (TEMP_CELSIUS or TEMP_FAHRENHEIT).
    */
@@ -129,7 +135,7 @@ type ClimateEvents = {
 };
 
 export function VirtualClimate({ context, synapse }: TServiceParams) {
-  const generate = synapse.generator.create<ClimateConfiguration, ClimateEvents>({
+  const generate = synapse.generator.create<ClimateConfiguration<object>, ClimateEvents>({
     bus_events: [
       "set_hvac_mode",
       "turn_on",
@@ -170,12 +176,23 @@ export function VirtualClimate({ context, synapse }: TServiceParams) {
     ],
   });
 
-  return <PARAMS extends BasicAddParams>(
+  return function <
+    PARAMS extends BasicAddParams,
+    DATA extends object = CallbackData<
+      PARAMS["locals"],
+      PARAMS["attributes"],
+      ClimateConfiguration<object>
+    >,
+  >(
     options: AddEntityOptions<
-      ClimateConfiguration,
+      ClimateConfiguration<DATA>,
       ClimateEvents,
       PARAMS["attributes"],
-      PARAMS["locals"]
+      PARAMS["locals"],
+      DATA
     >,
-  ) => generate.addEntity(options);
+  ) {
+    // @ts-expect-error it's fine
+    return generate.addEntity<PARAMS["attributes"], PARAMS["locals"], DATA>(options);
+  };
 }

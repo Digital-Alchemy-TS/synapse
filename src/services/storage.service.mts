@@ -1,10 +1,21 @@
-import { CronExpression, InternalError, is, TServiceParams } from "@digital-alchemy/core";
+import {
+  CronExpression,
+  debounce,
+  DOWN,
+  HALF,
+  InternalError,
+  is,
+  SECOND,
+  TServiceParams,
+  UP,
+} from "@digital-alchemy/core";
 import { TRawDomains, TUniqueId } from "@digital-alchemy/hass";
 
 import {
   AddStateOptions,
   COMMON_CONFIG_KEYS,
   EntityConfigCommon,
+  generateHash,
   isCommonConfigKey,
   isReactiveConfig,
   NO_LIVE_UPDATE,
@@ -13,8 +24,11 @@ import {
   TSynapseId,
 } from "../helpers/index.mts";
 
-const LATE_POST_CONFIG = -1;
+const RESYNC_DELAY = HALF * SECOND;
 
+/**
+ * Storage entries are generated on a 1-1 basis with entities using `add`
+ */
 export function StorageService({
   logger,
   context,
@@ -27,6 +41,18 @@ export function StorageService({
   const registry = new Map<TSynapseId, TSynapseEntityStorage>();
   const domain_lookup = new Map<string, TRawDomains>();
 
+  hass.events.onEntityRegistryUpdate(async () => {
+    await debounce("synapse_storage", RESYNC_DELAY);
+    logger.info("entity storage resync");
+    registry.forEach((_, unique_id) => {
+      synapse.sqlite.update(unique_id, registry.get(unique_id).export());
+    });
+  });
+
+  /**
+   * Convert the registry into the expected data format for sending to Home Assistant
+   */
+  // #MARK: dump
   function dump() {
     const list = [...registry.keys()];
     const out = {} as Record<TRawDomains, object[]>;
@@ -40,25 +66,64 @@ export function StorageService({
   }
 
   // #MARK: add
+  /**
+   *
+   */
   function add<
     LOCALS extends object,
     ATTRIBUTES extends object,
-    CONFIGURATION extends EntityConfigCommon<ATTRIBUTES, LOCALS>,
-  >({ entity, load_config_keys, domain }: AddStateOptions<ATTRIBUTES, LOCALS, CONFIGURATION>) {
+    CONFIGURATION extends EntityConfigCommon<ATTRIBUTES, LOCALS, DATA>,
+    DATA extends object,
+  >({
+    entity,
+    load_config_keys,
+    domain,
+    bind = [],
+    serialize,
+  }: AddStateOptions<ATTRIBUTES, LOCALS, CONFIGURATION, DATA>) {
     if (registry.has(entity.unique_id as TSynapseId)) {
       throw new InternalError(context, `ENTITY_COLLISION`, `${domain} registry already id`);
     }
     domain_lookup.set(entity.unique_id, domain);
     let initialized = false;
+    type ValueData = Record<keyof CONFIGURATION, unknown>;
+    type LoadKeys = keyof EntityConfigCommon<ATTRIBUTES, LOCALS, DATA>;
+    let CURRENT_VALUE = {} as ValueData;
+    const load = [...load_config_keys, ...COMMON_CONFIG_KEYS.values()] as LoadKeys[];
 
-    let CURRENT_VALUE = {} as Record<keyof CONFIGURATION, unknown>;
+    // run through the import
+    load.forEach(key => {
+      let value = entity[key];
+      if (!NO_LIVE_UPDATE.has(key) && is.function(value)) {
+        // @ts-expect-error fixme
+        value = { current: value } as unknown;
+      }
+      if (isReactiveConfig(key, value)) {
+        registerReactiveConfig(key, value);
+        return;
+      }
+      CURRENT_VALUE[key] = value;
+    });
 
     // #MARK: createSettableConfig
-    function createSettableConfig(key: keyof CONFIGURATION, config: ReactiveConfig) {
+    /**
+     * Handle the the logic for the reactive
+     */
+    function registerReactiveConfig(key: keyof CONFIGURATION, config: ReactiveConfig) {
+      // keep this one local to make sure the correct listener gets gc'd
+      // never can be sure when property refs might change (tin foil hat)
+      const unique_id = entity.unique_id;
+
+      /**
+       * update handler
+       */
       function updateSettableConfig() {
         const current_value = storage.get(key);
-        const new_value = config.current() as CONFIGURATION[typeof key];
+        const known = synapse.generator.knownEntities.get(unique_id);
+        // console.log({ known });
+        const new_value = config.current(known) as CONFIGURATION[typeof key];
         if (new_value === current_value) {
+          logger.trace({ key, unique_id: entity.unique_id }, "ignoring noop");
           return;
         }
         logger.trace(
@@ -67,40 +132,45 @@ export function StorageService({
         );
         storage.set(key, new_value);
       }
+
+      // Check periodically to ensure accuracy with time based things
       scheduler.cron({
         exec: updateSettableConfig,
         schedule: config.schedule || CronExpression.EVERY_30_SECONDS,
       });
-      if (!is.empty(config.onUpdate)) {
-        config.onUpdate.forEach(entity => entity.onUpdate(updateSettableConfig));
+
+      const onUpdate = [...bind, ...(config.onUpdate ?? [])];
+      // Track reference entities
+      if (!is.empty(onUpdate)) {
+        onUpdate.forEach(entity => entity.onUpdate(updateSettableConfig));
       }
       lifecycle.onReady(() => updateSettableConfig());
-      event.on(entity.unique_id, updateSettableConfig);
+      event.on(unique_id, updateSettableConfig);
       setImmediate(() => updateSettableConfig());
+      return is.removeFn(() => {
+        event.removeListener(unique_id, updateSettableConfig);
+      });
     }
-
-    type LoadKeys = keyof EntityConfigCommon<ATTRIBUTES, LOCALS>;
-
-    // * import
-    const load = [...load_config_keys, ...COMMON_CONFIG_KEYS.values()] as LoadKeys[];
-
-    load.forEach(key => {
-      const value = entity[key];
-      if (isReactiveConfig(key, value)) {
-        createSettableConfig(key, value);
-        return;
-      }
-      CURRENT_VALUE[key] = value;
-    });
 
     // #MARK: storage
     const storage = {
-      export: () => ({ ...CURRENT_VALUE }),
+      export: () => {
+        const keys = Object.keys(CURRENT_VALUE) as Extract<keyof typeof CURRENT_VALUE, string>[];
+        return Object.fromEntries(
+          keys.map(i => {
+            if (serialize) {
+              // @ts-expect-error don't care
+              return [i, serialize(i, CURRENT_VALUE[i], undefined)];
+            }
+            return [i, CURRENT_VALUE[i]];
+          }),
+        ) as ValueData;
+      },
       get: key => CURRENT_VALUE[key],
       isStored: key => isCommonConfigKey(key) || load_config_keys.includes(key),
       keys: () => load,
       purge() {
-        //
+        logger.warn("you should report this... I think");
       },
       set: (key: Extract<keyof CONFIGURATION, string>, value) => {
         const unique_id = entity.unique_id as TSynapseId;
@@ -109,6 +179,7 @@ export function StorageService({
         }
         CURRENT_VALUE[key] = value;
         if (initialized) {
+          logger.trace({ key, unique_id }, "update locals");
           synapse.sqlite.update(unique_id, registry.get(unique_id).export());
           if (hass.socket.connectionState === "connected") {
             setImmediate(async () => await synapse.socket.send(unique_id, CURRENT_VALUE));
@@ -120,23 +191,24 @@ export function StorageService({
     registry.set(entity.unique_id as TSynapseId, storage as unknown as TSynapseEntityStorage);
 
     // * value loading
-    lifecycle.onPostConfig(function onPostConfig() {
+    lifecycle.onReady(function onReady() {
       // - identify id
       const unique_id = entity.unique_id as TSynapseId;
 
       // - ??
       const data = synapse.sqlite.load(unique_id, CURRENT_VALUE);
-
       if (is.empty(data?.state_json)) {
         initialized = true;
+        logger.debug({ unique_id }, "initial create entity row");
+        synapse.sqlite.update(unique_id, registry.get(unique_id).export());
         return;
       }
 
       // - load previous value
-      logger.trace({ entity_id: data.entity_id, name: onPostConfig }, `importing value`);
+      logger.debug({ entity_id: data.entity_id, name: onReady }, `importing value from db`);
       CURRENT_VALUE = JSON.parse(data.state_json);
       initialized = true;
-    }, LATE_POST_CONFIG);
+    });
 
     // * done
     return storage;
@@ -147,5 +219,11 @@ export function StorageService({
     dump,
     find: <CONFIGURATION extends object>(id: TSynapseId | TUniqueId) =>
       registry.get(id as TSynapseId) as unknown as TSynapseEntityStorage<CONFIGURATION>,
+    hash: () =>
+      generateHash(
+        [...registry.keys(), ...synapse.device.idList()]
+          .toSorted((a, b) => (a > b ? UP : DOWN))
+          .join("|"),
+      ),
   };
 }

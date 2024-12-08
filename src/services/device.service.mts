@@ -30,6 +30,7 @@ export function DeviceService({ config, lifecycle, logger, internal, synapse }: 
       try {
         const contents = fs.readFileSync(file, "utf8");
         const data = JSON.parse(contents) as { version: string };
+        logger.trace({ version: data?.version }, "loaded package version");
         return data?.version;
       } catch (error) {
         logger.error(error);
@@ -60,12 +61,16 @@ export function DeviceService({ config, lifecycle, logger, internal, synapse }: 
      */
     id(data?: string[] | string) {
       data ??= [host, internal.boot.application.name, cwd()];
-      return md5ToUUID(
+      const id = md5ToUUID(
         createHash("md5")
           .update(is.string(data) ? data : data.join("-"))
           .digest("hex"),
       );
+      logger.trace({ data, id }, "generated device id");
+      return id;
     },
+
+    idList: () => [...DEVICE_REGISTRY.keys()],
 
     list() {
       return [...DEVICE_REGISTRY.keys()].map(unique_id => ({
@@ -84,10 +89,12 @@ export function DeviceService({ config, lifecycle, logger, internal, synapse }: 
 
     register(id: string, data: HassDeviceMetadata): TSynapseDeviceId {
       DEVICE_REGISTRY.set(id, data);
+      logger.trace({ data, id }, "register device");
       return id as TSynapseDeviceId;
     },
 
     setVersion(version: string) {
+      logger.trace({ version }, "update declared version");
       synapseVersion = version;
     },
   };

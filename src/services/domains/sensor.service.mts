@@ -2,6 +2,7 @@ import { is, TServiceParams } from "@digital-alchemy/core";
 
 import {
   AddEntityOptions,
+  CallbackData,
   SensorConfiguration,
   SynapseEntityException,
 } from "../../helpers/index.mts";
@@ -65,12 +66,12 @@ type AddParams = {
   attributes?: object;
 };
 
-type Generic = SensorConfiguration<object, object, string | number>;
+type Generic = SensorConfiguration<object, object, string | number, object>;
 
 export function VirtualSensor({ context, synapse, logger }: TServiceParams) {
   function checkOptions(
     value: string,
-    current: SensorConfiguration<object, object, string | number>,
+    current: SensorConfiguration<object, object, string | number, object>,
   ) {
     if (
       "options" in current &&
@@ -106,7 +107,7 @@ export function VirtualSensor({ context, synapse, logger }: TServiceParams) {
       "last_reset",
       "suggested_display_precision",
       "suggested_unit_of_measurement",
-    ] as (keyof Generic)[],
+    ] as Extract<keyof Generic, string>[],
     // eslint-disable-next-line sonarjs/no-invariant-returns
     validate(current, key, value: unknown) {
       if (key !== "state") {
@@ -120,12 +121,20 @@ export function VirtualSensor({ context, synapse, logger }: TServiceParams) {
     },
   });
 
-  return <PARAMS extends AddParams>(
+  return <
+    PARAMS extends AddParams,
+    DATA extends object = CallbackData<
+      PARAMS["locals"],
+      PARAMS["attributes"],
+      SensorConfiguration<PARAMS["attributes"], PARAMS["locals"], PARAMS["state"], object>
+    >,
+  >(
     options: AddEntityOptions<
-      SensorConfiguration<PARAMS["attributes"], PARAMS["locals"], PARAMS["state"]>,
+      SensorConfiguration<PARAMS["attributes"], PARAMS["locals"], PARAMS["state"], DATA>,
       SensorEvents,
       PARAMS["attributes"],
-      PARAMS["locals"]
+      PARAMS["locals"],
+      DATA
     >,
   ) => {
     if ("options" in options) {
@@ -182,7 +191,8 @@ export function VirtualSensor({ context, synapse, logger }: TServiceParams) {
         }
       }
     }
-    const out = generate.addEntity<PARAMS["attributes"], PARAMS["locals"]>(options);
+    // @ts-expect-error it's fine
+    const out = generate.addEntity<PARAMS["attributes"], PARAMS["locals"], DATA>(options);
 
     type SynapseSensor = Omit<typeof out, "state"> & { state: PARAMS["state"] };
 

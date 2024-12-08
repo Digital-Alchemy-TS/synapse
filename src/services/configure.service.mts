@@ -64,7 +64,9 @@ export function ConfigurationService({
   lifecycle.onBootstrap(async () => await synapse.configure.checkInstallState());
 
   lifecycle.onReady(() => {
-    if (!synapse.configure.isRegistered()) {
+    if (synapse.configure.isRegistered()) {
+      logger.trace("detected installed addon");
+    } else {
       logger.warn({ name: "onReady" }, `application is not registered in hass`);
     }
   });

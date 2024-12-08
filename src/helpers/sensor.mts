@@ -341,7 +341,7 @@ type NumberSensors = (
    *
    * Note that the `datetime.datetime` returned by the `last_reset` property will be converted to an ISO 8601-formatted string when the entity's state attributes are updated. When changing `last_reset`, the `state` must be a valid number.
    */
-  last_reset?: SettableConfiguration<Dayjs>;
+  last_reset?: SettableConfiguration<Dayjs, object>;
 
   /**
    * Type of state.
@@ -359,7 +359,8 @@ export type SensorConfiguration<
   ATTRIBUTES extends object,
   LOCALS extends object,
   STATE_TYPE extends string | number | Date | Dayjs,
-> = EntityConfigCommon<ATTRIBUTES, LOCALS> &
+  DATA extends object,
+> = EntityConfigCommon<ATTRIBUTES, LOCALS, DATA> &
   SensorDeviceClasses<STATE_TYPE> & {
-    state?: SettableConfiguration<STATE_TYPE>;
+    state?: SettableConfiguration<STATE_TYPE, DATA>;
   };

@@ -1,12 +1,17 @@
 import { TServiceParams } from "@digital-alchemy/core";
 
-import { AddEntityOptions, BasicAddParams, SettableConfiguration } from "../../helpers/index.mts";
+import {
+  AddEntityOptions,
+  BasicAddParams,
+  CallbackData,
+  SettableConfiguration,
+} from "../../helpers/index.mts";
 
-export type RemoteConfiguration = {
+export type RemoteConfiguration<DATA extends object> = {
   /**
    * Return the current active activity
    */
-  current_activity?: SettableConfiguration<string>;
+  current_activity?: SettableConfiguration<string, DATA>;
   /**
    * Return the list of available activities
    */
@@ -28,7 +33,7 @@ export type RemoteEvents = {
 };
 
 export function VirtualRemote({ context, synapse }: TServiceParams) {
-  const generate = synapse.generator.create<RemoteConfiguration, RemoteEvents>({
+  const generate = synapse.generator.create<RemoteConfiguration<object>, RemoteEvents>({
     bus_events: [
       "turn_on",
       "turn_off",
@@ -43,12 +48,23 @@ export function VirtualRemote({ context, synapse }: TServiceParams) {
     load_config_keys: ["current_activity", "activity_list", "supported_features"],
   });
 
-  return <PARAMS extends BasicAddParams>(
+  return <
+    PARAMS extends BasicAddParams,
+    DATA extends object = CallbackData<
+      PARAMS["locals"],
+      PARAMS["attributes"],
+      RemoteConfiguration<object>
+    >,
+  >(
     options: AddEntityOptions<
-      RemoteConfiguration,
+      RemoteConfiguration<DATA>,
       RemoteEvents,
       PARAMS["attributes"],
-      PARAMS["locals"]
+      PARAMS["locals"],
+      DATA
     >,
-  ) => generate.addEntity(options);
+  ) => {
+    // @ts-expect-error it's fine
+    return generate.addEntity<PARAMS["attributes"], PARAMS["locals"], DATA>(options);
+  };
 }

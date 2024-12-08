@@ -3,13 +3,29 @@ import { TRawDomains } from "@digital-alchemy/hass";
 import { createHash } from "crypto";
 import { EmptyObject } from "type-fest";
 
-import { EntityConfigCommon } from "./common-config.mts";
+import { EntityConfigCommon, NonReactive } from "./common-config.mts";
 import { TSynapseId } from "./utility.mts";
 
 export type RemovableCallback<DATA extends unknown = unknown> = (
   data: DATA,
   remove: () => void,
 ) => TBlackHole;
+
+export type TSerialize<
+  CONFIGURATION extends object = object,
+  SERIALIZE_TYPES extends unknown = unknown,
+> = {
+  serialize: (
+    property: keyof CONFIGURATION,
+    data: SERIALIZE_TYPES,
+    options: CONFIGURATION,
+  ) => string;
+  unserialize: (
+    property: keyof CONFIGURATION,
+    data: string,
+    options: CONFIGURATION,
+  ) => SERIALIZE_TYPES;
+};
 
 export type CreateRemovableCallback<DATA extends unknown = unknown> = (
   callback: RemovableCallback<DATA>,
@@ -46,21 +62,7 @@ export type DomainGeneratorOptions<
    * ensure that data is valid before handing off to internals
    */
   validate?: (current: CONFIGURATION, key: keyof CONFIGURATION, value: unknown) => void | never;
-} & (
-  | {
-      serialize: (
-        property: keyof CONFIGURATION,
-        data: SERIALIZE_TYPES,
-        options: CONFIGURATION,
-      ) => string;
-      unserialize: (
-        property: keyof CONFIGURATION,
-        data: string,
-        options: CONFIGURATION,
-      ) => SERIALIZE_TYPES;
-    }
-  | EmptyObject
-);
+} & (TSerialize<CONFIGURATION, SERIALIZE_TYPES> | EmptyObject);
 
 export type TEventMap = Record<string, object>;
 
@@ -69,9 +71,10 @@ export type AddEntityOptions<
   EVENT_MAP extends Record<string, object>,
   ATTRIBUTES extends object,
   LOCALS extends object,
+  DATA extends object,
 > = {
   context: TContext;
-} & EntityConfigCommon<ATTRIBUTES, LOCALS> &
+} & EntityConfigCommon<ATTRIBUTES, LOCALS, DATA> &
   CONFIGURATION &
   Partial<{
     [EVENT in keyof EVENT_MAP]: RemovableCallback<EVENT_MAP[EVENT]>;
@@ -100,3 +103,12 @@ export const formatObjectId = (input: string) =>
     .replaceAll(/_+/g, "_");
 
 export const LATE_READY = -1;
+
+export type CallbackData<
+  LOCALS extends object,
+  ATTRIBUTES extends object,
+  EXTRA extends object = {},
+> = {
+  locals: LOCALS;
+  attributes: ATTRIBUTES;
+} & NonReactive<Omit<EXTRA, "managed">>;

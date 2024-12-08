@@ -43,6 +43,7 @@ export function EntityGenerator({ scheduler, synapse, context, logger }: TServic
       name: "blinking",
       suggested_object_id: "blinking_the_binary_sensor",
     });
+    // binary_sensor.is_on
     scheduler.setInterval(() => {
       const number = Math.floor(Math.random() * SECOND);
       sensor.storage.set("state", number);
@@ -88,16 +89,16 @@ export function EntityGenerator({ scheduler, synapse, context, logger }: TServic
       },
       name: "Example switch",
     });
-    const acp = synapse.alarm_control_panel({
-      arm_night({ code }) {
-        logger.info({ code }, `arm_night called with code via static attachment`);
-      },
-      context,
-      name: "Example alarm panel",
-    });
-    acp.onArmNight(({ code }) =>
-      logger.info({ code }, `arm_night called with code via dynamic attachment`),
-    );
+    // const acp = synapse.alarm_control_panel({
+    // arm_night({ code }) {
+    // logger.info({ code }, `arm_night called with code via static attachment`);
+    // },
+    // context,
+    // name: "Example alarm panel",
+    // });
+    // acp.onArmNight(({ code }) =>
+    // logger.info({ code }, `arm_night called with code via dynamic attachment`),
+    // );
     synapse.lock({
       context,
       is_locked: false,

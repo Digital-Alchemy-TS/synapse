@@ -15,6 +15,7 @@ export function DiscoveryService({
   const APP_METADATA = () => ({
     app: internal.boot.application.name,
     device: synapse.device.getInfo(),
+    hash: synapse.storage.hash(),
     hostname: hostname(),
     secondary_devices: synapse.device.list(),
     title: config.synapse.METADATA_TITLE,
@@ -34,13 +35,13 @@ export function DiscoveryService({
     hass.socket.onEvent({
       context,
       event: `${EVENT_NAMESPACE}/discovery`,
-      exec() {
+      async exec() {
         if (synapse.configure.isRegistered()) {
           logger.debug({ name: "discovery" }, `received global discovery request, ignoring`);
           return;
         }
         logger.info({ name: "discovery" }, `global discovery`);
-        hass.socket.fireEvent(`${EVENT_NAMESPACE}/identify`, { compressed: payload() });
+        await hass.socket.fireEvent(`${EVENT_NAMESPACE}/identify`, { compressed: payload() });
       },
     });
 
@@ -48,9 +49,9 @@ export function DiscoveryService({
     hass.socket.onEvent({
       context,
       event: `${EVENT_NAMESPACE}/discovery/${name}`,
-      exec() {
+      async exec() {
         logger.info({ name: "discovery" }, `app discovery`);
-        hass.socket.fireEvent(`${EVENT_NAMESPACE}/identify/${name}`, {
+        await hass.socket.fireEvent(`${EVENT_NAMESPACE}/identify/${name}`, {
           compressed: payload(),
         });
       },

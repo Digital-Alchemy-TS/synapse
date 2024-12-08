@@ -1,7 +1,12 @@
 import { TServiceParams } from "@digital-alchemy/core";
 import { Dayjs } from "dayjs";
 
-import { AddEntityOptions, BasicAddParams, SettableConfiguration } from "../../helpers/index.mts";
+import {
+  AddEntityOptions,
+  BasicAddParams,
+  CallbackData,
+  SettableConfiguration,
+} from "../../helpers/index.mts";
 
 export type TodoItem = {
   /**
@@ -29,11 +34,11 @@ export type TodoItem = {
   description?: string;
 };
 
-export type TodoConfiguration = {
+export type TodoConfiguration<DATA extends object> = {
   /**
    * Required. The ordered contents of the To-do list.
    */
-  todo_items: SettableConfiguration<TodoItem[]>;
+  todo_items: SettableConfiguration<TodoItem[], DATA>;
   supported_features?: number;
 };
 
@@ -44,7 +49,7 @@ export type TodoEvents = {
 };
 
 export function VirtualTodoList({ context, synapse }: TServiceParams) {
-  const generate = synapse.generator.create<TodoConfiguration, TodoEvents>({
+  const generate = synapse.generator.create<TodoConfiguration<object>, TodoEvents>({
     bus_events: ["create_todo_item", "delete_todo_item", "move_todo_item"],
     context,
     // @ts-expect-error its fine
@@ -52,12 +57,23 @@ export function VirtualTodoList({ context, synapse }: TServiceParams) {
     load_config_keys: ["todo_items", "supported_features"],
   });
 
-  return <PARAMS extends BasicAddParams>(
+  return <
+    PARAMS extends BasicAddParams,
+    DATA extends object = CallbackData<
+      PARAMS["locals"],
+      PARAMS["attributes"],
+      TodoConfiguration<object>
+    >,
+  >(
     options: AddEntityOptions<
-      TodoConfiguration,
+      TodoConfiguration<DATA>,
       TodoEvents,
       PARAMS["attributes"],
-      PARAMS["locals"]
+      PARAMS["locals"],
+      DATA
     >,
-  ) => generate.addEntity(options);
+  ) => {
+    // @ts-expect-error it's fine
+    return generate.addEntity<PARAMS["attributes"], PARAMS["locals"], DATA>(options);
+  };
 }

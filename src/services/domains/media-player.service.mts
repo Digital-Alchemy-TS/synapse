@@ -1,7 +1,12 @@
 import { TServiceParams } from "@digital-alchemy/core";
 import { Dayjs } from "dayjs";
 
-import { AddEntityOptions, BasicAddParams, SettableConfiguration } from "../../helpers/index.mts";
+import {
+  AddEntityOptions,
+  BasicAddParams,
+  CallbackData,
+  SettableConfiguration,
+} from "../../helpers/index.mts";
 
 enum MediaType {
   MUSIC = "music",
@@ -26,17 +31,18 @@ enum MediaDeviceClass {
 type MediaPlayerEnqueue = "add" | "next" | "play" | "replace";
 
 export type MediaPlayerConfiguration<
+  DATA extends object,
   SOURCES extends string = string,
   SOUND_MODES extends string = string,
 > = {
   /**
    * ID of the current running app.
    */
-  app_id?: SettableConfiguration<string>;
+  app_id?: SettableConfiguration<string, DATA>;
   /**
    * Name of the current running app.
    */
-  app_name?: SettableConfiguration<string>;
+  app_name?: SettableConfiguration<string, DATA>;
   /**
    * Type of media player.
    */
@@ -45,95 +51,95 @@ export type MediaPlayerConfiguration<
    * A dynamic list of player entities which are currently grouped together for synchronous playback.
    * If the platform has a concept of defining a group leader, the leader should be the first element in that list.
    */
-  group_members?: SettableConfiguration<string[]>;
+  group_members?: SettableConfiguration<string[], DATA>;
   /**
    * True if if volume is currently muted.
    */
-  is_volume_muted?: SettableConfiguration<boolean>;
+  is_volume_muted?: SettableConfiguration<boolean, DATA>;
   /**
    * Album artist of current playing media, music track only.
    */
-  media_album_artist?: SettableConfiguration<string>;
+  media_album_artist?: SettableConfiguration<string, DATA>;
   /**
    * Album name of current playing media, music track only.
    */
-  media_album_name?: SettableConfiguration<string>;
+  media_album_name?: SettableConfiguration<string, DATA>;
   /**
    * Album artist of current playing media, music track only.
    */
-  media_artist?: SettableConfiguration<string>;
+  media_artist?: SettableConfiguration<string, DATA>;
   /**
    * Channel currently playing.
    */
-  media_channel?: SettableConfiguration<string>;
+  media_channel?: SettableConfiguration<string, DATA>;
   /**
    * Content ID of current playing media.
    */
-  media_content_id?: SettableConfiguration<string>;
+  media_content_id?: SettableConfiguration<string, DATA>;
   /**
    * Content type of current playing media.
    */
-  media_content_type?: SettableConfiguration<`${MediaType}`>;
+  media_content_type?: SettableConfiguration<`${MediaType}`, DATA>;
   /**
    * Duration of current playing media in seconds.
    */
-  media_duration?: SettableConfiguration<number>;
+  media_duration?: SettableConfiguration<number, DATA>;
   /**
    * Episode of current playing media, TV show only.
    */
-  media_episode?: SettableConfiguration<string>;
+  media_episode?: SettableConfiguration<string, DATA>;
   /**
    * Hash of media image, defaults to SHA256 of media_image_url if media_image_url is not None.
    */
-  media_image_hash?: SettableConfiguration<string>;
+  media_image_hash?: SettableConfiguration<string, DATA>;
   /**
    * True if property media_image_url is accessible outside of the home network.
    */
-  media_image_remotely_accessible?: SettableConfiguration<boolean>;
+  media_image_remotely_accessible?: SettableConfiguration<boolean, DATA>;
   /**
    * Image URL of current playing media.
    */
-  media_image_url?: SettableConfiguration<string>;
+  media_image_url?: SettableConfiguration<string, DATA>;
   /**
    * Title of Playlist currently playing.
    */
-  media_playlist?: SettableConfiguration<string>;
+  media_playlist?: SettableConfiguration<string, DATA>;
   /**
    * Position of current playing media in seconds.
    */
-  media_position?: SettableConfiguration<number>;
+  media_position?: SettableConfiguration<number, DATA>;
   /**
    * Timestamp of when _attr_media_position was last updated. The timestamp should be set by calling homeassistant.util.dt.utcnow().
    */
-  media_position_updated_at?: SettableConfiguration<Dayjs>;
+  media_position_updated_at?: SettableConfiguration<Dayjs, DATA>;
   /**
    * Season of current playing media, TV show only.
    */
-  media_season?: SettableConfiguration<string>;
+  media_season?: SettableConfiguration<string, DATA>;
   /**
    * Title of series of current playing media, TV show only.
    */
-  media_series_title?: SettableConfiguration<string>;
+  media_series_title?: SettableConfiguration<string, DATA>;
   /**
    * Title of current playing media.
    */
-  media_title?: SettableConfiguration<string>;
+  media_title?: SettableConfiguration<string, DATA>;
   /**
    * Track number of current playing media, music track only.
    */
-  media_track?: SettableConfiguration<string>;
+  media_track?: SettableConfiguration<string, DATA>;
   /**
    * Current repeat mode.
    */
-  repeat?: SettableConfiguration<string>;
+  repeat?: SettableConfiguration<string, DATA>;
   /**
    * True if shuffle is enabled.
    */
-  shuffle?: SettableConfiguration<boolean>;
+  shuffle?: SettableConfiguration<boolean, DATA>;
   /**
    * The current sound mode of the media player.
    */
-  sound_mode?: SettableConfiguration<SOUND_MODES>;
+  sound_mode?: SettableConfiguration<SOUND_MODES, DATA>;
   /**
    * Dynamic list of available sound modes.
    */
@@ -141,7 +147,7 @@ export type MediaPlayerConfiguration<
   /**
    * The currently selected input source for the media player.
    */
-  source?: SettableConfiguration<SOURCES>;
+  source?: SettableConfiguration<SOURCES, DATA>;
   /**
    * The list of possible input sources for the media player. (This list should contain human readable names, suitable for frontend display).
    */
@@ -151,11 +157,11 @@ export type MediaPlayerConfiguration<
   /**
    * Volume level of the media player in the range (0..1).
    */
-  volume_level?: SettableConfiguration<number>;
+  volume_level?: SettableConfiguration<number, DATA>;
   /**
    * Volume step to use for the volume_up and volume_down services.
    */
-  volume_step?: SettableConfiguration<string>;
+  volume_step?: SettableConfiguration<string, DATA>;
 };
 
 export type MediaPlayerEvents = {
@@ -170,7 +176,7 @@ export type MediaPlayerEvents = {
 };
 
 export function VirtualMediaPlayer({ context, synapse }: TServiceParams) {
-  const generate = synapse.generator.create<MediaPlayerConfiguration, MediaPlayerEvents>({
+  const generate = synapse.generator.create<MediaPlayerConfiguration<object>, MediaPlayerEvents>({
     bus_events: ["select_sound_mode", "select_source", "play_media"],
     context,
     // @ts-expect-error its fine
@@ -211,12 +217,23 @@ export function VirtualMediaPlayer({ context, synapse }: TServiceParams) {
     ],
   });
 
-  return <PARAMS extends BasicAddParams>(
+  return <
+    PARAMS extends BasicAddParams,
+    DATA extends object = CallbackData<
+      PARAMS["locals"],
+      PARAMS["attributes"],
+      MediaPlayerConfiguration<object>
+    >,
+  >(
     options: AddEntityOptions<
-      MediaPlayerConfiguration,
+      MediaPlayerConfiguration<DATA>,
       MediaPlayerEvents,
       PARAMS["attributes"],
-      PARAMS["locals"]
+      PARAMS["locals"],
+      DATA
     >,
-  ) => generate.addEntity(options);
+  ) => {
+    // @ts-expect-error it's fine
+    return generate.addEntity<PARAMS["attributes"], PARAMS["locals"], DATA>(options);
+  };
 }
