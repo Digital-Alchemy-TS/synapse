@@ -15,6 +15,7 @@ export function DiscoveryService({
   const APP_METADATA = () => ({
     app: internal.boot.application.name,
     device: synapse.device.getInfo(),
+    hash: synapse.storage.hash(),
     hostname: hostname(),
     secondary_devices: synapse.device.list(),
     title: config.synapse.METADATA_TITLE,

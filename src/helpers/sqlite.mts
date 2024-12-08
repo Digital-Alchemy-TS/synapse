@@ -55,18 +55,10 @@ export const ENTITY_LOCALS_UPSERT = `INSERT INTO HomeAssistantEntityLocals (
   value_json = excluded.value_json,
   last_modified = excluded.last_modified`;
 
-export const SELECT_QUERY = `SELECT *
-  FROM HomeAssistantEntity
-  WHERE unique_id = ? AND application_name = ?`;
-
-export const SELECT_LOCALS_QUERY = `SELECT *
-  FROM HomeAssistantEntityLocals
-  WHERE unique_id = ?`;
-
+export const DELETE_LOCALS_BY_UNIQUE_ID_QUERY = `DELETE FROM HomeAssistantEntityLocals WHERE unique_id = ?`;
 export const DELETE_LOCALS_QUERY = `DELETE FROM HomeAssistantEntityLocals WHERE unique_id = ? AND key = ?`;
-
-export const DELETE_LOCALS_BY_UNIQUE_ID_QUERY = `DELETE FROM HomeAssistantEntityLocals
-  WHERE unique_id = ?`;
+export const SELECT_LOCALS_QUERY = `SELECT * FROM HomeAssistantEntityLocals WHERE unique_id = ?`;
+export const SELECT_QUERY = `SELECT * FROM HomeAssistantEntity WHERE unique_id = ? AND application_name = ?`;
 
 export type HomeAssistantEntityLocalRow = {
   id?: number;
