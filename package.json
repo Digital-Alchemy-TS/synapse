@@ -51,7 +51,7 @@
     "@types/uuid": "^10.0.0",
     "@types/ws": "^8.5.13",
     "@typescript-eslint/eslint-plugin": "8.17.0",
-    "@typescript-eslint/parser": "8.17.0",
+    "@typescript-eslint/parser": "8.18.2",
     "bun": "^1.1.38",
     "bun-types": "^1.1.38",
     "dayjs": "^1.11.13",
