@@ -1,4 +1,4 @@
-import { is, SINGLE, START, TAnyFunction, TContext, TServiceParams } from "@digital-alchemy/core";
+import { SINGLE, START, TAnyFunction, TContext, TServiceParams } from "@digital-alchemy/core";
 import {
   ANY_ENTITY,
   ByIdProxy,
@@ -33,6 +33,7 @@ export function DomainGeneratorService({
   context,
   config,
 }: TServiceParams) {
+  const { is } = internal.utils;
   // #MARK: removableListener
   function removableListener<DATA extends object>(
     eventName: string,

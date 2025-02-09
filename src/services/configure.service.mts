@@ -1,4 +1,4 @@
-import { is, TServiceParams } from "@digital-alchemy/core";
+import { TServiceParams } from "@digital-alchemy/core";
 import { createHash } from "crypto";
 import { hostname, userInfo } from "os";
 
@@ -10,6 +10,7 @@ export function ConfigurationService({
   hass,
   synapse,
 }: TServiceParams) {
+  const { is } = internal.utils;
   let extensionInstalled = false;
 
   function uniqueProperties(): string[] {
