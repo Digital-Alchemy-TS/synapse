@@ -1,4 +1,4 @@
-import { is, TServiceParams } from "@digital-alchemy/core";
+import { TServiceParams } from "@digital-alchemy/core";
 
 import {
   AddEntityOptions,
@@ -68,7 +68,14 @@ type AddParams = {
 
 type Generic = SensorConfiguration<object, object, string | number, object>;
 
-export function VirtualSensor({ context, synapse, logger }: TServiceParams) {
+export function VirtualSensor({
+  context,
+  synapse,
+  logger,
+  internal: {
+    utils: { is },
+  },
+}: TServiceParams) {
   function checkOptions(
     value: string,
     current: SensorConfiguration<object, object, string | number, object>,

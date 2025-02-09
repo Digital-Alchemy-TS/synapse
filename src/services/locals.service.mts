@@ -1,4 +1,4 @@
-import { is, TServiceParams } from "@digital-alchemy/core";
+import { TServiceParams } from "@digital-alchemy/core";
 
 import {
   DELETE_LOCALS_BY_UNIQUE_ID_QUERY,
@@ -11,6 +11,7 @@ import {
 import { prefix } from "./sqlite.service.mts";
 
 export function SynapseLocalsService({ synapse, logger, internal, event }: TServiceParams) {
+  const { is } = internal.utils;
   // #MARK: updateLocal
   function updateLocal(unique_id: TSynapseId, key: string, content: unknown) {
     const database = synapse.sqlite.getDatabase();

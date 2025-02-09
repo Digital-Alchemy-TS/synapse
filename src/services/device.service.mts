@@ -1,9 +1,8 @@
-import { is, TServiceParams } from "@digital-alchemy/core";
+import { TServiceParams } from "@digital-alchemy/core";
 import { createHash } from "crypto";
 import fs from "fs";
 import { hostname } from "os";
-import { join } from "path";
-import { dirname } from "path";
+import { dirname, join } from "path";
 import { cwd } from "process";
 import { fileURLToPath } from "url";
 
@@ -12,6 +11,7 @@ import { HassDeviceMetadata, md5ToUUID, TSynapseDeviceId } from "../helpers/util
 const host = hostname();
 
 export function DeviceService({ config, lifecycle, logger, internal, synapse }: TServiceParams) {
+  const { is } = internal.utils;
   let synapseVersion: string;
   const DEVICE_REGISTRY = new Map<string, HassDeviceMetadata>();
 

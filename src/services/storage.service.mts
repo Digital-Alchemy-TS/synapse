@@ -4,7 +4,6 @@ import {
   DOWN,
   HALF,
   InternalError,
-  is,
   SECOND,
   TServiceParams,
   UP,
@@ -37,6 +36,9 @@ export function StorageService({
   synapse,
   event,
   scheduler,
+  internal: {
+    utils: { is },
+  },
 }: TServiceParams) {
   const registry = new Map<TSynapseId, TSynapseEntityStorage>();
   const domain_lookup = new Map<string, TRawDomains>();
