@@ -113,6 +113,18 @@ export async function SQLiteService({
     return row;
   }
 
+  /**
+   * remove properties that were defaulted to undefined by internal workflows
+   */
+  function loadBaseState(base: string): object {
+    const current = JSON.parse(base);
+    return Object.fromEntries(
+      Object.keys(current)
+        .filter(key => !is.undefined(current[key]))
+        .map(key => [key, current[key]]),
+    );
+  }
+
   // #MARK: load
   function load<LOCALS extends object = object>(
     unique_id: TSynapseId,
@@ -123,12 +135,15 @@ export async function SQLiteService({
     const cleaned = bunRewrite(defaults);
     registeredDefaults.set(unique_id, cleaned);
     if (data) {
-      const current = JSON.parse(data.base_state);
+      const current = loadBaseState(data.base_state);
       if (is.equal(cleaned, current)) {
         logger.trace({ unique_id }, "equal defaults");
         return data;
       }
-      logger.info({ unique_id }, "hard config change detected, resetting entity");
+      logger.debug(
+        { cleaned, current, unique_id },
+        "hard config change detected, resetting entity",
+      );
       // might do some smart merge logic later 🤷‍♀️
       // technically no specific action is needed here since the below will override
     }
