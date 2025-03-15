@@ -6,6 +6,8 @@ type HeartBeatPayload = {
   hash: string;
 };
 
+type RefreshData = { data: string };
+
 export function SynapseSocketService({
   logger,
   lifecycle,
@@ -42,8 +44,7 @@ export function SynapseSocketService({
     hass.socket.onEvent({
       context,
       event: name("refresh"),
-      async exec({ data }: { data: string }) {
-        logger.error("HIT");
+      async exec({ data }: RefreshData) {
         await hass.fetch.fetch({
           method: "post",
           url: `/api/config/config_entries/entry/${data}/reload`,
