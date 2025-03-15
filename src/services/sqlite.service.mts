@@ -35,10 +35,9 @@ export function prefix(data: object) {
 
 const bunRewrite = <T extends object>(data: T) =>
   Object.fromEntries(
-    Object.entries(data).map(([key, value]) => [
-      key,
-      is.object(value) && "current" in value ? "dynamic" : value,
-    ]),
+    Object.entries(data)
+      .filter(([, value]) => !is.undefined(value))
+      .map(([key, value]) => [key, is.object(value) && "current" in value ? "dynamic" : value]),
   ) as T;
 
 export async function SQLiteService({

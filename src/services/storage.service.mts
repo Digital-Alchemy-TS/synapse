@@ -36,10 +36,9 @@ export function StorageService({
   synapse,
   event,
   scheduler,
-  internal: {
-    utils: { is },
-  },
+  internal,
 }: TServiceParams) {
+  const { is } = internal.utils;
   const registry = new Map<TSynapseId, TSynapseEntityStorage>();
   const domain_lookup = new Map<string, TRawDomains>();
 
@@ -149,7 +148,7 @@ export function StorageService({
       lifecycle.onReady(() => updateSettableConfig());
       event.on(unique_id, updateSettableConfig);
       setImmediate(() => updateSettableConfig());
-      return is.removeFn(() => {
+      return internal.removeFn(() => {
         event.removeListener(unique_id, updateSettableConfig);
       });
     }

@@ -76,5 +76,8 @@
     "vitest": "^3.0.8",
     "ws": "^8.18.1"
   },
-  "packageManager": "yarn@4.5.3"
+  "packageManager": "yarn@4.5.3",
+  "resolutions": {
+    "@digital-alchemy/hass": "portal:/home/zoe/DigitalAlchemyTS/hass"
+  }
 }

@@ -595,21 +595,20 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@digital-alchemy/hass@npm:^25.2.2":
-  version: 25.2.2
-  resolution: "@digital-alchemy/hass@npm:25.2.2"
+"@digital-alchemy/hass@portal:/home/zoe/DigitalAlchemyTS/hass::locator=%40digital-alchemy%2Fsynapse%40workspace%3A.":
+  version: 0.0.0-use.local
+  resolution: "@digital-alchemy/hass@portal:/home/zoe/DigitalAlchemyTS/hass::locator=%40digital-alchemy%2Fsynapse%40workspace%3A."
   dependencies:
     "@digital-alchemy/core": "npm:^25.2.2"
     dayjs: "npm:^1.11.13"
     semver: "npm:^7.7.1"
-    type-fest: "npm:^4.35.0"
+    type-fest: "npm:^4.36.0"
     uuid: "npm:^11.1.0"
     ws: "npm:^8.18.1"
   bin:
-    mock-assistant: scripts/mock-assistant.sh
-  checksum: 10/f1f5526138fcc5f157bf0a9e79a857039b4354c9d1e48bf1dd3bf57192e9329034b270b39cfda8e3d8bbc95a9b941e5144f44985f06034e25359c6252ef5b150
+    mock-assistant: ./scripts/mock-assistant.sh
   languageName: node
-  linkType: hard
+  linkType: soft
 
 "@digital-alchemy/synapse@workspace:.":
   version: 0.0.0-use.local

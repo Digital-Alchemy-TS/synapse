@@ -1,3 +1,5 @@
+import "@digital-alchemy/hass/dev-types";
+
 import { CreateLibrary, InternalConfig } from "@digital-alchemy/core";
 import { LIB_HASS } from "@digital-alchemy/hass";
 import { join } from "path";

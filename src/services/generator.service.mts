@@ -3,10 +3,10 @@ import {
   ANY_ENTITY,
   ByIdProxy,
   ENTITY_STATE,
+  HassUniqueIdMapping,
   PICK_ENTITY,
   RemoveCallback,
   TUniqueId,
-  TUniqueIDMapping,
 } from "@digital-alchemy/hass";
 
 import {
@@ -307,7 +307,7 @@ export function DomainGeneratorService({
 
             // #MARK: onUpdate
             case "onUpdate": {
-              type ENTITY_ID = Extract<TUniqueIDMapping[typeof unique_id], ANY_ENTITY>;
+              type ENTITY_ID = Extract<HassUniqueIdMapping[typeof unique_id], ANY_ENTITY>;
               return function (callback: TAnyFunction) {
                 logger.trace({ unique_id }, "attach onUpdate");
                 const removableCallback = async (
