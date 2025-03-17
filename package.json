@@ -73,7 +73,7 @@
     "type-fest": "^4.37.0",
     "typescript": "^5.8.2",
     "uuid": "^11.1.0",
-    "vitest": "^3.0.8",
+    "vitest": "^3.0.9",
     "ws": "^8.18.1"
   },
   "packageManager": "yarn@4.7.0"
