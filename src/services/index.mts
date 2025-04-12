@@ -2,6 +2,7 @@ export * from "./configure.service.mts";
 export * from "./device.service.mts";
 export * from "./discovery.service.mts";
 export * from "./domains/index.mts";
+export * from "./drizzle.service.mts";
 export * from "./generator.service.mts";
 export * from "./locals.service.mts";
 export * from "./socket.service.mts";

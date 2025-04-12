@@ -1,4 +1,6 @@
 import { PICK_ENTITY } from "@digital-alchemy/hass";
+import Database from "better-sqlite3";
+import { drizzle } from "drizzle-orm/better-sqlite3";
 
 export const ENTITY_CREATE = `CREATE TABLE IF NOT EXISTS HomeAssistantEntity (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -80,3 +82,8 @@ export type HomeAssistantEntityRow<LOCALS extends object = object> = {
   application_name: string;
   locals: LOCALS;
 };
+
+export function betterSqlite(db: string) {
+  const sqlite = new Database(db);
+  return drizzle({ client: sqlite });
+}

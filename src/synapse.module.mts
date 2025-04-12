@@ -9,7 +9,7 @@ import {
   DeviceService,
   DiscoveryService,
   DomainGeneratorService,
-  SQLiteService,
+  DrizzleService,
   StorageService,
   SynapseLocalsService,
   SynapseSocketService,
@@ -90,6 +90,11 @@ const DOMAINS = {
 
 export const LIB_SYNAPSE = CreateLibrary({
   configuration: {
+    DRIZZLE_MIGRATIONS: {
+      default: join(import.meta.dirname, "..", "drizzle"),
+      description: ["Database migration files shipped with the library"],
+      type: "string",
+    },
     EMIT_HEARTBEAT: {
       default: true,
       description: [
@@ -150,13 +155,17 @@ export const LIB_SYNAPSE = CreateLibrary({
      * Internal tools to create the device that registers with entities
      */
     device: DeviceService,
-
     /**
      * @internal
      *
      * Discovery features
      */
     discovery: DiscoveryService,
+
+    /**
+     * drizzle orm - used to persist entity state
+     */
+    drizzle: DrizzleService,
 
     /**
      * @internal
@@ -177,12 +186,12 @@ export const LIB_SYNAPSE = CreateLibrary({
      */
     socket: SynapseSocketService,
 
-    /**
-     * @internal
-     *
-     * Used to persist entity state
-     */
-    sqlite: SQLiteService,
+    // /**
+    //  * @internal
+    //  *
+    //  * Used to persist entity state
+    //  */
+    // sqlite: SQLiteService,
 
     /**
      * @internal
