@@ -1,32 +1,21 @@
 import { is, TServiceParams } from "@digital-alchemy/core";
+import { PICK_ENTITY } from "@digital-alchemy/hass";
 import SQLiteDriver, { Database } from "better-sqlite3";
+import { and, eq } from "drizzle-orm";
 
-import {
-  ENTITY_CREATE,
-  ENTITY_UPSERT,
-  HomeAssistantEntityRow,
-  LOCALS_CREATE,
-  SELECT_QUERY,
-  TSynapseId,
-} from "../helpers/index.mts";
+import { HomeAssistantEntityRow, TSynapseId } from "../helpers/index.mts";
+import { synapse_entity } from "../models/entity.mts";
+import { synapse_entity_locals } from "../models/entity-local.mts";
 
 export type SynapseSqliteDriver = typeof SQLiteDriver;
 
 type SynapseSqlite = {
-  getDatabase: () => Database;
-  load: (unique_id: TSynapseId, defaults: object) => HomeAssistantEntityRow;
-  update: (unique_id: TSynapseId, content: object, defaults?: object) => void;
+  load: (unique_id: TSynapseId, defaults: object) => Promise<HomeAssistantEntityRow>;
+  update: (unique_id: TSynapseId, content: object, defaults?: object) => Promise<void>;
 };
 
 const isBun = !is.empty(process.versions.bun);
-async function getDriver(): Promise<SynapseSqliteDriver> {
-  if (isBun) {
-    const { Database } = await import("bun:sqlite");
-    return Database as unknown as SynapseSqliteDriver;
-  }
-  const { default: Database } = await import("better-sqlite3");
-  return Database;
-}
+
 export function prefix(data: object) {
   return isBun
     ? Object.fromEntries(Object.entries(data).map(([key, value]) => [`$${key}`, value]))
@@ -41,33 +30,16 @@ const bunRewrite = <T extends object>(data: T) =>
   ) as T;
 
 export async function SQLiteService({
-  lifecycle,
-  config,
   logger,
   hass,
   internal,
   synapse,
 }: TServiceParams): Promise<SynapseSqlite> {
-  let database: Database;
-
   const application_name = internal.boot.application.name;
-  const Driver = await getDriver();
   const registeredDefaults = new Map<string, object>();
 
-  lifecycle.onPostConfig(() => {
-    logger.trace("create if not exists tables");
-    database = new Driver(config.synapse.SQLITE_DB);
-    database.prepare(ENTITY_CREATE).run();
-    database.prepare(LOCALS_CREATE).run();
-  });
-
-  lifecycle.onShutdownStart(() => {
-    logger.trace("close database");
-    database.close();
-  });
-
   // #MARK: update
-  function update(unique_id: TSynapseId, content: object, defaults?: object) {
+  async function update(unique_id: TSynapseId, content: object, defaults?: object) {
     const entity_id = hass.entity.registry.current.find(i => i.unique_id === unique_id)?.entity_id;
     if (is.empty(entity_id)) {
       if (synapse.configure.isRegistered()) {
@@ -82,34 +54,55 @@ export async function SQLiteService({
     }
     const state_json = JSON.stringify(content);
     const now = new Date().toISOString();
-    const insert = database.prepare(ENTITY_UPSERT);
     defaults ??= registeredDefaults.get(unique_id);
-    const data = prefix({
+
+    const data = {
       application_name: application_name,
       base_state: JSON.stringify(defaults),
       entity_id: entity_id,
+      entity_json: state_json,
       first_observed: now,
       last_modified: now,
       last_reported: now,
-      state_json: state_json,
       unique_id: unique_id,
-    });
+    };
     logger.trace({ ...data }, "update entity");
-    insert.run(data);
+    await synapse.drizzle.db.insert(synapse_entity).values(data);
   }
 
   // #MARK: loadRow
-  function loadRow<LOCALS extends object = object>(unique_id: TSynapseId) {
+  async function loadRow<LOCALS extends object = object>(
+    unique_id: TSynapseId,
+  ): Promise<HomeAssistantEntityRow<LOCALS>> {
     logger.trace({ unique_id }, "load entity");
-    const row = database
-      .prepare<[TSynapseId, string], HomeAssistantEntityRow<LOCALS>>(SELECT_QUERY)
-      .get(unique_id, application_name);
-    if (!row) {
+    const results = await synapse.drizzle.db
+      .select()
+      .from(synapse_entity)
+      .where(
+        and(
+          eq(synapse_entity.unique_id, unique_id),
+          eq(synapse_entity.application_name, application_name),
+        ),
+      );
+
+    if (is.empty(results)) {
       logger.debug("entity not found in database");
       return undefined;
     }
-    logger.trace({ entity_id: row.entity_id, unique_id }, "load entity");
-    return row;
+    const [row] = results;
+    const locals = await synapse.drizzle.db
+      .select()
+      .from(synapse_entity_locals)
+      .where(eq(synapse_entity_locals.unique_id, unique_id));
+    logger.trace({ entity_id: row.entity_id, locals, unique_id }, "load entity");
+
+    return {
+      ...row,
+      entity_id: row.entity_id as PICK_ENTITY,
+      locals: Object.fromEntries(
+        locals.map(i => [i.key, JSON.parse(i.value_json as string)]),
+      ) as LOCALS,
+    };
   }
 
   /**
@@ -125,12 +118,12 @@ export async function SQLiteService({
   }
 
   // #MARK: load
-  function load<LOCALS extends object = object>(
+  async function load<LOCALS extends object = object>(
     unique_id: TSynapseId,
     defaults: object,
-  ): HomeAssistantEntityRow<LOCALS> {
+  ): Promise<HomeAssistantEntityRow<LOCALS>> {
     // - if exists, return existing data
-    const data = loadRow<LOCALS>(unique_id);
+    const data = await loadRow<LOCALS>(unique_id);
     const cleaned = bunRewrite(defaults);
     registeredDefaults.set(unique_id, cleaned);
     if (data) {
@@ -148,12 +141,11 @@ export async function SQLiteService({
     }
     // - if new: insert then try again
     logger.trace({ name: load, unique_id }, `creating new sqlite entry`);
-    update(unique_id, cleaned, cleaned);
+    await update(unique_id, cleaned, cleaned);
     return loadRow<LOCALS>(unique_id);
   }
 
   return {
-    getDatabase: () => database,
     load,
     update,
   };

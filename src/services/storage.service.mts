@@ -22,8 +22,6 @@ import {
   TSynapseEntityStorage,
   TSynapseId,
 } from "../helpers/index.mts";
-import { synapse_entity } from "../models/entity.mts";
-import { eq } from "drizzle-orm";
 
 const RESYNC_DELAY = HALF * SECOND;
 
@@ -181,13 +179,15 @@ export function StorageService({
           throw new InternalError(context, "NO_LIVE_UPDATE", `${key} cannot be updated at runtime`);
         }
         CURRENT_VALUE[key] = value;
-        if (initialized) {
-          logger.trace({ key, unique_id }, "update locals");
-          synapse.drizzle.db.update(synapse_entity).set(registry.get(unique_id).export());
-          if (hass.socket.connectionState === "connected") {
-            setImmediate(async () => await synapse.socket.send(unique_id, CURRENT_VALUE));
+        setImmediate(async () => {
+          if (initialized) {
+            logger.trace({ key, unique_id }, "update locals");
+            await synapse.sqlite.update(unique_id, registry.get(unique_id).export());
+            if (hass.socket.connectionState === "connected") {
+              await synapse.socket.send(unique_id, CURRENT_VALUE);
+            }
           }
-        }
+        });
       },
       unique_id: entity.unique_id,
     } as TSynapseEntityStorage<CONFIGURATION>;
@@ -199,7 +199,6 @@ export function StorageService({
       const unique_id = entity.unique_id as TSynapseId;
 
       // - ??
-      // const d = synapse.drizzle.db.select().from(synapse_entity).where(eq(synapse_entity.unique_id, cu))
       const data = synapse.sqlite.load(unique_id, CURRENT_VALUE);
       if (is.empty(data?.state_json)) {
         initialized = true;

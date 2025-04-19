@@ -10,6 +10,7 @@ import {
   DiscoveryService,
   DomainGeneratorService,
   DrizzleService,
+  SQLiteService,
   StorageService,
   SynapseLocalsService,
   SynapseSocketService,
@@ -186,12 +187,12 @@ export const LIB_SYNAPSE = CreateLibrary({
      */
     socket: SynapseSocketService,
 
-    // /**
-    //  * @internal
-    //  *
-    //  * Used to persist entity state
-    //  */
-    // sqlite: SQLiteService,
+    /**
+     * @internal
+     *
+     * Used to persist entity state
+     */
+    sqlite: SQLiteService,
 
     /**
      * @internal

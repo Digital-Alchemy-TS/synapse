@@ -1,6 +1,6 @@
 import { integer, sqliteTable, text, uniqueIndex } from "drizzle-orm/sqlite-core";
 
-export const entityLocal = sqliteTable(
+export const synapse_entity_locals = sqliteTable(
   "HomeAssistantEntityLocals",
   {
     id: integer().primaryKey({ autoIncrement: true }),
