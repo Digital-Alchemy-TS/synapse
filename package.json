@@ -38,7 +38,7 @@
     "uuid": "*"
   },
   "devDependencies": {
-    "@cspell/eslint-plugin": "^8.19.3",
+    "@cspell/eslint-plugin": "^9.0.0",
     "@digital-alchemy/core": "^25.2.2",
     "@digital-alchemy/hass": "^25.3.2",
     "@eslint/compat": "^1.2.8",
