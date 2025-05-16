@@ -1,4 +1,5 @@
 export * from "./base-domain.mts";
+export * from "./bun-sqlite.mts";
 export * from "./common-config.mts";
 export * from "./sensor.mts";
 export * from "./sqlite.mts";

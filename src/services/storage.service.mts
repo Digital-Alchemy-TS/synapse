@@ -179,13 +179,15 @@ export function StorageService({
           throw new InternalError(context, "NO_LIVE_UPDATE", `${key} cannot be updated at runtime`);
         }
         CURRENT_VALUE[key] = value;
-        if (initialized) {
-          logger.trace({ key, unique_id }, "update locals");
-          synapse.sqlite.update(unique_id, registry.get(unique_id).export());
-          if (hass.socket.connectionState === "connected") {
-            setImmediate(async () => await synapse.socket.send(unique_id, CURRENT_VALUE));
+        setImmediate(async () => {
+          if (initialized) {
+            logger.trace({ key, unique_id }, "update locals");
+            await synapse.sqlite.update(unique_id, registry.get(unique_id).export());
+            if (hass.socket.connectionState === "connected") {
+              await synapse.socket.send(unique_id, CURRENT_VALUE);
+            }
           }
-        }
+        });
       },
       unique_id: entity.unique_id,
     } as TSynapseEntityStorage<CONFIGURATION>;
