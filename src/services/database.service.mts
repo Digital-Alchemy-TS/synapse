@@ -3,13 +3,28 @@ import Database from "better-sqlite3";
 import { and, eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/better-sqlite3";
 import { migrate } from "drizzle-orm/better-sqlite3/migrator";
+import { drizzle as drizzleMysql } from "drizzle-orm/mysql2";
+import { migrate as migrateMysql } from "drizzle-orm/mysql2/migrator";
+import { drizzle as drizzlePostgres } from "drizzle-orm/postgres-js";
+import { migrate as migratePostgres } from "drizzle-orm/postgres-js/migrator";
+import mysql from "mysql2/promise";
+import postgres from "postgres";
 
-import {
-  homeAssistantEntity,
-  homeAssistantEntityLocals,
-  HomeAssistantEntityRow,
-  SynapseDatabase,
-} from "../schema/tables.mts";
+// Import the default SQLite schema for types
+import { HomeAssistantEntityRow, SynapseDatabase } from "../schema/tables.mts";
+
+// Dynamic schema imports based on database type
+async function getSchema(databaseType: string) {
+  switch (databaseType) {
+    case "postgresql":
+      return await import("../schema/tables.postgresql.mts");
+    case "mysql":
+      return await import("../schema/tables.mysql.mts");
+    case "sqlite":
+    default:
+      return await import("../schema/tables.mts");
+  }
+}
 
 export async function DatabaseService({
   lifecycle,
@@ -19,25 +34,58 @@ export async function DatabaseService({
   internal,
   synapse,
 }: TServiceParams): Promise<SynapseDatabase> {
-  let database: ReturnType<typeof drizzle>;
-  let sqlite: Database.Database;
+  let database:
+    | ReturnType<typeof drizzle>
+    | ReturnType<typeof drizzlePostgres>
+    | ReturnType<typeof drizzleMysql>;
+  let sqlite: Database.Database | undefined;
+  let postgresClient: postgres.Sql | undefined;
+  let mysqlClient: mysql.Connection | undefined;
 
   const application_name = internal.boot.application.name;
   const app_unique_id = config.synapse.METADATA_UNIQUE_ID;
   const registeredDefaults = new Map<string, object>();
 
+  // Get the appropriate schema based on database type
+  const schema = await getSchema(config.synapse.DATABASE_TYPE);
+  const { homeAssistantEntity, homeAssistantEntityLocals } = schema;
+
   lifecycle.onPostConfig(async () => {
     logger.trace("initializing database connection");
 
     if (config.synapse.DATABASE_TYPE === "sqlite") {
-      // Extract file path from URL
+      // SQLite connection
       const filePath = config.synapse.DATABASE_URL.replace("file:", "");
       sqlite = new Database(filePath);
       database = drizzle(sqlite);
 
       // Run migrations
       try {
-        await migrate(database, { migrationsFolder: "./src/schema/migrations" });
+        await migrate(database, { migrationsFolder: "./src/schema/migrations/sqlite" });
+        logger.trace("database migrations completed");
+      } catch (error) {
+        logger.warn("migration failed, continuing with existing schema", error);
+      }
+    } else if (config.synapse.DATABASE_TYPE === "postgresql") {
+      // PostgreSQL connection
+      postgresClient = postgres(config.synapse.DATABASE_URL);
+      database = drizzlePostgres(postgresClient);
+
+      // Run migrations
+      try {
+        await migratePostgres(database, { migrationsFolder: "./src/schema/migrations/postgresql" });
+        logger.trace("database migrations completed");
+      } catch (error) {
+        logger.warn("migration failed, continuing with existing schema", error);
+      }
+    } else if (config.synapse.DATABASE_TYPE === "mysql") {
+      // MySQL connection
+      mysqlClient = await mysql.createConnection(config.synapse.DATABASE_URL);
+      database = drizzleMysql(mysqlClient);
+
+      // Run migrations
+      try {
+        await migrateMysql(database, { migrationsFolder: "./src/schema/migrations/mysql" });
         logger.trace("database migrations completed");
       } catch (error) {
         logger.warn("migration failed, continuing with existing schema", error);
@@ -51,6 +99,12 @@ export async function DatabaseService({
     logger.trace("closing database connection");
     if (sqlite) {
       sqlite.close();
+    }
+    if (postgresClient) {
+      void postgresClient.end();
+    }
+    if (mysqlClient) {
+      void mysqlClient.end();
     }
   });
 
@@ -74,7 +128,7 @@ export async function DatabaseService({
     defaults ??= registeredDefaults.get(unique_id);
 
     try {
-      await database
+      await (database as any)
         .insert(homeAssistantEntity)
         .values({
           app_unique_id: app_unique_id,
@@ -114,7 +168,7 @@ export async function DatabaseService({
     logger.trace({ unique_id }, "loading entity");
 
     try {
-      const row = await database
+      const row = await (database as any)
         .select()
         .from(homeAssistantEntity)
         .where(
@@ -180,7 +234,7 @@ export async function DatabaseService({
     const last_modified = new Date().toISOString();
 
     try {
-      await database
+      await (database as any)
         .insert(homeAssistantEntityLocals)
         .values({
           app_unique_id: app_unique_id,
@@ -216,7 +270,7 @@ export async function DatabaseService({
     logger.trace({ unique_id }, "initial load of locals");
 
     try {
-      const locals = await database
+      const locals = await (database as any)
         .select()
         .from(homeAssistantEntityLocals)
         .where(
@@ -226,7 +280,9 @@ export async function DatabaseService({
           ),
         );
 
-      return new Map<string, unknown>(locals.map(i => [i.key, JSON.parse(i.value_json)]));
+      return new Map<string, unknown>(
+        locals.map((i: { key: string; value_json: string }) => [i.key, JSON.parse(i.value_json)]),
+      );
     } catch (error) {
       logger.error({ error, unique_id }, "failed to load locals");
       throw error;
@@ -238,7 +294,7 @@ export async function DatabaseService({
     logger.debug({ key, unique_id }, `delete local (value undefined)`);
 
     try {
-      await database
+      await (database as any)
         .delete(homeAssistantEntityLocals)
         .where(
           and(
@@ -258,7 +314,7 @@ export async function DatabaseService({
     logger.debug({ unique_id }, "delete all locals");
 
     try {
-      await database
+      await (database as any)
         .delete(homeAssistantEntityLocals)
         .where(
           and(
