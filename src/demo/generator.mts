@@ -58,7 +58,7 @@ export function DemoEntityGenerator({ scheduler, synapse, context, logger }: TSe
       const currentTemp = temperatureSensor.storage.get("state") || 22.5;
       // eslint-disable-next-line sonarjs/pseudo-random
       const variation = (Math.random() - 0.5) * 2; // ±1°C variation
-      const newTemp = Math.round((currentTemp + variation) * 10) / 10;
+      const newTemp = Math.round((Number(currentTemp) + variation) * 10) / 10;
       temperatureSensor.storage.set("state", newTemp).catch((error: unknown) => {
         logger.error("Failed to update temperature sensor", error);
       });

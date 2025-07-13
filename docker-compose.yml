@@ -1,0 +1,18 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: synapse-postgres
+    environment:
+      POSTGRES_DB: synapse
+      POSTGRES_USER: synapse_user
+      POSTGRES_PASSWORD: synapse_password
+    ports:
+      - "5432:5432"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U synapse_user -d synapse"]
+      interval: 10s
+      timeout: 5s
+      retries: 5

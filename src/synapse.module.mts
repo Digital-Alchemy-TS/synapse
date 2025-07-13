@@ -1,4 +1,4 @@
-import { CreateLibrary, InternalConfig } from "@digital-alchemy/core";
+import { CreateLibrary, InternalConfig, StringConfig } from "@digital-alchemy/core";
 import { LIB_HASS } from "@digital-alchemy/hass";
 import { join } from "path";
 import { cwd } from "process";
@@ -93,8 +93,9 @@ export const LIB_SYNAPSE = CreateLibrary({
     DATABASE_TYPE: {
       default: "sqlite",
       description: "Database type to use (sqlite, postgresql, mysql)",
+      enum: ["sqlite", "postgresql", "mysql"],
       type: "string",
-    },
+    } as StringConfig<"sqlite" | "postgresql" | "mysql">,
     DATABASE_URL: {
       default: `file:${join(cwd(), "synapse_storage.db")}`,
       description: "Database connection URL",

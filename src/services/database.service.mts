@@ -23,6 +23,7 @@ export async function DatabaseService({
   let sqlite: Database.Database;
 
   const application_name = internal.boot.application.name;
+  const app_unique_id = config.synapse.METADATA_UNIQUE_ID;
   const registeredDefaults = new Map<string, object>();
 
   lifecycle.onPostConfig(async () => {
@@ -76,6 +77,7 @@ export async function DatabaseService({
       await database
         .insert(homeAssistantEntity)
         .values({
+          app_unique_id: app_unique_id,
           application_name: application_name,
           base_state: JSON.stringify(defaults),
           entity_id: entity_id,
@@ -87,6 +89,7 @@ export async function DatabaseService({
         })
         .onConflictDoUpdate({
           set: {
+            app_unique_id: app_unique_id,
             application_name: application_name,
             base_state: JSON.stringify(defaults),
             entity_id: entity_id,
@@ -117,7 +120,7 @@ export async function DatabaseService({
         .where(
           and(
             eq(homeAssistantEntity.unique_id, unique_id),
-            eq(homeAssistantEntity.application_name, application_name),
+            eq(homeAssistantEntity.app_unique_id, app_unique_id),
           ),
         )
         .get();
@@ -180,6 +183,7 @@ export async function DatabaseService({
       await database
         .insert(homeAssistantEntityLocals)
         .values({
+          app_unique_id: app_unique_id,
           // Handle string unique_id
           key,
           last_modified: last_modified,
@@ -188,6 +192,7 @@ export async function DatabaseService({
         })
         .onConflictDoUpdate({
           set: {
+            app_unique_id: app_unique_id,
             last_modified: last_modified,
             value_json: value_json,
           },
@@ -214,7 +219,12 @@ export async function DatabaseService({
       const locals = await database
         .select()
         .from(homeAssistantEntityLocals)
-        .where(eq(homeAssistantEntityLocals.unique_id, parseInt(unique_id) || 0));
+        .where(
+          and(
+            eq(homeAssistantEntityLocals.unique_id, parseInt(unique_id) || 0),
+            eq(homeAssistantEntityLocals.app_unique_id, app_unique_id),
+          ),
+        );
 
       return new Map<string, unknown>(locals.map(i => [i.key, JSON.parse(i.value_json)]));
     } catch (error) {
@@ -234,6 +244,7 @@ export async function DatabaseService({
           and(
             eq(homeAssistantEntityLocals.unique_id, parseInt(unique_id) || 0),
             eq(homeAssistantEntityLocals.key, key),
+            eq(homeAssistantEntityLocals.app_unique_id, app_unique_id),
           ),
         );
     } catch (error) {
@@ -249,7 +260,12 @@ export async function DatabaseService({
     try {
       await database
         .delete(homeAssistantEntityLocals)
-        .where(eq(homeAssistantEntityLocals.unique_id, parseInt(unique_id) || 0));
+        .where(
+          and(
+            eq(homeAssistantEntityLocals.unique_id, parseInt(unique_id) || 0),
+            eq(homeAssistantEntityLocals.app_unique_id, app_unique_id),
+          ),
+        );
     } catch (error) {
       logger.error({ error, unique_id }, "failed to delete locals");
       throw error;

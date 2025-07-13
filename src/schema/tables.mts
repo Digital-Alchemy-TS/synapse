@@ -1,9 +1,9 @@
 import { sql } from "drizzle-orm";
-import { drizzle } from "drizzle-orm/better-sqlite3";
 import { integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
 
 // HomeAssistantEntity table - Main entity storage
 export const homeAssistantEntity = sqliteTable("HomeAssistantEntity", {
+  app_unique_id: text("app_unique_id").notNull(),
   application_name: text("application_name").notNull(),
   base_state: text("base_state").notNull(),
   entity_id: text("entity_id").notNull(),
@@ -19,6 +19,7 @@ export const homeAssistantEntity = sqliteTable("HomeAssistantEntity", {
 
 // HomeAssistantEntityLocals table - Local entity data
 export const homeAssistantEntityLocals = sqliteTable("HomeAssistantEntityLocals", {
+  app_unique_id: text("app_unique_id").notNull(),
   id: integer("id").primaryKey({ autoIncrement: true }),
   key: text("key").notNull(),
   last_modified: text("last_modified")
@@ -42,7 +43,7 @@ export type HomeAssistantEntityRow<LOCALS extends object = object> = HomeAssista
 
 // Database service interface
 export type SynapseDatabase = {
-  getDatabase: () => ReturnType<typeof drizzle>;
+  getDatabase: () => unknown;
   load: <LOCALS extends object = object>(
     unique_id: string,
     defaults: object,

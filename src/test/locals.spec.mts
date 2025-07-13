@@ -170,7 +170,7 @@ describe("Locals", () => {
               name: "test",
             });
             expect(() => {
-              delete sensor.locals.this_does_not_exist;
+              delete sensor.locals.string;
             }).not.toThrow();
           });
         });
