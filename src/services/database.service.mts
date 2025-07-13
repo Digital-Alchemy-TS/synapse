@@ -1,4 +1,4 @@
-import { TServiceParams } from "@digital-alchemy/core";
+import { is, TServiceParams } from "@digital-alchemy/core";
 import Database from "better-sqlite3";
 import { and, eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/better-sqlite3";
@@ -209,12 +209,12 @@ export async function DatabaseService({
           ),
         );
 
-      if (!rows || rows.length === 0) {
+      if (is.empty(rows)) {
         logger.debug("entity not found in database");
         return undefined;
       }
 
-      const row = rows[0];
+      const [row] = rows;
 
       // Ensure state_json and base_state are strings (for PostgreSQL JSONB compatibility)
       const processedRow = {
@@ -281,10 +281,9 @@ export async function DatabaseService({
         .insert(homeAssistantEntityLocals)
         .values({
           app_unique_id: app_unique_id,
-          // Handle string unique_id
           key,
           last_modified: last_modified,
-          unique_id: parseInt(unique_id) || 0,
+          unique_id: unique_id,
           value_json: value_json,
         })
         .onConflictDoUpdate({
@@ -318,7 +317,7 @@ export async function DatabaseService({
         .from(homeAssistantEntityLocals)
         .where(
           and(
-            eq(homeAssistantEntityLocals.unique_id, parseInt(unique_id) || 0),
+            eq(homeAssistantEntityLocals.unique_id, unique_id),
             eq(homeAssistantEntityLocals.app_unique_id, app_unique_id),
           ),
         );
@@ -339,7 +338,7 @@ export async function DatabaseService({
         .delete(homeAssistantEntityLocals)
         .where(
           and(
-            eq(homeAssistantEntityLocals.unique_id, parseInt(unique_id) || 0),
+            eq(homeAssistantEntityLocals.unique_id, unique_id),
             eq(homeAssistantEntityLocals.key, key),
             eq(homeAssistantEntityLocals.app_unique_id, app_unique_id),
           ),
@@ -359,7 +358,7 @@ export async function DatabaseService({
         .delete(homeAssistantEntityLocals)
         .where(
           and(
-            eq(homeAssistantEntityLocals.unique_id, parseInt(unique_id) || 0),
+            eq(homeAssistantEntityLocals.unique_id, unique_id),
             eq(homeAssistantEntityLocals.app_unique_id, app_unique_id),
           ),
         );

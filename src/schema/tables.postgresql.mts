@@ -1,4 +1,4 @@
-import { integer, jsonb, pgTable, serial, text, timestamp } from "drizzle-orm/pg-core";
+import { jsonb, pgTable, serial, text, timestamp } from "drizzle-orm/pg-core";
 
 // HomeAssistantEntity table - Main entity storage
 export const homeAssistantEntity = pgTable("HomeAssistantEntity", {
@@ -20,7 +20,7 @@ export const homeAssistantEntityLocals = pgTable("HomeAssistantEntityLocals", {
   id: serial("id").primaryKey(),
   key: text("key").notNull(),
   last_modified: timestamp("last_modified").notNull().defaultNow(),
-  unique_id: integer("unique_id").notNull(),
+  unique_id: text("unique_id").notNull(),
   value_json: jsonb("value_json").notNull(),
 });
 

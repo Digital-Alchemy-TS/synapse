@@ -20,7 +20,7 @@ export const homeAssistantEntityLocals = mysqlTable("HomeAssistantEntityLocals",
   id: int("id").primaryKey().autoincrement(),
   key: varchar("key", { length: 255 }).notNull(),
   last_modified: timestamp("last_modified").notNull().defaultNow(),
-  unique_id: int("unique_id").notNull(),
+  unique_id: varchar("unique_id", { length: 255 }).notNull(),
   value_json: varchar("value_json", { length: 1000 }).notNull(),
 });
 
