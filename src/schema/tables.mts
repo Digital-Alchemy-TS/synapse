@@ -25,7 +25,7 @@ export const homeAssistantEntityLocals = sqliteTable("HomeAssistantEntityLocals"
   last_modified: text("last_modified")
     .notNull()
     .default(sql`CURRENT_TIMESTAMP`),
-  unique_id: integer("unique_id").notNull(),
+  unique_id: text("unique_id").notNull(),
   value_json: text("value_json").notNull(),
 });
 
