@@ -6,10 +6,10 @@ import { cwd } from "process";
 import { HassDeviceMetadata } from "./helpers/index.mts";
 import {
   ConfigurationService,
+  DatabaseService,
   DeviceService,
   DiscoveryService,
   DomainGeneratorService,
-  SQLiteService,
   StorageService,
   SynapseLocalsService,
   SynapseSocketService,
@@ -90,6 +90,16 @@ const DOMAINS = {
 
 export const LIB_SYNAPSE = CreateLibrary({
   configuration: {
+    DATABASE_TYPE: {
+      default: "sqlite",
+      description: "Database type to use (sqlite, postgresql, mysql)",
+      type: "string",
+    },
+    DATABASE_URL: {
+      default: `file:${join(cwd(), "synapse_storage.db")}`,
+      description: "Database connection URL",
+      type: "string",
+    },
     EMIT_HEARTBEAT: {
       default: true,
       description: [
@@ -182,7 +192,7 @@ export const LIB_SYNAPSE = CreateLibrary({
      *
      * Used to persist entity state
      */
-    sqlite: SQLiteService,
+    sqlite: DatabaseService,
 
     /**
      * @internal
