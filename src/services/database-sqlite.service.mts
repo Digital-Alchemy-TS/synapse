@@ -1,4 +1,5 @@
 import { is, TServiceParams } from "@digital-alchemy/core";
+import { RemoteEntityFeature } from "@digital-alchemy/hass";
 import Database from "better-sqlite3";
 import { and, eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/better-sqlite3";
@@ -129,7 +130,7 @@ export async function DatabaseSQLiteService({
         );
 
       if (is.empty(rows)) {
-        throw new Error(`Entity not found in database: ${unique_id}`);
+        return undefined;
       }
 
       const [row] = rows;
@@ -175,8 +176,8 @@ export async function DatabaseSQLiteService({
       );
       registeredDefaults.set(unique_id, cleaned);
 
-      const current = JSON.parse(data.base_state);
-      if (JSON.stringify(cleaned) === JSON.stringify(current)) {
+      const current = data ? JSON.parse(data.base_state) : {};
+      if (data && JSON.stringify(cleaned) === JSON.stringify(current)) {
         logger.trace({ unique_id }, "equal defaults");
         return data;
       }
