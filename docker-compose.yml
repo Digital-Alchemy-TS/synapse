@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   postgres:
-    image: postgres:16-alpine
+    image: postgres:16
     container_name: synapse-postgres
     environment:
       POSTGRES_DB: synapse
@@ -13,6 +13,23 @@ services:
     restart: unless-stopped
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U synapse_user -d synapse"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  mariadb:
+    image: mariadb:11
+    container_name: synapse-mariadb
+    environment:
+      MYSQL_DATABASE: synapse
+      MYSQL_USER: synapse_user
+      MYSQL_PASSWORD: synapse_password
+      MYSQL_ROOT_PASSWORD: synapse_root_password
+    ports:
+      - "3306:3306"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -u synapse_user -psynapse_password"]
       interval: 10s
       timeout: 5s
       retries: 5
