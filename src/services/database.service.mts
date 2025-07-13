@@ -13,6 +13,35 @@ import postgres from "postgres";
 // Import the default SQLite schema for types
 import { HomeAssistantEntityRow, SynapseDatabase } from "../schema/tables.mts";
 
+// Type for database operations that work across all database types
+type DatabaseOperations = {
+  insert: (table: unknown) => {
+    values: (data: Record<string, unknown>) => {
+      onConflictDoUpdate: (options: {
+        set: Record<string, unknown>;
+        target: unknown;
+      }) => Promise<void>;
+    };
+  };
+  select: () => {
+    from: (table: unknown) => {
+      where: (condition: unknown) => Promise<Record<string, unknown>[]>;
+    };
+  };
+  delete: (table: unknown) => {
+    where: (condition: unknown) => Promise<void>;
+  };
+};
+
+// Type for locals query result
+type LocalsQueryResult = {
+  select: () => {
+    from: (table: unknown) => {
+      where: (condition: unknown) => Promise<Array<{ key: string; value_json: string }>>;
+    };
+  };
+};
+
 // Dynamic schema imports based on database type
 async function getSchema(databaseType: string) {
   switch (databaseType) {
@@ -34,10 +63,7 @@ export async function DatabaseService({
   internal,
   synapse,
 }: TServiceParams): Promise<SynapseDatabase> {
-  let database:
-    | ReturnType<typeof drizzle>
-    | ReturnType<typeof drizzlePostgres>
-    | ReturnType<typeof drizzleMysql>;
+  let database: DatabaseOperations;
   let sqlite: Database.Database | undefined;
   let postgresClient: postgres.Sql | undefined;
   let mysqlClient: mysql.Connection | undefined;
@@ -57,11 +83,12 @@ export async function DatabaseService({
       // SQLite connection
       const filePath = config.synapse.DATABASE_URL.replace("file:", "");
       sqlite = new Database(filePath);
-      database = drizzle(sqlite);
+      const sqliteDb = drizzle(sqlite);
+      database = sqliteDb as unknown as DatabaseOperations;
 
       // Run migrations
       try {
-        await migrate(database, { migrationsFolder: "./src/schema/migrations/sqlite" });
+        await migrate(sqliteDb, { migrationsFolder: "./src/schema/migrations/sqlite" });
         logger.trace("database migrations completed");
       } catch (error) {
         logger.warn("migration failed, continuing with existing schema", error);
@@ -69,11 +96,14 @@ export async function DatabaseService({
     } else if (config.synapse.DATABASE_TYPE === "postgresql") {
       // PostgreSQL connection
       postgresClient = postgres(config.synapse.DATABASE_URL);
-      database = drizzlePostgres(postgresClient);
+      const postgresDb = drizzlePostgres(postgresClient);
+      database = postgresDb as unknown as DatabaseOperations;
 
       // Run migrations
       try {
-        await migratePostgres(database, { migrationsFolder: "./src/schema/migrations/postgresql" });
+        await migratePostgres(postgresDb, {
+          migrationsFolder: "./src/schema/migrations/postgresql",
+        });
         logger.trace("database migrations completed");
       } catch (error) {
         logger.warn("migration failed, continuing with existing schema", error);
@@ -81,11 +111,12 @@ export async function DatabaseService({
     } else if (config.synapse.DATABASE_TYPE === "mysql") {
       // MySQL connection
       mysqlClient = await mysql.createConnection(config.synapse.DATABASE_URL);
-      database = drizzleMysql(mysqlClient);
+      const mysqlDb = drizzleMysql(mysqlClient);
+      database = mysqlDb as unknown as DatabaseOperations;
 
       // Run migrations
       try {
-        await migrateMysql(database, { migrationsFolder: "./src/schema/migrations/mysql" });
+        await migrateMysql(mysqlDb, { migrationsFolder: "./src/schema/migrations/mysql" });
         logger.trace("database migrations completed");
       } catch (error) {
         logger.warn("migration failed, continuing with existing schema", error);
@@ -128,7 +159,7 @@ export async function DatabaseService({
     defaults ??= registeredDefaults.get(unique_id);
 
     try {
-      await (database as any)
+      await database
         .insert(homeAssistantEntity)
         .values({
           app_unique_id: app_unique_id,
@@ -168,7 +199,7 @@ export async function DatabaseService({
     logger.trace({ unique_id }, "loading entity");
 
     try {
-      const row = await (database as any)
+      const rows = await database
         .select()
         .from(homeAssistantEntity)
         .where(
@@ -176,16 +207,26 @@ export async function DatabaseService({
             eq(homeAssistantEntity.unique_id, unique_id),
             eq(homeAssistantEntity.app_unique_id, app_unique_id),
           ),
-        )
-        .get();
+        );
 
-      if (!row) {
+      if (!rows || rows.length === 0) {
         logger.debug("entity not found in database");
         return undefined;
       }
 
+      const row = rows[0];
+
+      // Ensure state_json and base_state are strings (for PostgreSQL JSONB compatibility)
+      const processedRow = {
+        ...row,
+        base_state:
+          typeof row.base_state === "string" ? row.base_state : JSON.stringify(row.base_state),
+        state_json:
+          typeof row.state_json === "string" ? row.state_json : JSON.stringify(row.state_json),
+      };
+
       logger.trace({ entity_id: row.entity_id, unique_id }, "loaded entity");
-      return { ...row, locals: {} as LOCALS };
+      return { ...processedRow, locals: {} as LOCALS } as HomeAssistantEntityRow<LOCALS>;
     } catch (error) {
       logger.error({ error, unique_id }, "failed to load entity");
       throw error;
@@ -207,7 +248,7 @@ export async function DatabaseService({
       const current = JSON.parse(data.base_state);
       if (JSON.stringify(cleaned) === JSON.stringify(current)) {
         logger.trace({ unique_id }, "equal defaults");
-        return { ...data, locals: {} as LOCALS };
+        return { ...data, locals: {} as LOCALS } as HomeAssistantEntityRow<LOCALS>;
       }
       logger.debug(
         { cleaned, current, unique_id },
@@ -218,7 +259,9 @@ export async function DatabaseService({
     logger.trace({ name: load, unique_id }, `creating new database entry`);
     await update(unique_id, cleaned, cleaned);
     const newData = await loadRow(unique_id);
-    return newData ? { ...newData, locals: {} as LOCALS } : undefined;
+    return newData
+      ? ({ ...newData, locals: {} as LOCALS } as HomeAssistantEntityRow<LOCALS>)
+      : undefined;
   }
 
   // Update local storage
@@ -234,7 +277,7 @@ export async function DatabaseService({
     const last_modified = new Date().toISOString();
 
     try {
-      await (database as any)
+      await database
         .insert(homeAssistantEntityLocals)
         .values({
           app_unique_id: app_unique_id,
@@ -270,7 +313,7 @@ export async function DatabaseService({
     logger.trace({ unique_id }, "initial load of locals");
 
     try {
-      const locals = await (database as any)
+      const locals = await (database as unknown as LocalsQueryResult)
         .select()
         .from(homeAssistantEntityLocals)
         .where(
@@ -280,9 +323,7 @@ export async function DatabaseService({
           ),
         );
 
-      return new Map<string, unknown>(
-        locals.map((i: { key: string; value_json: string }) => [i.key, JSON.parse(i.value_json)]),
-      );
+      return new Map<string, unknown>(locals.map(i => [i.key, JSON.parse(i.value_json)]));
     } catch (error) {
       logger.error({ error, unique_id }, "failed to load locals");
       throw error;
@@ -294,7 +335,7 @@ export async function DatabaseService({
     logger.debug({ key, unique_id }, `delete local (value undefined)`);
 
     try {
-      await (database as any)
+      await database
         .delete(homeAssistantEntityLocals)
         .where(
           and(
@@ -314,7 +355,7 @@ export async function DatabaseService({
     logger.debug({ unique_id }, "delete all locals");
 
     try {
-      await (database as any)
+      await database
         .delete(homeAssistantEntityLocals)
         .where(
           and(
