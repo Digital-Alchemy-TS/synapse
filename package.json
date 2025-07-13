@@ -6,6 +6,7 @@
   "version": "25.3.1",
   "scripts": {
     "start:mock": "tsx src/mock/main.mts",
+    "demo": "tsx src/demo/main.mts",
     "build": "rm -rf dist; tsc",
     "test": "vitest --no-file-parallelism",
     "lint": "eslint src",
@@ -22,7 +23,8 @@
     "name": "Zoe Codez"
   },
   "files": [
-    "dist/**/*"
+    "dist/**/*",
+    "!dist/demo/**/*"
   ],
   "engines": {
     "node": ">=20"

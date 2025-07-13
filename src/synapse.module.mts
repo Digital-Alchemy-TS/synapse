@@ -144,7 +144,7 @@ export const LIB_SYNAPSE = CreateLibrary({
   },
   depends: [LIB_HASS],
   name: "synapse",
-  priorityInit: ["generator", "storage", "locals"],
+  priorityInit: ["locals", "generator", "storage"],
   services: {
     /**
      * @internal
