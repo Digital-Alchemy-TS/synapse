@@ -133,11 +133,6 @@ export const LIB_SYNAPSE = CreateLibrary({
       description: ["A string to uniquely identify this application", "Should be uuid or md5 sum"],
       type: "string",
     },
-    SQLITE_DB: {
-      default: join(cwd(), "synapse_storage.db"),
-      description: "Location to persist entity state at",
-      type: "string",
-    },
     TRACE_SIBLING_HEARTBEATS: {
       default: false,
       description: [
