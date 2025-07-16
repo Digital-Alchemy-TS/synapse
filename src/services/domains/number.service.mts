@@ -1,4 +1,5 @@
 import { TServiceParams } from "@digital-alchemy/core";
+import { PICK_ENTITY } from "@digital-alchemy/hass";
 
 import {
   AddEntityOptions,
@@ -6,6 +7,7 @@ import {
   CallbackData,
   SensorDeviceClasses,
   SettableConfiguration,
+  SynapseEntityProxy,
 } from "../../helpers/index.mts";
 
 export type NumberConfiguration<DATA extends object> = SensorDeviceClasses & {
@@ -41,6 +43,23 @@ export type NumberEvents = {
   set_value: { value: number };
 };
 
+/**
+ * Convenient type for number entities with optional attributes and locals
+ */
+export type SynapseNumber<
+  ATTRIBUTES extends object = {},
+  LOCALS extends object = {},
+  DATA extends object = {},
+> = SynapseEntityProxy<
+  NumberConfiguration<DATA>,
+  NumberEvents,
+  ATTRIBUTES,
+  LOCALS,
+  DATA,
+  // @ts-expect-error ignore this
+  PICK_ENTITY<"number">
+>;
+
 export function VirtualNumber({ context, synapse, logger }: TServiceParams) {
   const generate = synapse.generator.create<NumberConfiguration<object>, NumberEvents>({
     bus_events: ["set_value"],
@@ -74,7 +93,7 @@ export function VirtualNumber({ context, synapse, logger }: TServiceParams) {
     PARAMS["attributes"],
     PARAMS["locals"],
     DATA
-  >) {
+  >): SynapseNumber<PARAMS["attributes"], PARAMS["locals"], DATA> {
     // @ts-expect-error it's fine
     const entity = generate.addEntity<PARAMS["attributes"], PARAMS["locals"], DATA>(options);
 
@@ -84,6 +103,6 @@ export function VirtualNumber({ context, synapse, logger }: TServiceParams) {
         entity.storage.set("native_value", value);
       });
     }
-    return entity;
+    return entity as SynapseNumber<PARAMS["attributes"], PARAMS["locals"], DATA>;
   };
 }

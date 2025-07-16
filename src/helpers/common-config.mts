@@ -184,32 +184,33 @@ export type CommonMethods<
   CONFIGURATION extends object,
   LOCALS extends object,
   DATA extends object,
+  ENTITY extends PICK_ENTITY = PICK_ENTITY,
 > = {
   /**
    * Look up the actual entity_id that is mapped to this entity by unique_id
    */
-  entity_id: PICK_ENTITY;
+  entity_id: ENTITY;
   /**
    * retrieve the related hass entity reference
    *
    * note: requires that entity actually exist in home assistant to be valid (does a lookup)
    */
-  getEntity: () => ByIdProxy<PICK_ENTITY>;
+  getEntity: () => ByIdProxy<ENTITY>;
   /**
    * Run callback once, for next update
    */
-  once: <ENTITY extends PICK_ENTITY>(callback: TEntityUpdateCallback<ENTITY>) => RemoveCallback;
+  once: <E extends ENTITY>(callback: TEntityUpdateCallback<E>) => RemoveCallback;
   /**
    * Will resolve with the next state of the next value. No time limit
    */
-  nextState: <ENTITY extends PICK_ENTITY>(timeoutMs?: number) => Promise<ENTITY_STATE<ENTITY>>;
+  nextState: <E extends ENTITY>(timeoutMs?: number) => Promise<ENTITY_STATE<E>>;
   /**
    * Will resolve when state
    */
-  waitForState: <ENTITY extends PICK_ENTITY>(
+  waitForState: <E extends ENTITY>(
     state: string | number,
     timeoutMs?: number,
-  ) => Promise<ENTITY_STATE<ENTITY>>;
+  ) => Promise<ENTITY_STATE<E>>;
   /**
    * triggered by the hass entity emitting a state change, requires full round trip:
    *
@@ -220,7 +221,7 @@ export type CommonMethods<
    * 4) hass emits update event
    * 5) this callback gets triggered
    */
-  onUpdate(callback: TEntityUpdateCallback<PICK_ENTITY>): RemoveCallback;
+  onUpdate(callback: TEntityUpdateCallback<ENTITY>): RemoveCallback;
   /**
    * @internal
    */
@@ -254,7 +255,8 @@ type ProxyBase<
   ATTRIBUTES extends object,
   LOCALS extends object,
   DATA extends object,
-> = CommonMethods<CONFIGURATION, LOCALS, DATA> &
+  ENTITY extends PICK_ENTITY = PICK_ENTITY,
+> = CommonMethods<CONFIGURATION, LOCALS, DATA, ENTITY> &
   NonReactive<CONFIGURATION> &
   BuildCallbacks<EVENT_MAP> &
   EntityConfigCommon<ATTRIBUTES, LOCALS, DATA> & {
@@ -263,7 +265,9 @@ type ProxyBase<
      *
      * duplicate the entity proxy, used for management of listeners
      */
-    child: (context: TContext) => ProxyBase<CONFIGURATION, EVENT_MAP, ATTRIBUTES, LOCALS, DATA>;
+    child: (
+      context: TContext,
+    ) => ProxyBase<CONFIGURATION, EVENT_MAP, ATTRIBUTES, LOCALS, DATA, ENTITY>;
   };
 
 /**
@@ -277,7 +281,8 @@ export type SynapseEntityProxy<
   ATTRIBUTES extends object,
   LOCALS extends object,
   DATA extends object,
-  PROXY = ProxyBase<CONFIGURATION, EVENT_MAP, ATTRIBUTES, LOCALS, DATA>,
+  ENTITY extends PICK_ENTITY = PICK_ENTITY,
+  PROXY = ProxyBase<CONFIGURATION, EVENT_MAP, ATTRIBUTES, LOCALS, DATA, ENTITY>,
 > = Omit<PROXY, Extract<keyof PROXY, NON_SETTABLE>>;
 
 export type BuildCallbacks<EVENT_MAP extends TEventMap> = {
