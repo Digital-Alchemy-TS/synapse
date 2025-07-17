@@ -1,11 +1,12 @@
 import { TServiceParams } from "@digital-alchemy/core";
+import { PICK_ENTITY } from "@digital-alchemy/hass";
 
 import {
   AddEntityOptions,
   BasicAddParams,
-  BuildCallbacks,
   CallbackData,
   SettableConfiguration,
+  SynapseEntityProxy,
 } from "../../helpers/index.mts";
 
 export type SelectConfiguration<DATA extends object, OPTIONS extends string = string> = {
@@ -23,11 +24,29 @@ export type SelectConfiguration<DATA extends object, OPTIONS extends string = st
   managed?: boolean;
 };
 
-type SelectOptions = BasicAddParams & { options: string };
+type SelectOptions<OPTIONS extends string> = BasicAddParams & { options: OPTIONS };
 
 export type SelectEvents<OPTIONS extends string = string> = {
   select_option: { option: OPTIONS };
 };
+
+/**
+ * Convenient type for select entities with optional attributes and locals
+ */
+export type SynapseSelect<
+  OPTIONS extends string,
+  ATTRIBUTES extends object = {},
+  LOCALS extends object = {},
+  DATA extends object = {},
+> = SynapseEntityProxy<
+  SelectConfiguration<DATA, OPTIONS>,
+  SelectEvents<OPTIONS>,
+  ATTRIBUTES,
+  LOCALS,
+  DATA,
+  // @ts-expect-error ignore this
+  PICK_ENTITY<"select">
+>;
 
 export function VirtualSelect({ context, synapse, logger }: TServiceParams) {
   const generate = synapse.generator.create<SelectConfiguration<object>, SelectEvents>({
@@ -39,7 +58,8 @@ export function VirtualSelect({ context, synapse, logger }: TServiceParams) {
   });
 
   return function <
-    PARAMS extends SelectOptions,
+    OPTIONS extends string,
+    PARAMS extends SelectOptions<OPTIONS>,
     DATA extends object = CallbackData<
       PARAMS["locals"],
       PARAMS["attributes"],
@@ -49,8 +69,8 @@ export function VirtualSelect({ context, synapse, logger }: TServiceParams) {
     managed = true,
     ...options
   }: AddEntityOptions<
-    SelectConfiguration<DATA, PARAMS["options"]>,
-    SelectEvents<PARAMS["options"]>,
+    SelectConfiguration<DATA, OPTIONS>,
+    SelectEvents<OPTIONS>,
     PARAMS["attributes"],
     PARAMS["locals"],
     DATA
@@ -64,11 +84,12 @@ export function VirtualSelect({ context, synapse, logger }: TServiceParams) {
         entity.storage.set("current_option", option);
       });
     }
-    type DynamicCallbacks = BuildCallbacks<SelectEvents<PARAMS["options"]>>;
-    type TypedVirtualSelect = Omit<typeof entity, keyof DynamicCallbacks> &
-      DynamicCallbacks &
-      Omit<SelectConfiguration<DATA, PARAMS["options"]>, "managed">;
 
-    return entity as TypedVirtualSelect;
+    return entity as unknown as SynapseSelect<
+      OPTIONS,
+      PARAMS["attributes"],
+      PARAMS["locals"],
+      DATA
+    >;
   };
 }
