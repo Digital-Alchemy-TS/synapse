@@ -126,3 +126,4 @@ dynamic.d.ts
 .yarn/install-state.gz
 .env
 jest_sqlite.db
+vi_sqlite.db
