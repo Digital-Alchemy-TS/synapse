@@ -1,13 +1,14 @@
 import { TServiceParams } from "@digital-alchemy/core";
+import { PICK_ENTITY } from "@digital-alchemy/hass";
 import dayjs, { ConfigType, Dayjs } from "dayjs";
 
 import {
   AddEntityOptions,
   BasicAddParams,
-  BuildCallbacks,
   CallbackData,
   SettableConfiguration,
   SynapseEntityException,
+  SynapseEntityProxy,
 } from "../../helpers/index.mts";
 import { DateTimeConfiguration } from "./datetime.service.mts";
 
@@ -18,12 +19,14 @@ type MD = `${number}${number}`;
  */
 export type SynapseDateFormat = `${Year}-${MD}-${MD}`;
 
-export type DateConfiguration<DATA extends object> = {
+export type DateConfiguration<DATA extends object, DATE_TYPE extends TypeOptions = "iso"> = {
   /**
    * default: true
    */
   managed?: boolean;
-} & DateSettable<DATA>;
+  date_type?: DATE_TYPE;
+  native_value?: SettableConfiguration<CallbackType<DATE_TYPE>, DATA>;
+};
 
 export type DateEvents<VALUE extends SerializeTypes = SynapseDateFormat> = {
   set_value: { value: VALUE };
@@ -36,11 +39,6 @@ type DateParams = BasicAddParams & {
 };
 type SerializeTypes = SynapseDateFormat | Date | Dayjs;
 
-type DateSettable<DATA extends object> =
-  | { date_type?: "iso"; native_value?: SettableConfiguration<SynapseDateFormat, DATA> }
-  | { date_type: "dayjs"; native_value?: SettableConfiguration<Dayjs, DATA> }
-  | { date_type: "date"; native_value?: SettableConfiguration<Date, DATA> };
-
 const FORMAT = "YYYY-MM-DD";
 
 type CallbackType<D extends TypeOptions = "iso"> = D extends "dayjs"
@@ -48,6 +46,24 @@ type CallbackType<D extends TypeOptions = "iso"> = D extends "dayjs"
   : D extends "date"
     ? Date
     : SynapseDateFormat;
+
+/**
+ * Convenient type for date entities with optional attributes and locals
+ */
+export type SynapseDate<
+  DATE_TYPE extends TypeOptions,
+  ATTRIBUTES extends object = {},
+  LOCALS extends object = {},
+  DATA extends object = {},
+> = SynapseEntityProxy<
+  DateConfiguration<DATA, DATE_TYPE>,
+  DateEvents,
+  ATTRIBUTES,
+  LOCALS,
+  DATA,
+  // @ts-expect-error ignore this
+  PICK_ENTITY<"date">
+>;
 
 export function VirtualDate({ context, synapse, logger }: TServiceParams) {
   // #MARK: generator
@@ -103,25 +119,42 @@ export function VirtualDate({ context, synapse, logger }: TServiceParams) {
 
   // #MARK: builder
   return function <
-    PARAMS extends DateParams,
+    DATE_TYPE extends TypeOptions,
+    PARAMS extends DateParams & { date_type: DATE_TYPE },
     DATA extends object = CallbackData<
       PARAMS["locals"],
       PARAMS["attributes"],
       DateConfiguration<object>
     >,
-  >({
-    managed = true,
-    ...options
-  }: AddEntityOptions<
-    DateConfiguration<DATA>,
-    DateEvents,
-    PARAMS["attributes"],
-    PARAMS["locals"],
-    DATA
-  >) {
-    options.native_value ??= dayjs();
+  >(
+    options: AddEntityOptions<
+      DateConfiguration<DATA, DATE_TYPE>,
+      DateEvents,
+      PARAMS["attributes"],
+      PARAMS["locals"],
+      DATA
+    >,
+  ): SynapseDate<DATE_TYPE, PARAMS["attributes"], PARAMS["locals"], DATA> {
+    const { managed = true, ...entityOptions } = options;
+
+    // Set default value based on date_type
+    if (!entityOptions.native_value) {
+      const now = dayjs();
+      switch (entityOptions.date_type) {
+        case "dayjs":
+          entityOptions.native_value = now as CallbackType<DATE_TYPE>;
+          break;
+        case "date":
+          entityOptions.native_value = now.toDate() as CallbackType<DATE_TYPE>;
+          break;
+        default:
+          entityOptions.native_value = now.format(FORMAT) as CallbackType<DATE_TYPE>;
+          break;
+      }
+    }
+
     // @ts-expect-error it's fine
-    const entity = generate.addEntity<PARAMS["attributes"], PARAMS["locals"], DATA>(options);
+    const entity = generate.addEntity<PARAMS["attributes"], PARAMS["locals"], DATA>(entityOptions);
     if (managed) {
       entity.onSetValue(({ value }) => {
         logger.trace({ value }, "[managed] onSetValue");
@@ -129,10 +162,11 @@ export function VirtualDate({ context, synapse, logger }: TServiceParams) {
       });
     }
 
-    type DynamicCallbacks = BuildCallbacks<DateEvents<CallbackType<PARAMS["date_type"]>>>;
-    type TypedVirtualDate = Omit<typeof entity, keyof DynamicCallbacks | "native_value"> &
-      DynamicCallbacks & { native_value: CallbackType<PARAMS["date_type"]> };
-
-    return entity as TypedVirtualDate;
+    return entity as unknown as SynapseDate<
+      DATE_TYPE,
+      PARAMS["attributes"],
+      PARAMS["locals"],
+      DATA
+    >;
   };
 }

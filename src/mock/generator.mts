@@ -133,6 +133,7 @@ export function EntityGenerator({ scheduler, synapse, context, logger }: TServic
     });
     synapse.date({
       context,
+      date_type: "iso",
       name: "Example date",
       native_value: "2006-06-06",
       suggested_object_id: "example_the_date",
