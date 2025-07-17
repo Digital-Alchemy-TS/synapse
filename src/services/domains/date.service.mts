@@ -10,7 +10,6 @@ import {
   SynapseEntityException,
   SynapseEntityProxy,
 } from "../../helpers/index.mts";
-import { DateTimeConfiguration } from "./datetime.service.mts";
 
 type Year = `${number}${number}${number}${number}`;
 type MD = `${number}${number}`;
@@ -80,15 +79,15 @@ export function VirtualDate({ context, synapse, logger }: TServiceParams) {
       return dayjs(data).format(FORMAT);
     },
     unserialize(
-      property: keyof DateTimeConfiguration<object>,
+      property: keyof DateConfiguration<object>,
       data: string,
-      options: DateTimeConfiguration<object>,
+      options: DateConfiguration<object>,
     ): SerializeTypes {
       if (property !== "native_value") {
         return data as SerializeTypes;
       }
       const ref = dayjs(data).startOf("day");
-      switch (options.date_type) {
+      switch (options.date_type as TypeOptions) {
         case "dayjs": {
           return ref;
         }
