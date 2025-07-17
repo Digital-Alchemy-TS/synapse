@@ -1,10 +1,12 @@
 import { TServiceParams } from "@digital-alchemy/core";
+import { PICK_ENTITY } from "@digital-alchemy/hass";
 
 import {
   AddEntityOptions,
   BasicAddParams,
   CallbackData,
   SettableConfiguration,
+  SynapseEntityProxy,
 } from "../../helpers/index.mts";
 
 export type LockConfiguration<DATA extends object> = {
@@ -59,6 +61,23 @@ export type LockEvents = {
   };
 };
 
+/**
+ * Convenient type for lock entities with optional attributes and locals
+ */
+export type SynapseLock<
+  ATTRIBUTES extends object = {},
+  LOCALS extends object = {},
+  DATA extends object = {},
+> = SynapseEntityProxy<
+  LockConfiguration<DATA>,
+  LockEvents,
+  ATTRIBUTES,
+  LOCALS,
+  DATA,
+  // @ts-expect-error ignore this
+  PICK_ENTITY<"lock">
+>;
+
 export function VirtualLock({ context, synapse, logger }: TServiceParams) {
   const generate = synapse.generator.create<LockConfiguration<object>, LockEvents>({
     bus_events: ["lock", "unlock", "open"],
@@ -94,7 +113,7 @@ export function VirtualLock({ context, synapse, logger }: TServiceParams) {
     PARAMS["attributes"],
     PARAMS["locals"],
     DATA
-  >) {
+  >): SynapseLock<PARAMS["attributes"], PARAMS["locals"], DATA> {
     // @ts-expect-error it's fine
     const entity = generate.addEntity<PARAMS["attributes"], PARAMS["locals"], DATA>(options);
     if (managed) {
@@ -111,6 +130,6 @@ export function VirtualLock({ context, synapse, logger }: TServiceParams) {
         entity.storage.set("is_open", true);
       });
     }
-    return entity;
+    return entity as SynapseLock<PARAMS["attributes"], PARAMS["locals"], DATA>;
   };
 }

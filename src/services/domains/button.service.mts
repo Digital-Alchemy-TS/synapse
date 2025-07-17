@@ -1,7 +1,12 @@
 import { TServiceParams } from "@digital-alchemy/core";
-import { ButtonDeviceClass } from "@digital-alchemy/hass";
+import { ButtonDeviceClass, PICK_ENTITY } from "@digital-alchemy/hass";
 
-import { AddEntityOptions, BasicAddParams, CallbackData } from "../../helpers/index.mts";
+import {
+  AddEntityOptions,
+  BasicAddParams,
+  CallbackData,
+  SynapseEntityProxy,
+} from "../../helpers/index.mts";
 
 export type ButtonConfiguration = {
   device_class?: `${ButtonDeviceClass}`;
@@ -12,6 +17,22 @@ export type ButtonEvents = {
     //
   };
 };
+
+/**
+ * Convenient type for button entities with optional attributes and locals
+ */
+export type SynapseButton<
+  ATTRIBUTES extends object = {},
+  LOCALS extends object = {},
+  DATA extends object = {},
+> = SynapseEntityProxy<
+  ButtonConfiguration,
+  ButtonEvents,
+  ATTRIBUTES,
+  LOCALS,
+  DATA,
+  PICK_ENTITY<"button">
+>;
 
 export function VirtualButton({ context, synapse }: TServiceParams) {
   const generate = synapse.generator.create<ButtonConfiguration, ButtonEvents>({
@@ -32,5 +53,8 @@ export function VirtualButton({ context, synapse }: TServiceParams) {
       PARAMS["locals"],
       DATA
     >,
-  ) => generate.addEntity(options);
+  ): SynapseButton<PARAMS["attributes"], PARAMS["locals"], DATA> => {
+    const entity = generate.addEntity(options);
+    return entity as SynapseButton<PARAMS["attributes"], PARAMS["locals"], DATA>;
+  };
 }
