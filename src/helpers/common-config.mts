@@ -199,18 +199,15 @@ export type CommonMethods<
   /**
    * Run callback once, for next update
    */
-  once: <E extends ENTITY>(callback: TEntityUpdateCallback<E>) => RemoveCallback;
+  once: (callback: TEntityUpdateCallback<ENTITY>) => RemoveCallback;
   /**
    * Will resolve with the next state of the next value. No time limit
    */
-  nextState: <E extends ENTITY>(timeoutMs?: number) => Promise<ENTITY_STATE<E>>;
+  nextState: (timeoutMs?: number) => Promise<ENTITY_STATE<ENTITY>>;
   /**
    * Will resolve when state
    */
-  waitForState: <E extends ENTITY>(
-    state: string | number,
-    timeoutMs?: number,
-  ) => Promise<ENTITY_STATE<E>>;
+  waitForState: (state: string | number, timeoutMs?: number) => Promise<ENTITY_STATE<ENTITY>>;
   /**
    * triggered by the hass entity emitting a state change, requires full round trip:
    *
