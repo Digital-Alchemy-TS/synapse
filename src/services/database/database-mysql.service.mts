@@ -1,22 +1,30 @@
 import { is, TServiceParams } from "@digital-alchemy/core";
 import { and, eq } from "drizzle-orm";
-import { drizzle as drizzleMysql } from "drizzle-orm/mysql2";
+import { drizzle as drizzleMysql, MySql2Database } from "drizzle-orm/mysql2";
 import { migrate as migrateMysql } from "drizzle-orm/mysql2/migrator";
 import mysql from "mysql2/promise";
+import { join } from "path";
 
-import { HomeAssistantEntityRow, SynapseDatabase } from "../schema/database.interface.mts";
-import { homeAssistantEntity, homeAssistantEntityLocals } from "../schema/tables.mysql.mts";
+import {
+  HomeAssistantEntityRow,
+  MIGRATION_PATH,
+  mysqlTables,
+  SynapseDatabase,
+} from "../../schema/index.mts";
 
-export async function DatabaseMySQLService({
+type Tables = Awaited<ReturnType<typeof mysqlTables>>;
+
+export function DatabaseMySQLService({
   lifecycle,
   config,
   logger,
   hass,
   internal,
-  synapse,
-}: TServiceParams): Promise<SynapseDatabase> {
+}: TServiceParams): SynapseDatabase {
   let mysqlClient: mysql.Connection;
-  let database: ReturnType<typeof drizzleMysql>;
+  let database: MySql2Database<Record<string, unknown>>;
+  let homeAssistantEntity: Tables["homeAssistantEntity"];
+  let homeAssistantEntityLocals: Tables["homeAssistantEntityLocals"];
 
   const application_name = internal.boot.application.name;
   const app_unique_id = config.synapse.METADATA_UNIQUE_ID;
@@ -28,46 +36,35 @@ export async function DatabaseMySQLService({
       return;
     }
 
-    logger.trace("initializing MySQL database connection");
+    // Set up shutdown hooks
+    lifecycle.onShutdownStart(() => {
+      logger.trace("closing mysql database connection");
+      void mysqlClient.end();
+    });
 
+    // Load library / table refs
+    const tables = await mysqlTables();
+    homeAssistantEntity = tables.homeAssistantEntity;
+    homeAssistantEntityLocals = tables.homeAssistantEntityLocals;
+
+    // Establish connection
+    logger.trace("initializing mysql database connection");
     mysqlClient = await mysql.createConnection(config.synapse.DATABASE_URL);
     database = drizzleMysql(mysqlClient);
 
     // Run migrations
     try {
-      await migrateMysql(database, { migrationsFolder: "./src/schema/migrations/mysql" });
-      logger.trace("MySQL database migrations completed");
+      await migrateMysql(database, { migrationsFolder: join(MIGRATION_PATH, "mysql") });
+      logger.trace("mysql database migrations completed");
     } catch (error) {
       logger.warn("migration failed, continuing with existing schema", error);
     }
   });
 
-  lifecycle.onShutdownStart(() => {
-    if (config.synapse.DATABASE_TYPE === "mysql" && mysqlClient) {
-      logger.trace("closing MySQL database connection");
-      void mysqlClient.end();
-    }
-  });
-
   // Update entity
+  // #MARK: update
   async function update(unique_id: string, content: object, defaults?: object) {
-    if (config.synapse.DATABASE_TYPE !== "mysql" || !database) {
-      return;
-    }
-
     const entity_id = hass.entity.registry.current.find(i => i.unique_id === unique_id)?.entity_id;
-    if (!entity_id) {
-      if (synapse.configure.isRegistered()) {
-        logger.warn(
-          { name: update, unique_id },
-          `app registered, but entity does not exist (reload?)`,
-        );
-        return;
-      }
-      logger.warn("app not registered, skipping write");
-      return;
-    }
-
     const state_json = JSON.stringify(content);
     const now = new Date().toISOString();
     defaults ??= registeredDefaults.get(unique_id);
@@ -106,13 +103,10 @@ export async function DatabaseMySQLService({
   }
 
   // Load entity row
+  // #MARK: loadRow
   async function loadRow<LOCALS extends object = object>(
     unique_id: string,
   ): Promise<HomeAssistantEntityRow<LOCALS>> {
-    if (config.synapse.DATABASE_TYPE !== "mysql" || !database) {
-      throw new Error("MySQL database not configured or not connected");
-    }
-
     logger.trace({ unique_id }, "loading entity");
 
     try {
@@ -161,14 +155,11 @@ export async function DatabaseMySQLService({
   }
 
   // Load entity with defaults
+  // #MARK: load
   async function load<LOCALS extends object = object>(
     unique_id: string,
     defaults: object,
   ): Promise<HomeAssistantEntityRow<LOCALS>> {
-    if (config.synapse.DATABASE_TYPE !== "mysql") {
-      throw new Error("MySQL database not configured");
-    }
-
     try {
       const data = await loadRow<LOCALS>(unique_id);
       const cleaned = Object.fromEntries(
@@ -203,11 +194,8 @@ export async function DatabaseMySQLService({
   }
 
   // Update local storage
+  // #MARK: updateLocal
   async function updateLocal(unique_id: string, key: string, content: unknown) {
-    if (config.synapse.DATABASE_TYPE !== "mysql" || !database) {
-      return;
-    }
-
     logger.trace({ key, unique_id }, "updateLocal");
 
     if (content === undefined) {
@@ -244,11 +232,8 @@ export async function DatabaseMySQLService({
   }
 
   // Load locals
+  // #MARK: loadLocals
   async function loadLocals(unique_id: string) {
-    if (config.synapse.DATABASE_TYPE !== "mysql" || !database) {
-      return undefined;
-    }
-
     if (!internal.boot.completedLifecycleEvents.has("PostConfig")) {
       logger.warn("cannot load locals before [PostConfig]");
       return undefined;
@@ -275,11 +260,8 @@ export async function DatabaseMySQLService({
   }
 
   // Delete local
+  // #MARK: deleteLocal
   async function deleteLocal(unique_id: string, key: string) {
-    if (config.synapse.DATABASE_TYPE !== "mysql" || !database) {
-      return;
-    }
-
     logger.debug({ key, unique_id }, `delete local (value undefined)`);
 
     try {
@@ -299,11 +281,8 @@ export async function DatabaseMySQLService({
   }
 
   // Delete all locals for unique_id
+  // #MARK: deleteLocalsByUniqueId
   async function deleteLocalsByUniqueId(unique_id: string) {
-    if (config.synapse.DATABASE_TYPE !== "mysql" || !database) {
-      return;
-    }
-
     logger.debug({ unique_id }, "delete all locals");
 
     try {

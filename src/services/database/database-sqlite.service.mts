@@ -3,23 +3,30 @@ import Database from "better-sqlite3";
 import { and, eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/better-sqlite3";
 import { migrate } from "drizzle-orm/better-sqlite3/migrator";
+import { join } from "path";
 
-import { HomeAssistantEntityRow, SynapseDatabase } from "../schema/database.interface.mts";
-import { homeAssistantEntity, homeAssistantEntityLocals } from "../schema/tables.mts";
+import {
+  HomeAssistantEntityRow,
+  MIGRATION_PATH,
+  sqliteTables,
+  SynapseDatabase,
+} from "../../schema/index.mts";
 
-export async function DatabaseSQLiteService({
+type Tables = Awaited<ReturnType<typeof sqliteTables>>;
+
+export function DatabaseSQLiteService({
   lifecycle,
   config,
   logger,
   hass,
   internal,
-  synapse,
-}: TServiceParams): Promise<SynapseDatabase> {
+}: TServiceParams): SynapseDatabase {
   let sqlite: Database.Database;
   let database: ReturnType<typeof drizzle>;
+  let homeAssistantEntity: Tables["homeAssistantEntity"];
+  let homeAssistantEntityLocals: Tables["homeAssistantEntityLocals"];
 
   const application_name = internal.boot.application.name;
-  const app_unique_id = config.synapse.METADATA_UNIQUE_ID;
   const registeredDefaults = new Map<string, object>();
 
   lifecycle.onPostConfig(async () => {
@@ -28,47 +35,36 @@ export async function DatabaseSQLiteService({
       return;
     }
 
-    logger.trace("initializing SQLite database connection");
+    // Set up shutdown hooks
+    lifecycle.onShutdownStart(() => {
+      logger.trace("closing sqlite database connection");
+      sqlite?.close();
+    });
 
+    // Load library / table refs
+    const tables = await sqliteTables();
+    homeAssistantEntity = tables.homeAssistantEntity;
+    homeAssistantEntityLocals = tables.homeAssistantEntityLocals;
+
+    // Establish connection
     const filePath = config.synapse.DATABASE_URL.replace("file:", "");
+    logger.trace({ filePath }, "initializing sqlite database connection");
     sqlite = new Database(filePath);
     database = drizzle(sqlite);
 
     // Run migrations
     try {
-      await migrate(database, { migrationsFolder: "./src/schema/migrations/sqlite" });
-      logger.trace("SQLite database migrations completed");
+      await migrate(database, { migrationsFolder: join(MIGRATION_PATH, "sqlite") });
+      logger.trace("sqlite database migrations completed");
     } catch (error) {
-      logger.warn("migration failed, continuing with existing schema", error);
-    }
-  });
-
-  lifecycle.onShutdownStart(() => {
-    if (config.synapse.DATABASE_TYPE === "sqlite" && sqlite) {
-      logger.trace("closing SQLite database connection");
-      sqlite.close();
+      logger.warn({ error }, "migration failed, continuing with existing schema");
     }
   });
 
   // Update entity
+  // #MARK: update
   async function update(unique_id: string, content: object, defaults?: object) {
-    if (config.synapse.DATABASE_TYPE !== "sqlite" || !database) {
-      return;
-    }
-
     const entity_id = hass.entity.registry.current.find(i => i.unique_id === unique_id)?.entity_id;
-    if (!entity_id) {
-      if (synapse.configure.isRegistered()) {
-        logger.warn(
-          { name: update, unique_id },
-          `app registered, but entity does not exist (reload?)`,
-        );
-        return;
-      }
-      logger.warn("app not registered, skipping write");
-      return;
-    }
-
     const state_json = JSON.stringify(content);
     const now = new Date().toISOString();
     defaults ??= registeredDefaults.get(unique_id);
@@ -77,7 +73,7 @@ export async function DatabaseSQLiteService({
       await database
         .insert(homeAssistantEntity)
         .values({
-          app_unique_id: app_unique_id,
+          app_unique_id: config.synapse.METADATA_UNIQUE_ID,
           application_name: application_name,
           base_state: JSON.stringify(defaults),
           entity_id: entity_id,
@@ -89,7 +85,7 @@ export async function DatabaseSQLiteService({
         })
         .onConflictDoUpdate({
           set: {
-            app_unique_id: app_unique_id,
+            app_unique_id: config.synapse.METADATA_UNIQUE_ID,
             application_name: application_name,
             base_state: JSON.stringify(defaults),
             entity_id: entity_id,
@@ -108,13 +104,10 @@ export async function DatabaseSQLiteService({
   }
 
   // Load entity row
+  // #MARK: loadRow
   async function loadRow<LOCALS extends object = object>(
     unique_id: string,
   ): Promise<HomeAssistantEntityRow<LOCALS>> {
-    if (config.synapse.DATABASE_TYPE !== "sqlite" || !database) {
-      throw new Error("SQLite database not configured or not connected");
-    }
-
     logger.trace({ unique_id }, "loading entity");
 
     try {
@@ -124,7 +117,7 @@ export async function DatabaseSQLiteService({
         .where(
           and(
             eq(homeAssistantEntity.unique_id, unique_id),
-            eq(homeAssistantEntity.app_unique_id, app_unique_id),
+            eq(homeAssistantEntity.app_unique_id, config.synapse.METADATA_UNIQUE_ID),
           ),
         );
 
@@ -160,14 +153,11 @@ export async function DatabaseSQLiteService({
   }
 
   // Load entity with defaults
+  // #MARK: load
   async function load<LOCALS extends object = object>(
     unique_id: string,
     defaults: object,
   ): Promise<HomeAssistantEntityRow<LOCALS>> {
-    if (config.synapse.DATABASE_TYPE !== "sqlite") {
-      throw new Error("SQLite database not configured");
-    }
-
     try {
       const data = await loadRow<LOCALS>(unique_id);
       const cleaned = Object.fromEntries(
@@ -202,14 +192,11 @@ export async function DatabaseSQLiteService({
   }
 
   // Update local storage
+  // #MARK: updateLocal
   async function updateLocal(unique_id: string, key: string, content: unknown) {
-    if (config.synapse.DATABASE_TYPE !== "sqlite" || !database) {
-      return;
-    }
-
     logger.trace({ key, unique_id }, "updateLocal");
 
-    if (content === undefined) {
+    if (is.undefined(content)) {
       await deleteLocal(unique_id, key);
       return;
     }
@@ -221,7 +208,7 @@ export async function DatabaseSQLiteService({
       await database
         .insert(homeAssistantEntityLocals)
         .values({
-          app_unique_id: app_unique_id,
+          app_unique_id: config.synapse.METADATA_UNIQUE_ID,
           key,
           last_modified: last_modified,
           unique_id: unique_id,
@@ -229,7 +216,7 @@ export async function DatabaseSQLiteService({
         })
         .onConflictDoUpdate({
           set: {
-            app_unique_id: app_unique_id,
+            app_unique_id: config.synapse.METADATA_UNIQUE_ID,
             last_modified: last_modified,
             value_json: value_json,
           },
@@ -244,15 +231,8 @@ export async function DatabaseSQLiteService({
   }
 
   // Load locals
+  // #MARK: loadLocals
   async function loadLocals(unique_id: string): Promise<Map<string, unknown>> {
-    if (config.synapse.DATABASE_TYPE !== "sqlite" || !database) {
-      throw new Error("SQLite database not configured or not connected");
-    }
-
-    if (!internal.boot.completedLifecycleEvents.has("PostConfig")) {
-      throw new Error("Cannot load locals before [PostConfig]");
-    }
-
     logger.trace({ unique_id }, "initial load of locals");
 
     try {
@@ -262,9 +242,10 @@ export async function DatabaseSQLiteService({
         .where(
           and(
             eq(homeAssistantEntityLocals.unique_id, unique_id),
-            eq(homeAssistantEntityLocals.app_unique_id, app_unique_id),
+            eq(homeAssistantEntityLocals.app_unique_id, config.synapse.METADATA_UNIQUE_ID),
           ),
         );
+      logger.trace({ unique_id }, "success");
 
       return new Map<string, unknown>(locals.map(i => [i.key, JSON.parse(i.value_json)]));
     } catch (error) {
@@ -274,11 +255,8 @@ export async function DatabaseSQLiteService({
   }
 
   // Delete local
+  // #MARK: deleteLocal
   async function deleteLocal(unique_id: string, key: string) {
-    if (config.synapse.DATABASE_TYPE !== "sqlite" || !database) {
-      return;
-    }
-
     logger.debug({ key, unique_id }, `delete local (value undefined)`);
 
     try {
@@ -288,9 +266,10 @@ export async function DatabaseSQLiteService({
           and(
             eq(homeAssistantEntityLocals.unique_id, unique_id),
             eq(homeAssistantEntityLocals.key, key),
-            eq(homeAssistantEntityLocals.app_unique_id, app_unique_id),
+            eq(homeAssistantEntityLocals.app_unique_id, config.synapse.METADATA_UNIQUE_ID),
           ),
         );
+      logger.trace({ key, unique_id }, "success");
     } catch (error) {
       logger.error({ error, key, unique_id }, "failed to delete local");
       throw error;
@@ -298,11 +277,8 @@ export async function DatabaseSQLiteService({
   }
 
   // Delete all locals for unique_id
+  // #MARK: deleteLocalsByUniqueId
   async function deleteLocalsByUniqueId(unique_id: string) {
-    if (config.synapse.DATABASE_TYPE !== "sqlite" || !database) {
-      return;
-    }
-
     logger.debug({ unique_id }, "delete all locals");
 
     try {
@@ -311,9 +287,11 @@ export async function DatabaseSQLiteService({
         .where(
           and(
             eq(homeAssistantEntityLocals.unique_id, unique_id),
-            eq(homeAssistantEntityLocals.app_unique_id, app_unique_id),
+            eq(homeAssistantEntityLocals.app_unique_id, config.synapse.METADATA_UNIQUE_ID),
           ),
         );
+
+      logger.trace({ unique_id }, "success");
     } catch (error) {
       logger.error({ error, unique_id }, "failed to delete locals");
       throw error;

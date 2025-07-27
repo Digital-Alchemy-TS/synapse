@@ -2,21 +2,29 @@ import { is, TServiceParams } from "@digital-alchemy/core";
 import { and, eq } from "drizzle-orm";
 import { drizzle as drizzlePostgres } from "drizzle-orm/postgres-js";
 import { migrate as migratePostgres } from "drizzle-orm/postgres-js/migrator";
+import { join } from "path";
 import postgres from "postgres";
 
-import { HomeAssistantEntityRow, SynapseDatabase } from "../schema/database.interface.mts";
-import { homeAssistantEntity, homeAssistantEntityLocals } from "../schema/tables.postgresql.mts";
+import {
+  HomeAssistantEntityRow,
+  MIGRATION_PATH,
+  pgTables,
+  SynapseDatabase,
+} from "../../schema/index.mts";
 
-export async function DatabasePostgreSQLService({
+type Tables = Awaited<ReturnType<typeof pgTables>>;
+
+export function DatabasePostgreSQLService({
   lifecycle,
   config,
   logger,
   hass,
   internal,
-  synapse,
-}: TServiceParams): Promise<SynapseDatabase> {
-  let postgresClient: postgres.Sql;
+}: TServiceParams): SynapseDatabase {
+  let client: postgres.Sql;
   let database: ReturnType<typeof drizzlePostgres>;
+  let homeAssistantEntity: Tables["homeAssistantEntity"];
+  let homeAssistantEntityLocals: Tables["homeAssistantEntityLocals"];
 
   const application_name = internal.boot.application.name;
   const app_unique_id = config.synapse.METADATA_UNIQUE_ID;
@@ -28,49 +36,38 @@ export async function DatabasePostgreSQLService({
       return;
     }
 
-    logger.trace("initializing PostgreSQL database connection");
+    // Set up shutdown hooks
+    lifecycle.onShutdownStart(() => {
+      logger.trace("closing postgres database connection");
+      void client?.end();
+    });
 
-    postgresClient = postgres(config.synapse.DATABASE_URL);
-    database = drizzlePostgres(postgresClient);
+    // Load library / table refs
+    const tables = await pgTables();
+    homeAssistantEntity = tables.homeAssistantEntity;
+    homeAssistantEntityLocals = tables.homeAssistantEntityLocals;
+
+    // Establish connection
+    logger.trace("initializing postgres database connection");
+    client = postgres(config.synapse.DATABASE_URL);
+    database = drizzlePostgres(client);
 
     // Run migrations
     try {
       await migratePostgres(database, {
-        migrationsFolder: "./src/schema/migrations/postgresql",
+        migrationsFolder: join(MIGRATION_PATH, "postgresql"),
       });
-      logger.trace("PostgreSQL database migrations completed");
+      logger.trace("postgres database migrations completed");
     } catch (error) {
-      logger.warn("migration failed, continuing with existing schema", error);
-    }
-  });
-
-  lifecycle.onShutdownStart(() => {
-    if (config.synapse.DATABASE_TYPE === "postgresql" && postgresClient) {
-      logger.trace("closing PostgreSQL database connection");
-      void postgresClient.end();
+      logger.warn({ error }, "migration failed, continuing with existing schema");
     }
   });
 
   // Update entity
+  // #MARK: update
   async function update(unique_id: string, content: object, defaults?: object) {
-    if (config.synapse.DATABASE_TYPE !== "postgresql" || !database) {
-      return;
-    }
-
     const entity_id = hass.entity.registry.current.find(i => i.unique_id === unique_id)?.entity_id;
-    if (!entity_id) {
-      if (synapse.configure.isRegistered()) {
-        logger.warn(
-          { name: update, unique_id },
-          `app registered, but entity does not exist (reload?)`,
-        );
-        return;
-      }
-      logger.warn("app not registered, skipping write");
-      return;
-    }
-
-    const state_json = content; // PostgreSQL uses JSONB, so we don't stringify
+    const state_json = content; // postgres uses JSONB, so we don't stringify
     const now = new Date().toISOString();
     defaults ??= registeredDefaults.get(unique_id);
 
@@ -109,13 +106,10 @@ export async function DatabasePostgreSQLService({
   }
 
   // Load entity row
+  // #MARK: loadRow
   async function loadRow<LOCALS extends object = object>(
     unique_id: string,
   ): Promise<HomeAssistantEntityRow<LOCALS>> {
-    if (config.synapse.DATABASE_TYPE !== "postgresql" || !database) {
-      throw new Error("PostgreSQL database not configured or not connected");
-    }
-
     logger.trace({ unique_id }, "loading entity");
 
     try {
@@ -164,14 +158,11 @@ export async function DatabasePostgreSQLService({
   }
 
   // Load entity with defaults
+  // #MARK: load
   async function load<LOCALS extends object = object>(
     unique_id: string,
     defaults: object,
   ): Promise<HomeAssistantEntityRow<LOCALS>> {
-    if (config.synapse.DATABASE_TYPE !== "postgresql") {
-      throw new Error("PostgreSQL database not configured");
-    }
-
     try {
       const data = await loadRow<LOCALS>(unique_id);
       const cleaned = Object.fromEntries(
@@ -206,11 +197,8 @@ export async function DatabasePostgreSQLService({
   }
 
   // Update local storage
+  // #MARK: updateLocal
   async function updateLocal(unique_id: string, key: string, content: unknown) {
-    if (config.synapse.DATABASE_TYPE !== "postgresql" || !database) {
-      return;
-    }
-
     logger.trace({ key, unique_id }, "updateLocal");
 
     if (content === undefined) {
@@ -218,7 +206,7 @@ export async function DatabasePostgreSQLService({
       return;
     }
 
-    const value_json = content; // PostgreSQL uses JSONB, so we don't stringify
+    const value_json = content; // postgres uses JSONB, so we don't stringify
     const last_modified = new Date();
 
     try {
@@ -248,11 +236,8 @@ export async function DatabasePostgreSQLService({
   }
 
   // Load locals
+  // #MARK: loadLocals
   async function loadLocals(unique_id: string) {
-    if (config.synapse.DATABASE_TYPE !== "postgresql" || !database) {
-      return undefined;
-    }
-
     if (!internal.boot.completedLifecycleEvents.has("PostConfig")) {
       logger.warn("cannot load locals before [PostConfig]");
       return undefined;
@@ -271,6 +256,7 @@ export async function DatabasePostgreSQLService({
           ),
         );
 
+      logger.trace({ unique_id }, "success");
       return new Map<string, unknown>(
         locals.map(i => [i.key, JSON.parse(JSON.stringify(i.value_json))]),
       );
@@ -281,11 +267,8 @@ export async function DatabasePostgreSQLService({
   }
 
   // Delete local
+  // #MARK: deleteLocal
   async function deleteLocal(unique_id: string, key: string) {
-    if (config.synapse.DATABASE_TYPE !== "postgresql" || !database) {
-      return;
-    }
-
     logger.debug({ key, unique_id }, `delete local (value undefined)`);
 
     try {
@@ -298,6 +281,7 @@ export async function DatabasePostgreSQLService({
             eq(homeAssistantEntityLocals.app_unique_id, app_unique_id),
           ),
         );
+      logger.trace({ key, unique_id }, "success");
     } catch (error) {
       logger.error({ error, key, unique_id }, "failed to delete local");
       throw error;
@@ -305,11 +289,8 @@ export async function DatabasePostgreSQLService({
   }
 
   // Delete all locals for unique_id
+  // #MARK: deleteLocalsByUniqueId
   async function deleteLocalsByUniqueId(unique_id: string) {
-    if (config.synapse.DATABASE_TYPE !== "postgresql" || !database) {
-      return;
-    }
-
     logger.debug({ unique_id }, "delete all locals");
 
     try {
@@ -321,6 +302,7 @@ export async function DatabasePostgreSQLService({
             eq(homeAssistantEntityLocals.app_unique_id, app_unique_id),
           ),
         );
+      logger.trace({ unique_id }, "success");
     } catch (error) {
       logger.error({ error, unique_id }, "failed to delete locals");
       throw error;

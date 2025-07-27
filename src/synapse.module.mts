@@ -6,7 +6,10 @@ import { cwd } from "process";
 import { HassDeviceMetadata } from "./helpers/index.mts";
 import {
   ConfigurationService,
+  DatabaseMySQLService,
+  DatabasePostgreSQLService,
   DatabaseService,
+  DatabaseSQLiteService,
   DeviceService,
   DiscoveryService,
   DomainGeneratorService,
@@ -153,12 +156,31 @@ export const LIB_SYNAPSE = CreateLibrary({
   },
   depends: [LIB_HASS],
   name: "synapse",
-  priorityInit: ["locals", "generator", "storage"],
+  priorityInit: ["locals", "generator", "storage", "db_mysql", "db_postgres", "db_sqlite"],
   services: {
     /**
      * @internal
      */
     configure: ConfigurationService,
+
+    /**
+     * @internal
+     *
+     * Used to persist entity state
+     */
+    database: DatabaseService,
+    /**
+     * internal use
+     */
+    db_mysql: DatabaseMySQLService,
+    /**
+     * internal use
+     */
+    db_postgres: DatabasePostgreSQLService,
+    /**
+     * internal use
+     */
+    db_sqlite: DatabaseSQLiteService,
 
     /**
      * Internal tools to create the device that registers with entities
@@ -190,14 +212,6 @@ export const LIB_SYNAPSE = CreateLibrary({
      * @internal
      */
     socket: SynapseSocketService,
-
-    /**
-     * @internal
-     *
-     * Used to persist entity state
-     */
-    sqlite: DatabaseService,
-
     /**
      * @internal
      */
