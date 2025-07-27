@@ -1,5 +1,5 @@
 import { TServiceParams } from "@digital-alchemy/core";
-import { PICK_ENTITY } from "@digital-alchemy/hass";
+import { ByIdProxy, PICK_ENTITY } from "@digital-alchemy/hass";
 import dayjs, { ConfigType, Dayjs } from "dayjs";
 
 import {
@@ -50,9 +50,10 @@ export type SynapseDateTime<
   ATTRIBUTES,
   LOCALS,
   DATA,
-  // @ts-expect-error ignore this
   PICK_ENTITY<"datetime">
->;
+> & {
+  entity: ByIdProxy<PICK_ENTITY<"datetime">>;
+};
 
 type SerializeTypes = string | Date | Dayjs;
 
@@ -65,7 +66,6 @@ export function VirtualDateTime({ context, synapse, logger }: TServiceParams) {
   >({
     bus_events: ["set_value"],
     context,
-    // @ts-expect-error its fine
     domain: "datetime",
     load_config_keys: ["native_value"],
     serialize(property: keyof DateTimeConfiguration<object>, data: SerializeTypes) {

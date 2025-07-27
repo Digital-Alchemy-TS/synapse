@@ -61,8 +61,7 @@ describe("Sensor", () => {
             device_class: "enum",
             name: "test",
             options: [],
-            sensor_type: "string",
-            // @ts-expect-error it's the test
+            // @ts-expect-error test
             state_class: "foo",
           });
         }).toThrow();

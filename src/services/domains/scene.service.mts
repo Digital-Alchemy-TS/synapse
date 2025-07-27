@@ -1,5 +1,5 @@
 import { TServiceParams } from "@digital-alchemy/core";
-import { PICK_ENTITY } from "@digital-alchemy/hass";
+import { ByIdProxy, PICK_ENTITY } from "@digital-alchemy/hass";
 import { EmptyObject } from "type-fest";
 
 import {
@@ -29,7 +29,9 @@ export type SynapseScene<
   LOCALS,
   DATA,
   PICK_ENTITY<"scene">
->;
+> & {
+  entity: ByIdProxy<PICK_ENTITY<"scene">>;
+};
 
 export function VirtualScene({ context, synapse }: TServiceParams) {
   const generate = synapse.generator.create<SceneConfiguration, SceneEvents>({

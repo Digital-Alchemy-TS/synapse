@@ -1,5 +1,5 @@
 import { TServiceParams } from "@digital-alchemy/core";
-import { PICK_ENTITY } from "@digital-alchemy/hass";
+import { ByIdProxy, PICK_ENTITY } from "@digital-alchemy/hass";
 
 import {
   AddEntityOptions,
@@ -53,15 +53,15 @@ export type SynapseText<
   ATTRIBUTES,
   LOCALS,
   DATA,
-  // @ts-expect-error ignore this
   PICK_ENTITY<"text">
->;
+> & {
+  entity: ByIdProxy<PICK_ENTITY<"text">>;
+};
 
 export function VirtualText({ context, synapse, logger }: TServiceParams) {
   const generate = synapse.generator.create<TextConfiguration<object>, TextEvents>({
     bus_events: ["set_value"],
     context,
-    // @ts-expect-error its fine
     domain: "text",
     load_config_keys: ["mode", "native_max", "native_min", "pattern", "native_value"],
   });

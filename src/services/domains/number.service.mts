@@ -1,16 +1,19 @@
 import { TServiceParams } from "@digital-alchemy/core";
-import { PICK_ENTITY } from "@digital-alchemy/hass";
+import { ByIdProxy, PICK_ENTITY } from "@digital-alchemy/hass";
 
 import {
   AddEntityOptions,
   BasicAddParams,
   CallbackData,
-  SensorDeviceClasses,
+  NumberDeviceClasses,
+  NumberSensors,
   SettableConfiguration,
   SynapseEntityProxy,
 } from "../../helpers/index.mts";
 
-export type NumberConfiguration<DATA extends object> = SensorDeviceClasses & {
+export type NumberConfiguration<DATA extends object> = Partial<
+  NumberSensors<NumberDeviceClasses>
+> & {
   /**
    * Defines how the number should be displayed in the UI.
    * It's recommended to use the default `auto`.
@@ -56,15 +59,15 @@ export type SynapseNumber<
   ATTRIBUTES,
   LOCALS,
   DATA,
-  // @ts-expect-error ignore this
   PICK_ENTITY<"number">
->;
+> & {
+  entity: ByIdProxy<PICK_ENTITY<"number">>;
+};
 
 export function VirtualNumber({ context, synapse, logger }: TServiceParams) {
   const generate = synapse.generator.create<NumberConfiguration<object>, NumberEvents>({
     bus_events: ["set_value"],
     context,
-    // @ts-expect-error its fine
     domain: "number",
     load_config_keys: [
       "device_class",

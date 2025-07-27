@@ -1,5 +1,5 @@
 import { TServiceParams } from "@digital-alchemy/core";
-import { PICK_ENTITY, SwitchDeviceClass } from "@digital-alchemy/hass";
+import { ByIdProxy, PICK_ENTITY, SwitchDeviceClass } from "@digital-alchemy/hass";
 
 import {
   AddEntityOptions,
@@ -47,7 +47,9 @@ export type SynapseSwitch<
   LOCALS,
   DATA,
   PICK_ENTITY<"switch">
->;
+> & {
+  entity: ByIdProxy<PICK_ENTITY<"sensor">>;
+};
 
 export function VirtualSwitch({ context, synapse, logger }: TServiceParams) {
   const generate = synapse.generator.create<SwitchConfiguration<object>, SwitchEvents>({

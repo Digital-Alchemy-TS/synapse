@@ -1,5 +1,5 @@
 import { TServiceParams } from "@digital-alchemy/core";
-import { PICK_ENTITY } from "@digital-alchemy/hass";
+import { ByIdProxy, PICK_ENTITY } from "@digital-alchemy/hass";
 
 import {
   AddEntityOptions,
@@ -44,15 +44,15 @@ export type SynapseSelect<
   ATTRIBUTES,
   LOCALS,
   DATA,
-  // @ts-expect-error ignore this
   PICK_ENTITY<"select">
->;
+> & {
+  entity: ByIdProxy<PICK_ENTITY<"select">>;
+};
 
 export function VirtualSelect({ context, synapse, logger }: TServiceParams) {
   const generate = synapse.generator.create<SelectConfiguration<object>, SelectEvents>({
     bus_events: ["select_option"],
     context,
-    // @ts-expect-error its fine
     domain: "select",
     load_config_keys: ["current_option", "options"],
   });

@@ -1,5 +1,5 @@
 import { TServiceParams } from "@digital-alchemy/core";
-import { PICK_ENTITY } from "@digital-alchemy/hass";
+import { ByIdProxy, PICK_ENTITY } from "@digital-alchemy/hass";
 
 import {
   AddEntityOptions,
@@ -74,15 +74,15 @@ export type SynapseLock<
   ATTRIBUTES,
   LOCALS,
   DATA,
-  // @ts-expect-error ignore this
   PICK_ENTITY<"lock">
->;
+> & {
+  entity: ByIdProxy<PICK_ENTITY<"lock">>;
+};
 
 export function VirtualLock({ context, synapse, logger }: TServiceParams) {
   const generate = synapse.generator.create<LockConfiguration<object>, LockEvents>({
     bus_events: ["lock", "unlock", "open"],
     context,
-    // @ts-expect-error its fine
     domain: "lock",
     load_config_keys: [
       "changed_by",

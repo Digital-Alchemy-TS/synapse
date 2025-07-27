@@ -1,5 +1,5 @@
 import { TServiceParams } from "@digital-alchemy/core";
-import { PICK_ENTITY } from "@digital-alchemy/hass";
+import { ByIdProxy, PICK_ENTITY } from "@digital-alchemy/hass";
 import dayjs from "dayjs";
 
 import {
@@ -38,15 +38,15 @@ export type SynapseTime<
   ATTRIBUTES,
   LOCALS,
   DATA,
-  // @ts-expect-error ignore this
   PICK_ENTITY<"time">
->;
+> & {
+  entity: ByIdProxy<PICK_ENTITY<"time">>;
+};
 
 export function VirtualTime({ context, synapse, logger }: TServiceParams) {
   const generate = synapse.generator.create<TimeConfiguration<object>, TimeEvents>({
     bus_events: ["set_value"],
     context,
-    // @ts-expect-error its fine
     domain: "time",
     load_config_keys: ["native_value"],
   });

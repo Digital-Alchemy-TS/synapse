@@ -1,5 +1,5 @@
 import { TServiceParams } from "@digital-alchemy/core";
-import { ButtonDeviceClass, PICK_ENTITY } from "@digital-alchemy/hass";
+import { ButtonDeviceClass, ByIdProxy, PICK_ENTITY } from "@digital-alchemy/hass";
 
 import {
   AddEntityOptions,
@@ -32,7 +32,9 @@ export type SynapseButton<
   LOCALS,
   DATA,
   PICK_ENTITY<"button">
->;
+> & {
+  entity: ByIdProxy<PICK_ENTITY<"button">>;
+};
 
 export function VirtualButton({ context, synapse }: TServiceParams) {
   const generate = synapse.generator.create<ButtonConfiguration, ButtonEvents>({

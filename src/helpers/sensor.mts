@@ -1,170 +1,56 @@
 import { Dayjs } from "dayjs";
+import { Get } from "type-fest";
 
 import { EntityConfigCommon, SettableConfiguration } from "./common-config.mts";
 
-type DurationSensor = {
-  device_class: "duration";
+// A helper type to check if a type is a union.
+// It works by checking if the type is "distributive" over itself.
+type IsUnion<T, U = T> = T extends U ? ([U] extends [T] ? false : true) : false;
 
-  unit_of_measurement: "h" | "min" | "s" | "d";
-};
+// The main utility type that finds keys with multiple values in a union.
+type KeysWithMultipleValues<T> = {
+  [K in keyof T]: IsUnion<T[K]> extends true ? K : never;
+}[keyof T];
 
-type TemperatureSensor = {
-  device_class: "temperature";
-
-  unit_of_measurement: "K" | "°C" | "°F";
-};
-
-type Precipitation = {
-  device_class: "precipitation";
-
-  unit_of_measurement: "cm" | "in" | "mm";
-};
-
-type ApparentPowerSensor = {
-  device_class: "apparent_power";
-
-  unit_of_measurement: "VA";
-};
-
-type WaterSensor = {
-  device_class: "water";
-
-  unit_of_measurement: "L" | "gal" | "m³" | "ft³" | "CCF";
-};
-
-type WeightSensor = {
-  device_class: "weight";
-
-  unit_of_measurement: "kg" | "g" | "mg" | "µg" | "oz" | "lb" | "st";
-};
-
-type WindSpeedSensor = {
-  device_class: "wind_speed";
-
-  unit_of_measurement: "ft/s" | "km/h" | "kn" | "m/s" | "mph";
-};
-
-type SpeedSensor = {
-  device_class: "speed";
-
-  unit_of_measurement: "ft/s" | "in/d" | "in/h" | "km/h" | "kn" | "m/s" | "mph" | "mm/d";
-};
-
-type VoltageSensor = {
-  device_class: "voltage";
-
-  unit_of_measurement: "V" | "mV";
-};
-
-type SignalStrengthSensor = {
-  device_class: "signal_strength";
-
-  unit_of_measurement: "dB" | "dBm";
-};
-
-type VolumeSensor = {
-  device_class: "volume";
-
-  unit_of_measurement: "L" | "mL" | "gal" | "fl. oz." | "m³" | "ft³" | "CCF";
-};
-
-type SoundPressureSensor = {
-  device_class: "sound_pressure";
-
-  unit_of_measurement: "dB" | "dBA";
-};
-
-type PressureSensor = {
-  device_class: "pressure";
-
-  unit_of_measurement: "cbar" | "bar" | "hPa" | "inHg" | "kPa" | "mbar" | "Pa" | "psi";
-};
-
-type ReactivePowerSensor = {
-  device_class: "reactive_power";
-
-  unit_of_measurement: "var";
-};
-
-type PrecipitationIntensitySensor = {
-  device_class: "precipitation_intensity";
-
-  unit_of_measurement: "in/d" | "in/h" | "mm/d" | "mm/h";
-};
-
-type PowerFactorSensor = {
-  device_class: "power_factor";
-
-  unit_of_measurement: "%" | "None";
-};
-
-type PowerSensor = {
-  device_class: "power";
-
-  unit_of_measurement: "W" | "kW";
-};
-
-type MixedGasSensor = {
-  device_class:
-    | "nitrogen_monoxide"
-    | "nitrous_oxide"
-    | "ozone"
-    | "pm1"
-    | "pm25"
-    | "pm10"
-    | "volatile_organic_compounds";
-
-  unit_of_measurement: "µg/m³";
-};
-
-type IlluminanceSensor = {
-  device_class: "illuminance";
-
-  unit_of_measurement: "lx";
-};
-
-type IrradianceSensor = {
-  device_class: "irradiance";
-
-  unit_of_measurement: "W/m²" | "BTU/(h⋅ft²)";
-};
-
-type GasSensor = {
-  device_class: "gas";
-
-  unit_of_measurement: "m³" | "ft³" | "CCF";
-};
-
-type FrequencySensor = {
-  device_class: "frequency";
-
-  unit_of_measurement: "Hz" | "kHz" | "MHz" | "GHz";
-};
-
-type EnergySensor = {
-  device_class: "energy";
-
-  unit_of_measurement: "Wh" | "kWh" | "MWh" | "MJ" | "GJ";
-};
-
-type DistanceSensor = {
-  device_class: "distance";
-
-  unit_of_measurement: "km" | "m" | "cm" | "mm" | "mi" | "yd" | "in";
-};
-
-type MonetarySensor = {
-  device_class: "monetary";
+// #MARK: Number
+type NumberDeviceMapping = {
+  apparent_power: "VA";
+  atmospheric_pressure: "cbar" | "bar" | "hPa" | "inHg" | "kPa" | "mbar" | "Pa" | "psi";
+  current: "A" | "mA";
+  distance: "km" | "m" | "cm" | "mm" | "mi" | "yd" | "in";
+  duration: "h" | "min" | "s" | "d";
+  energy: "Wh" | "kWh" | "MWh" | "MJ" | "GJ";
+  frequency: "Hz" | "kHz" | "MHz" | "GHz";
+  gas: "m³" | "ft³" | "CCF";
+  illuminance: "lx";
+  irradiance: "W/m²" | "BTU/(h⋅ft²)";
+  power_factor: "%" | "None";
+  power: "W" | "kW";
+  precipitation_intensity: "in/d" | "in/h" | "mm/d" | "mm/h";
+  precipitation: "cm" | "in" | "mm";
+  pressure: "cbar" | "bar" | "hPa" | "inHg" | "kPa" | "mbar" | "Pa" | "psi";
+  reactive_power: "var";
+  signal_strength: "dB" | "dBm";
+  sound_pressure: "dB" | "dBA";
+  speed: "ft/s" | "in/d" | "in/h" | "km/h" | "kn" | "m/s" | "mph" | "mm/d";
+  voltage: "V" | "mV";
+  volume: "L" | "mL" | "gal" | "fl. oz." | "m³" | "ft³" | "CCF";
+  water: "L" | "gal" | "m³" | "ft³" | "CCF";
+  weight: "kg" | "g" | "mg" | "µg" | "oz" | "lb" | "st";
+  wind_speed: "ft/s" | "km/h" | "kn" | "m/s" | "mph";
+  nitrogen_monoxide: "µg/m³";
+  nitrous_oxide: "µg/m³";
+  aqi: void;
+  ozone: "µg/m³";
+  pm1: "µg/m³";
+  pm25: "µg/m³";
+  pm10: "µg/m³";
+  volatile_organic_compounds: "µg/m³";
   /**
    * https://en.wikipedia.org/wiki/ISO_4217#Active_codes
    */
-  unit_of_measurement: string;
-};
-
-type DataRateSensor = {
-  device_class: "data_rate";
-
-  unit_of_measurement:
+  monetary: string;
+  data_rate:
     | "bit/s"
     | "kbit/s"
     | "Mbit/s"
@@ -176,12 +62,7 @@ type DataRateSensor = {
     | "KiB/s"
     | "MiB/s"
     | "GiB/s";
-};
-
-type DataSizeSensor = {
-  device_class: "data_size";
-
-  unit_of_measurement:
+  data_size:
     | "bit"
     | "kbit"
     | "Mbit"
@@ -203,56 +84,12 @@ type DataSizeSensor = {
     | "EiB"
     | "ZiB"
     | "YiB";
+  carbon_dioxide: "ppm";
+  carbon_monoxide: "ppm";
+  battery: "%";
+  humidity: "%";
+  moisture: "%";
 };
-
-type AtmosphericPressureSensor = {
-  device_class: "atmospheric_pressure";
-
-  unit_of_measurement: "cbar" | "bar" | "hPa" | "inHg" | "kPa" | "mbar" | "Pa" | "psi";
-};
-
-type CurrentSensor = {
-  device_class: "current";
-
-  unit_of_measurement: "A" | "mA";
-};
-
-type CarbonSensor = {
-  device_class: "carbon_dioxide" | "carbon_monoxide";
-  unit_of_measurement: "ppm";
-};
-
-type PercentSensor = {
-  device_class: "battery" | "humidity" | "moisture";
-  unit_of_measurement: "%";
-};
-
-type DateSensor = {
-  device_class?: "timestamp" | "date";
-  sensor_type?: "date" | "iso" | "dayjs";
-  unit_of_measurement?: void;
-};
-
-type AirQualitySensor = {
-  device_class?: "aqi";
-  unit_of_measurement?: void;
-};
-
-type OptionsSensor<STATE_TYPE> = {
-  device_class?: "enum";
-  sensor_type?: "string";
-
-  /**
-   * In case this sensor provides a textual state, this property can be used to provide a list of possible states.
-   * Requires the enum device class to be set.
-   * Cannot be combined with `state_class` or `native_unit_of_measurement`.
-   */
-  options?: Array<STATE_TYPE extends string ? STATE_TYPE : string>;
-
-  unit_of_measurement?: void;
-};
-
-export const SENSOR_DEVICE_CLASS_CONFIG_KEYS = ["device_class", "unit_of_measurement"];
 
 export enum SensorStateClass {
   /**
@@ -279,56 +116,10 @@ export enum SensorStateClass {
   TOTAL_INCREASING = "total_increasing",
 }
 
-type MultipleUnits = (
-  | AtmosphericPressureSensor
-  | CurrentSensor
-  | DataRateSensor
-  | DataSizeSensor
-  | DistanceSensor
-  | DurationSensor
-  | EnergySensor
-  | FrequencySensor
-  | GasSensor
-  | PowerSensor
-  | Precipitation
-  | PrecipitationIntensitySensor
-  | PressureSensor
-  | SignalStrengthSensor
-  | SoundPressureSensor
-  | SpeedSensor
-  | TemperatureSensor
-  | VoltageSensor
-  | VolumeSensor
-  | WaterSensor
-  | WeightSensor
-  | WindSpeedSensor
-) & {
-  /**
-   * The unit of measurement to be used for the sensor's state.
-   * For sensors with a unique_id, this will be used as the initial unit of measurement, which users can then override.
-   * For sensors without a unique_id, this will be the unit of measurement for the sensor's state.
-   * This property is intended to be used by integrations to override automatic unit conversion rules, for example,
-   * to make a temperature sensor always display in °C regardless of whether the configured unit system prefers °C or °F,
-   * or to make a distance sensor always display in miles even if the configured unit system is metric.
-   */
-  suggested_unit_of_measurement?: string;
-};
-
-type NumberSensors = (
-  | MultipleUnits
-  | AirQualitySensor
-  | ApparentPowerSensor
-  | CarbonSensor
-  | IlluminanceSensor
-  | IrradianceSensor
-  | MixedGasSensor
-  | MonetarySensor
-  | PercentSensor
-  | PowerFactorSensor
-  | ReactivePowerSensor
-) & {
-  sensor_type?: "number";
-
+export type NumberSensors<DEVICE_CLASS extends keyof NumberDeviceMapping> = {
+  device_class: DEVICE_CLASS;
+  unit_of_measurement: NumberDeviceMapping[DEVICE_CLASS];
+  state?: SettableConfiguration<number, object>;
   /**
    * The number of decimals which should be used in the sensor's state when it's displayed.
    */
@@ -348,19 +139,89 @@ type NumberSensors = (
    * If not `None`, the sensor is assumed to be numerical and will be displayed as a line-chart in the frontend instead of as discrete values.
    */
   state_class?: SensorStateClass | `${SensorStateClass}`;
+} & (NumberDeviceMapping[DEVICE_CLASS] extends void
+  ? {}
+  : { unit_of_measurement: NumberDeviceMapping[DEVICE_CLASS] }) &
+  (DEVICE_CLASS extends KeysWithMultipleValues<NumberDeviceMapping>
+    ? {
+        /**
+         * The unit of measurement to be used for the sensor's state.
+         * For sensors with a unique_id, this will be used as the initial unit of measurement, which users can then override.
+         * For sensors without a unique_id, this will be the unit of measurement for the sensor's state.
+         * This property is intended to be used by integrations to override automatic unit conversion rules, for example,
+         * to make a temperature sensor always display in °C regardless of whether the configured unit system prefers °C or °F,
+         * or to make a distance sensor always display in miles even if the configured unit system is metric.
+         */
+        suggested_unit_of_measurement?: NumberDeviceMapping[DEVICE_CLASS];
+      }
+    : {});
+
+// #MARK: Date
+export type DateStateTypeMap = {
+  dayjs: Dayjs;
+  date: Date;
+  iso: string;
 };
 
-export type SensorDeviceClasses<STATE_TYPE = unknown> =
-  | NumberSensors
-  | DateSensor
-  | OptionsSensor<STATE_TYPE>;
+type DateState<TYPE extends keyof DateStateTypeMap> = {
+  sensor_type?: TYPE;
+  state?: SettableConfiguration<DateStateTypeMap[TYPE], object>;
+};
+
+export type DateSensor<TYPE extends keyof DateStateTypeMap> = {
+  device_class: "timestamp" | "date";
+  unit_of_measurement?: void;
+} & DateState<TYPE>;
+
+// #MARK: Options
+type OptionsSensor<OPTIONS extends string> = {
+  device_class: "enum";
+  /**
+   * In case this sensor provides a textual state, this property can be used to provide a list of possible states.
+   * Requires the enum device class to be set.
+   * Cannot be combined with `state_class` or `native_unit_of_measurement`.
+   */
+  options: Array<OPTIONS>;
+  state?: SettableConfiguration<OPTIONS, object>;
+  unit_of_measurement?: void;
+};
+
+type DefaultSensor = {
+  device_class?: void;
+  unit_of_measurement?: void;
+  state?: SettableConfiguration<string, object>;
+};
+
+export type NumberDeviceClasses = Get<NumberSensors<keyof NumberDeviceMapping>, "device_class">;
+type DateDeviceClasses = Get<DateSensor<"iso">, "device_class">;
+type OptionsDeviceClasses = Get<OptionsSensor<string>, "device_class">;
+export type SensorDeviceClasses = NumberDeviceClasses | DateDeviceClasses | OptionsDeviceClasses;
+
+export type ExtraSensorInfo<DEVICE_CLASS extends SensorDeviceClasses> =
+  DEVICE_CLASS extends NumberDeviceClasses
+    ? void
+    : DEVICE_CLASS extends DateDeviceClasses
+      ? keyof DateStateTypeMap
+      : DEVICE_CLASS extends OptionsDeviceClasses
+        ? string
+        : // default type
+          void;
 
 export type SensorConfiguration<
+  DEVICE_CLASS extends SensorDeviceClasses,
+  EXTRA extends ExtraSensorInfo<DEVICE_CLASS>,
   ATTRIBUTES extends object,
   LOCALS extends object,
-  STATE_TYPE extends string | number | Date | Dayjs,
   DATA extends object,
-> = EntityConfigCommon<ATTRIBUTES, LOCALS, DATA> &
-  SensorDeviceClasses<STATE_TYPE> & {
-    state?: SettableConfiguration<STATE_TYPE, DATA>;
-  };
+> = Partial<
+  EntityConfigCommon<ATTRIBUTES, LOCALS, DATA> &
+    (DEVICE_CLASS extends NumberDeviceClasses
+      ? NumberSensors<DEVICE_CLASS>
+      : DEVICE_CLASS extends DateDeviceClasses
+        ? // @ts-expect-error something about the formula isn't quite correct
+          DateSensor<EXTRA>
+        : DEVICE_CLASS extends OptionsDeviceClasses
+          ? // @ts-expect-error something about the formula isn't quite correct
+            OptionsSensor<EXTRA>
+          : DefaultSensor)
+>;

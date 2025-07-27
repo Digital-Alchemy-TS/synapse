@@ -1,5 +1,5 @@
 import { TServiceParams } from "@digital-alchemy/core";
-import { BinarySensorDeviceClass, PICK_ENTITY } from "@digital-alchemy/hass";
+import { BinarySensorDeviceClass, ByIdProxy, PICK_ENTITY } from "@digital-alchemy/hass";
 
 import {
   AddEntityOptions,
@@ -38,7 +38,9 @@ export type SynapseBinarySensor<
   LOCALS,
   DATA,
   PICK_ENTITY<"binary_sensor">
->;
+> & {
+  entity: ByIdProxy<PICK_ENTITY<"binary_sensor">>;
+};
 
 export function VirtualBinarySensor({ context, synapse }: TServiceParams) {
   const generate = synapse.generator.create<BinarySensorConfiguration<object>, BinarySensorEvents>({
