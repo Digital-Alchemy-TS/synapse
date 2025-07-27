@@ -68,12 +68,20 @@ const DOMAINS = {
   scene: VirtualScene,
   select: VirtualSelect,
   /**
-   * ### Customize state
+   * ### Sensor
    *
-   * > Available options: `number` | `string`
+   * Creates sensor entities for various measurements and states.
+   *
+   * The state type is determined by the `device_class` property, not by generic type parameters.
+   * For example, `device_class: "temperature"` will result in a numeric state,
+   * while `device_class: "enum"` will result in a string state.
    *
    * ```typescript
-   * synapse.sensor<{ state: number }>({ ... })
+   * synapse.sensor({
+   *   device_class: "temperature",
+   *   unit_of_measurement: "°C",
+   *   state: 22.5
+   * });
    * ```
    */
   sensor: VirtualSensor,

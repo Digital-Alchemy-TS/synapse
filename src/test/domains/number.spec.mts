@@ -8,7 +8,10 @@ describe("Number", () => {
   it("loads the correct keys from storage", async () => {
     await synapseTestRunner.run(({ synapse, context }) => {
       const spy = vi.spyOn(synapse.storage, "add");
-      synapse.number({ context, name: "test" });
+      synapse.number({
+        context,
+        name: "test",
+      });
       expect(spy).toHaveBeenCalledWith(
         expect.objectContaining({
           load_config_keys: [

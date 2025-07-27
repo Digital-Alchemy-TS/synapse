@@ -1,10 +1,12 @@
 import { TServiceParams } from "@digital-alchemy/core";
+import { ByIdProxy, PICK_ENTITY } from "@digital-alchemy/hass";
 
 import {
   AddEntityOptions,
   BasicAddParams,
   CallbackData,
   SettableConfiguration,
+  SynapseEntityProxy,
 } from "../../helpers/index.mts";
 
 export type TextConfiguration<DATA extends object> = {
@@ -38,11 +40,28 @@ export type TextEvents = {
   set_value: { value: string };
 };
 
+/**
+ * Convenient type for text entities with optional attributes and locals
+ */
+export type SynapseText<
+  ATTRIBUTES extends object = {},
+  LOCALS extends object = {},
+  DATA extends object = {},
+> = SynapseEntityProxy<
+  TextConfiguration<DATA>,
+  TextEvents,
+  ATTRIBUTES,
+  LOCALS,
+  DATA,
+  PICK_ENTITY<"text">
+> & {
+  entity: ByIdProxy<PICK_ENTITY<"text">>;
+};
+
 export function VirtualText({ context, synapse, logger }: TServiceParams) {
   const generate = synapse.generator.create<TextConfiguration<object>, TextEvents>({
     bus_events: ["set_value"],
     context,
-    // @ts-expect-error its fine
     domain: "text",
     load_config_keys: ["mode", "native_max", "native_min", "pattern", "native_value"],
   });
@@ -63,7 +82,7 @@ export function VirtualText({ context, synapse, logger }: TServiceParams) {
     PARAMS["attributes"],
     PARAMS["locals"],
     DATA
-  >) {
+  >): SynapseText<PARAMS["attributes"], PARAMS["locals"], DATA> {
     // @ts-expect-error it's fine
     const entity = generate.addEntity<PARAMS["attributes"], PARAMS["locals"], DATA>(options);
 
@@ -73,6 +92,6 @@ export function VirtualText({ context, synapse, logger }: TServiceParams) {
         entity.storage.set("native_value", value);
       });
     }
-    return entity;
+    return entity as SynapseText<PARAMS["attributes"], PARAMS["locals"], DATA>;
   };
 }
