@@ -1,10 +1,16 @@
 import { TServiceParams } from "@digital-alchemy/core";
+import { ByIdProxy, PICK_ENTITY } from "@digital-alchemy/hass";
 
 import {
   AddEntityOptions,
   CallbackData,
+  DateSensor,
+  DateStateTypeMap,
+  ExtraSensorInfo,
   SensorConfiguration,
+  SensorDeviceClasses,
   SynapseEntityException,
+  SynapseEntityProxy,
 } from "../../helpers/index.mts";
 
 export type SensorEvents = {
@@ -60,13 +66,20 @@ export const DATA_TYPES = new Map<string, "number" | "string" | "date">([
   ["wind_speed", "number"],
 ]);
 
-type AddParams = {
-  state?: string | number;
+type AddParams<DEVICE_CLASS extends SensorDeviceClasses = SensorDeviceClasses> = {
+  device_class?: DEVICE_CLASS;
+  extra?: ExtraSensorInfo<DEVICE_CLASS>;
   locals?: object;
   attributes?: object;
 };
 
-type Generic = SensorConfiguration<object, object, string | number, object>;
+type Generic = SensorConfiguration<
+  SensorDeviceClasses,
+  ExtraSensorInfo<SensorDeviceClasses>,
+  object,
+  object,
+  object
+>;
 
 export function VirtualSensor({
   context,
@@ -76,10 +89,7 @@ export function VirtualSensor({
     utils: { is },
   },
 }: TServiceParams) {
-  function checkOptions(
-    value: string,
-    current: SensorConfiguration<object, object, string | number, object>,
-  ) {
+  function checkOptions(value: string, current: Generic) {
     if (
       "options" in current &&
       is.array(current.options) &&
@@ -133,11 +143,25 @@ export function VirtualSensor({
     DATA extends object = CallbackData<
       PARAMS["locals"],
       PARAMS["attributes"],
-      SensorConfiguration<PARAMS["attributes"], PARAMS["locals"], PARAMS["state"], object>
+      SensorConfiguration<
+        PARAMS["device_class"],
+        // @ts-expect-error typing doesn't work internally
+        PARAMS["extra"],
+        PARAMS["attributes"],
+        PARAMS["locals"],
+        object
+      >
     >,
   >(
     options: AddEntityOptions<
-      SensorConfiguration<PARAMS["attributes"], PARAMS["locals"], PARAMS["state"], DATA>,
+      SensorConfiguration<
+        PARAMS["device_class"],
+        // @ts-expect-error typing doesn't work internally
+        PARAMS["extra"],
+        PARAMS["attributes"],
+        PARAMS["locals"],
+        DATA
+      >,
       SensorEvents,
       PARAMS["attributes"],
       PARAMS["locals"],
@@ -152,64 +176,48 @@ export function VirtualSensor({
           "Cannot combine state_class & native_unit_of_measurement with options",
         );
       }
-      options.sensor_type ??= "string";
+      // options.sensor_type ??= "string";
       options.device_class = "enum";
     }
-    if ("device_class" in options) {
-      const expected = DATA_TYPES.get(options.device_class);
-      switch (expected) {
-        case "date": {
-          options.sensor_type ??= "iso";
-          if (!DATE_SENSOR_TYPES.has(options.sensor_type)) {
-            throw new SynapseEntityException(
-              context,
-              "BAD_DATE_SENSOR_TYPE",
-              `${options.sensor_type} cannot be used with date sensors`,
-            );
-          }
-          break;
-        }
-        case "number": {
-          options.sensor_type ??= "number";
-          if (options.sensor_type !== "number") {
-            throw new SynapseEntityException(
-              context,
-              "BAD_NUMBER_SENSOR_TYPE",
-              `${options.sensor_type} cannot be used with number sensors`,
-            );
-          }
-          break;
-        }
-        case "string": {
-          options.sensor_type ??= "string";
-          if (options.sensor_type !== "string") {
-            throw new SynapseEntityException(
-              context,
-              "BAD_STRING_SENSOR_TYPE",
-              `${options.sensor_type} cannot be used with string sensors`,
-            );
-          }
-          break;
-        }
-        default: {
-          // will treat as no device class
-          logger.warn({ ...options }, `unexpected device class`);
-          break;
-        }
+    if ("device_class" in options && DATA_TYPES.get(options.device_class) === "date") {
+      const data = options as DateSensor<keyof DateStateTypeMap>;
+      data.sensor_type ??= "iso";
+      if (!DATE_SENSOR_TYPES.has(data.sensor_type)) {
+        throw new SynapseEntityException(
+          context,
+          "BAD_DATE_SENSOR_TYPE",
+          `${data.sensor_type} cannot be used with date sensors`,
+        );
       }
     }
-    const out = generate.addEntity<PARAMS["attributes"], PARAMS["locals"], DATA>(
-      options as unknown as AddEntityOptions<
-        Generic,
-        SensorEvents,
-        PARAMS["attributes"],
-        PARAMS["locals"],
-        DATA
-      >,
-    );
+    // @ts-expect-error typing doesn't work internally
+    const out = generate.addEntity<PARAMS["attributes"], PARAMS["locals"], DATA>(options);
 
-    type SynapseSensor = Omit<typeof out, "state"> & { state: PARAMS["state"] };
-
-    return out as SynapseSensor;
+    // @ts-expect-error typing doesn't work internally
+    return out as SynapseSensor<
+      PARAMS["device_class"],
+      // @ts-expect-error typing doesn't work internally
+      PARAMS["extra"],
+      PARAMS["attributes"],
+      PARAMS["locals"],
+      DATA
+    >;
   };
 }
+
+export type SynapseSensor<
+  DEVICE_CLASS extends SensorDeviceClasses = SensorDeviceClasses,
+  EXTRA extends ExtraSensorInfo<DEVICE_CLASS> = ExtraSensorInfo<DEVICE_CLASS>,
+  ATTRIBUTES extends object = {},
+  LOCALS extends object = {},
+  DATA extends object = {},
+> = SynapseEntityProxy<
+  SensorConfiguration<DEVICE_CLASS, EXTRA, ATTRIBUTES, LOCALS, object>,
+  undefined,
+  ATTRIBUTES,
+  LOCALS,
+  DATA,
+  PICK_ENTITY<"sensor">
+> & {
+  entity: ByIdProxy<PICK_ENTITY<"sensor">>;
+};

@@ -62,7 +62,8 @@ describe("Sensor", () => {
             icon: "mdi:test",
             name: "test",
             options: [],
-            sensor_type: "string",
+            // @ts-expect-error test
+            state_class: "foo",
           });
         }).toThrow();
       });

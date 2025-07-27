@@ -1,4 +1,5 @@
 import { TContext } from "@digital-alchemy/core";
+import { ByIdProxy } from "@digital-alchemy/hass";
 
 export type OnOff = "on" | "off" | "unavailable";
 
@@ -81,3 +82,10 @@ export class SynapseEntityException extends Error {
     super(message);
   }
 }
+
+/**
+ * Utility type that extracts the return type of getEntity() from a SynapseEntityProxy
+ */
+export type GetGeneratedEntity<T> = T extends { getEntity: () => ByIdProxy<infer E> }
+  ? ByIdProxy<E>
+  : never;

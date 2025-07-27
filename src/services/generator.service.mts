@@ -84,10 +84,12 @@ export function DomainGeneratorService({
     busTransfer(bus_events);
 
     // #MARK: addEntity
-    function addEntity<ATTRIBUTES extends object, LOCALS extends object, DATA extends object>(
-      entity: AddEntityOptions<CONFIGURATION, EVENT_MAP, ATTRIBUTES, LOCALS, DATA>,
-      clone = false,
-    ) {
+    function addEntity<
+      ATTRIBUTES extends object,
+      LOCALS extends object,
+      DATA extends object,
+      ENTITY extends PICK_ENTITY = PICK_ENTITY,
+    >(entity: AddEntityOptions<CONFIGURATION, EVENT_MAP, ATTRIBUTES, LOCALS, DATA>, clone = false) {
       // * defaults
       // - unique_id - required for comms
       entity.unique_id = is.empty(entity.unique_id)
@@ -106,7 +108,8 @@ export function DomainGeneratorService({
           EVENT_MAP,
           ATTRIBUTES,
           LOCALS,
-          DATA
+          DATA,
+          ENTITY
         >;
       } else if (currentProxy) {
         logger.debug({ unique_id }, `creating clone`);
@@ -171,7 +174,8 @@ export function DomainGeneratorService({
         EVENT_MAP,
         ATTRIBUTES,
         LOCALS,
-        DATA
+        DATA,
+        ENTITY
       >;
 
       const listeners = new Set<() => void>();
@@ -243,7 +247,7 @@ export function DomainGeneratorService({
             case "child": {
               return function (context: TContext) {
                 logger.trace({ unique_id }, "generate child");
-                const child = addEntity(
+                const child = addEntity<ATTRIBUTES, LOCALS, DATA, ENTITY>(
                   {
                     // copy input data
                     ...entity,

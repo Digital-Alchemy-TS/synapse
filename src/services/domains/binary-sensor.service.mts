@@ -1,11 +1,12 @@
 import { TServiceParams } from "@digital-alchemy/core";
-import { BinarySensorDeviceClass } from "@digital-alchemy/hass";
+import { BinarySensorDeviceClass, ByIdProxy, PICK_ENTITY } from "@digital-alchemy/hass";
 
 import {
   AddEntityOptions,
   BasicAddParams,
   CallbackData,
   SettableConfiguration,
+  SynapseEntityProxy,
 } from "../../helpers/index.mts";
 
 export type BinarySensorConfiguration<DATA extends object> = {
@@ -21,6 +22,24 @@ export type BinarySensorConfiguration<DATA extends object> = {
 
 export type BinarySensorEvents = {
   //
+};
+
+/**
+ * Convenient type for binary sensor entities with optional attributes and locals
+ */
+export type SynapseBinarySensor<
+  ATTRIBUTES extends object = {},
+  LOCALS extends object = {},
+  DATA extends object = {},
+> = SynapseEntityProxy<
+  BinarySensorConfiguration<DATA>,
+  BinarySensorEvents,
+  ATTRIBUTES,
+  LOCALS,
+  DATA,
+  PICK_ENTITY<"binary_sensor">
+> & {
+  entity: ByIdProxy<PICK_ENTITY<"binary_sensor">>;
 };
 
 export function VirtualBinarySensor({ context, synapse }: TServiceParams) {
@@ -46,8 +65,9 @@ export function VirtualBinarySensor({ context, synapse }: TServiceParams) {
       PARAMS["locals"],
       DATA
     >,
-  ) {
+  ): SynapseBinarySensor<PARAMS["attributes"], PARAMS["locals"], DATA> {
     // @ts-expect-error it's fine
-    return generate.addEntity<PARAMS["attributes"], PARAMS["locals"], DATA>(options);
+    const entity = generate.addEntity<PARAMS["attributes"], PARAMS["locals"], DATA>(options);
+    return entity as SynapseBinarySensor<PARAMS["attributes"], PARAMS["locals"], DATA>;
   };
 }
