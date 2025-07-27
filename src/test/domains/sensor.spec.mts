@@ -79,7 +79,6 @@ describe("Sensor", () => {
             icon: "mdi:test",
             name: "test",
             options: [],
-            sensor_type: "string",
           });
         }).toThrow();
       });
