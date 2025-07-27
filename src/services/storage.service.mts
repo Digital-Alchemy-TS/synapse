@@ -46,7 +46,7 @@ export function StorageService({
     await debounce("synapse_storage", RESYNC_DELAY);
     logger.info("entity storage resync");
     for (const [unique_id] of registry) {
-      await synapse.sqlite.update(unique_id, registry.get(unique_id).export());
+      await synapse.database.update(unique_id, registry.get(unique_id).export());
     }
   });
 
@@ -182,7 +182,7 @@ export function StorageService({
         CURRENT_VALUE[key] = value;
         if (initialized) {
           logger.trace({ key, unique_id }, "update locals");
-          await synapse.sqlite.update(unique_id, registry.get(unique_id).export());
+          await synapse.database.update(unique_id, registry.get(unique_id).export());
           if (hass.socket.connectionState === "connected") {
             setImmediate(async () => await synapse.socket.send(unique_id, CURRENT_VALUE));
           }
@@ -198,11 +198,11 @@ export function StorageService({
       const unique_id = entity.unique_id as TSynapseId;
 
       // - ??
-      const data = await synapse.sqlite.load(unique_id, CURRENT_VALUE);
+      const data = await synapse.database.load(unique_id, CURRENT_VALUE);
       if (is.empty(data?.state_json)) {
         initialized = true;
         logger.debug({ unique_id }, "initial create entity row");
-        await synapse.sqlite.update(unique_id, registry.get(unique_id).export());
+        await synapse.database.update(unique_id, registry.get(unique_id).export());
         return;
       }
 

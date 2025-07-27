@@ -55,7 +55,7 @@ describe("Locals", () => {
             locals: { test: false },
             name: "test",
           });
-          const spy = vi.spyOn(synapse.sqlite, "loadLocals");
+          const spy = vi.spyOn(synapse.database, "loadLocals");
           expect(sensor.locals.test).toBe(false);
           expect(sensor.locals.test).toBe(false);
           expect(spy).toHaveBeenCalledTimes(1);
@@ -96,7 +96,7 @@ describe("Locals", () => {
             expect(sensor.locals.test).toBe(true);
 
             // Test that the value was stored using the new database service
-            const spy = vi.spyOn(synapse.sqlite, "updateLocal");
+            const spy = vi.spyOn(synapse.database, "updateLocal");
             expect(spy).toHaveBeenCalledWith(unique_id, "test", true);
           });
         });
@@ -140,7 +140,7 @@ describe("Locals", () => {
 
             delete sensor.locals;
 
-            const spy = vi.spyOn(synapse.sqlite, "deleteLocal");
+            const spy = vi.spyOn(synapse.database, "deleteLocal");
             expect(spy).toHaveBeenCalledWith(unique_id, "test");
           });
         });

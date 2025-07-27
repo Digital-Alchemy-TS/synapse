@@ -14,7 +14,9 @@ export function DemoEntityGenerator({ scheduler, synapse, context, logger }: TSe
     });
 
     // Create a temperature sensor that updates every 30 seconds
-    const temperatureSensor = synapse.sensor<{ state: number }>({
+    const temperatureSensor = synapse.sensor<{
+      device_class: "temperature";
+    }>({
       context,
       device_class: "temperature",
       device_id: demoDevice,
