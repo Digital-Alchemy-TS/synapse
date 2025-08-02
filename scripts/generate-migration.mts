@@ -14,7 +14,7 @@ async function generateMigration() {
   const db = drizzle(sqlite);
 
   try {
-    await migrate(db, { migrationsFolder: "./src/schema/migrations" });
+    await migrate(db, { migrationsFolder: "./migrations" });
     console.log("Migration completed successfully!");
   } catch (error) {
     console.error("Migration failed:", error);
