@@ -174,7 +174,7 @@ export type NON_SETTABLE =
 export type NonReactive<CONFIGURATION extends object> = {
   [KEY in Extract<keyof CONFIGURATION, string>]: CONFIGURATION[KEY] extends SettableConfiguration<
     infer TYPE,
-    object
+    infer _
   >
     ? TYPE
     : CONFIGURATION[KEY];
