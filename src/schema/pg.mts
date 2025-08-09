@@ -1,4 +1,4 @@
-import { jsonb, pgTable, serial, text, timestamp } from "drizzle-orm/pg-core";
+import { jsonb, pgTable, serial, text, timestamp, unique } from "drizzle-orm/pg-core";
 
 export const pgHomeAssistantEntity = pgTable("synapse_entity", {
   app_unique_id: text("app_unique_id").notNull(),
@@ -13,11 +13,15 @@ export const pgHomeAssistantEntity = pgTable("synapse_entity", {
   unique_id: text("unique_id").notNull().unique(),
 });
 
-export const pgHomeAssistantEntityLocals = pgTable("synapse_entity_locals", {
-  app_unique_id: text("app_unique_id").notNull(),
-  id: serial("id").primaryKey(),
-  key: text("key").notNull(),
-  last_modified: timestamp("last_modified").notNull().defaultNow(),
-  unique_id: text("unique_id").notNull(),
-  value_json: jsonb("value_json").notNull(),
-});
+export const pgHomeAssistantEntityLocals = pgTable(
+  "synapse_entity_locals",
+  {
+    app_unique_id: text("app_unique_id").notNull(),
+    id: serial("id").primaryKey(),
+    key: text("key").notNull(),
+    last_modified: timestamp("last_modified").notNull().defaultNow(),
+    unique_id: text("unique_id").notNull(),
+    value_json: jsonb("value_json").notNull(),
+  },
+  table => [unique().on(table.unique_id, table.key)],
+);

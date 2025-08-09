@@ -1,7 +1,7 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "77af7f20-3d3c-49c4-aca0-00e54c7f4800",
+  "id": "e267d670-db64-4a60-85ad-b2b6592c53e5",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
     "synapse_entity": {
@@ -140,7 +140,16 @@
           "autoincrement": false
         }
       },
-      "indexes": {},
+      "indexes": {
+        "synapse_entity_locals_unique_id_key_unique": {
+          "name": "synapse_entity_locals_unique_id_key_unique",
+          "columns": [
+            "unique_id",
+            "key"
+          ],
+          "isUnique": true
+        }
+      },
       "foreignKeys": {},
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},

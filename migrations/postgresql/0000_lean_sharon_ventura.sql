@@ -18,5 +18,6 @@ CREATE TABLE "synapse_entity_locals" (
 	"key" text NOT NULL,
 	"last_modified" timestamp DEFAULT now() NOT NULL,
 	"unique_id" text NOT NULL,
-	"value_json" jsonb NOT NULL
+	"value_json" jsonb NOT NULL,
+	CONSTRAINT "synapse_entity_locals_unique_id_key_unique" UNIQUE("unique_id","key")
 );

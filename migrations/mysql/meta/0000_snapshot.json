@@ -1,7 +1,7 @@
 {
   "version": "5",
   "dialect": "mysql",
-  "id": "af652ba5-8ad5-46d5-9399-4f8c563ad0ed",
+  "id": "9994c6b1-7abb-467a-9e36-4f46ef8ee4e1",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
     "synapse_entity": {
@@ -23,7 +23,7 @@
         },
         "base_state": {
           "name": "base_state",
-          "type": "varchar(1000)",
+          "type": "text",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false
@@ -66,7 +66,7 @@
         },
         "state_json": {
           "name": "state_json",
-          "type": "varchar(1000)",
+          "type": "text",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false
@@ -156,7 +156,15 @@
           ]
         }
       },
-      "uniqueConstraints": {},
+      "uniqueConstraints": {
+        "synapse_entity_locals_unique_id_key_unique": {
+          "name": "synapse_entity_locals_unique_id_key_unique",
+          "columns": [
+            "unique_id",
+            "key"
+          ]
+        }
+      },
       "checkConstraint": {}
     }
   },

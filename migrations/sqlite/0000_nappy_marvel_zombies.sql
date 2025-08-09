@@ -20,3 +20,5 @@ CREATE TABLE `synapse_entity_locals` (
 	`unique_id` text NOT NULL,
 	`value_json` text NOT NULL
 );
+--> statement-breakpoint
+CREATE UNIQUE INDEX `synapse_entity_locals_unique_id_key_unique` ON `synapse_entity_locals` (`unique_id`,`key`);

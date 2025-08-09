@@ -1,5 +1,5 @@
 {
-  "id": "f0d70eb6-2470-4acd-a7c7-0bc4749614d1",
+  "id": "89ac8d1f-33fd-4654-aacc-b8ee647cb1da",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -131,7 +131,16 @@
       "indexes": {},
       "foreignKeys": {},
       "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
+      "uniqueConstraints": {
+        "synapse_entity_locals_unique_id_key_unique": {
+          "name": "synapse_entity_locals_unique_id_key_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "unique_id",
+            "key"
+          ]
+        }
+      },
       "policies": {},
       "checkConstraints": {},
       "isRLSEnabled": false

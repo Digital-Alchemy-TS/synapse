@@ -1,4 +1,4 @@
-import { int, mysqlTable, text, timestamp, varchar } from "drizzle-orm/mysql-core";
+import { int, mysqlTable, text, timestamp, unique, varchar } from "drizzle-orm/mysql-core";
 
 export const mysqlHomeAssistantEntity = mysqlTable("synapse_entity", {
   app_unique_id: varchar("app_unique_id", { length: 255 }).notNull(),
@@ -13,11 +13,15 @@ export const mysqlHomeAssistantEntity = mysqlTable("synapse_entity", {
   unique_id: varchar("unique_id", { length: 255 }).notNull().unique(),
 });
 
-export const mysqlHomeAssistantEntityLocals = mysqlTable("synapse_entity_locals", {
-  app_unique_id: varchar("app_unique_id", { length: 255 }).notNull(),
-  id: int("id").primaryKey().autoincrement(),
-  key: varchar("key", { length: 255 }).notNull(),
-  last_modified: timestamp("last_modified").notNull().defaultNow(),
-  unique_id: varchar("unique_id", { length: 255 }).notNull(),
-  value_json: varchar("value_json", { length: 1000 }).notNull(),
-});
+export const mysqlHomeAssistantEntityLocals = mysqlTable(
+  "synapse_entity_locals",
+  {
+    app_unique_id: varchar("app_unique_id", { length: 255 }).notNull(),
+    id: int("id").primaryKey().autoincrement(),
+    key: varchar("key", { length: 255 }).notNull(),
+    last_modified: timestamp("last_modified").notNull().defaultNow(),
+    unique_id: varchar("unique_id", { length: 255 }).notNull(),
+    value_json: varchar("value_json", { length: 1000 }).notNull(),
+  },
+  table => [unique().on(table.unique_id, table.key)],
+);

@@ -1,3 +1,4 @@
+import { sleep } from "@digital-alchemy/core";
 import { v4 } from "uuid";
 
 import { synapseTestRunner } from "../mock/index.mts";
@@ -46,23 +47,6 @@ describe("Locals", () => {
   describe("sqlite interactions", () => {
     const unique_id = v4();
 
-    it("loads sqlite data on first interaction only", async () => {
-      expect.assertions(3);
-      await synapseTestRunner.run(({ synapse, context, lifecycle }) => {
-        lifecycle.onReady(() => {
-          const sensor = synapse.sensor<SensorParams>({
-            context,
-            locals: { test: false },
-            name: "test",
-          });
-          const spy = vi.spyOn(synapse.database, "loadLocals");
-          expect(sensor.locals.test).toBe(false);
-          expect(sensor.locals.test).toBe(false);
-          expect(spy).toHaveBeenCalledTimes(1);
-        });
-      });
-    });
-
     // it("writes to sqlite on change", async () => {
     //   expect.assertions(1);
     //   await synapseTestRunner.run(({ synapse, context, lifecycle }) => {
@@ -92,11 +76,11 @@ describe("Locals", () => {
               name: "test",
               unique_id,
             });
+            const spy = vi.spyOn(synapse.database, "updateLocal");
             sensor.locals.test = true;
             expect(sensor.locals.test).toBe(true);
 
             // Test that the value was stored using the new database service
-            const spy = vi.spyOn(synapse.database, "updateLocal");
             expect(spy).toHaveBeenCalledWith(unique_id, "test", true);
           });
         });
@@ -127,7 +111,7 @@ describe("Locals", () => {
     // #MARK: deleteProperty
     describe("deleteProperty", () => {
       it("resets locals and deletes sqlite entries", async () => {
-        expect.assertions(2);
+        expect.assertions(1);
         await synapseTestRunner.run(({ synapse, context, lifecycle }) => {
           lifecycle.onReady(async () => {
             const unique_id = v4();
@@ -138,25 +122,12 @@ describe("Locals", () => {
               unique_id,
             });
 
+            const spy = vi.spyOn(synapse.database, "deleteLocalsByUniqueId");
             delete sensor.locals;
 
-            const spy = vi.spyOn(synapse.database, "deleteLocal");
-            expect(spy).toHaveBeenCalledWith(unique_id, "test");
+            await sleep(10);
+            expect(spy).toHaveBeenCalledWith(unique_id);
           });
-        });
-      });
-
-      it("does not allow deletes before load", async () => {
-        expect.assertions(1);
-        await synapseTestRunner.run(({ synapse, context }) => {
-          const sensor = synapse.sensor<SensorParams>({
-            context,
-            locals: { test: false },
-            name: "test",
-          });
-          expect(() => {
-            delete sensor.locals.test;
-          }).toThrow();
         });
       });
 

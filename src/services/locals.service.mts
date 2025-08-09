@@ -19,7 +19,9 @@ export function SynapseLocalsService({
     const proxy = new Proxy(data, {
       deleteProperty(target, property: string) {
         // Remove from target
-        delete (target as Record<string, unknown>)[property];
+        (target as Record<string, unknown>)[property] = (defaults as Record<string, unknown>)[
+          property
+        ];
 
         // Remove from loaded data
         loadedData.delete(property);
