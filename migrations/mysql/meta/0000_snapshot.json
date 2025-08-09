@@ -1,11 +1,11 @@
 {
   "version": "5",
   "dialect": "mysql",
-  "id": "b2619abb-2f53-470a-8f8f-374222dc50b3",
+  "id": "af652ba5-8ad5-46d5-9399-4f8c563ad0ed",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
-    "HomeAssistantEntity": {
-      "name": "HomeAssistantEntity",
+    "synapse_entity": {
+      "name": "synapse_entity",
       "columns": {
         "app_unique_id": {
           "name": "app_unique_id",
@@ -32,7 +32,7 @@
           "name": "entity_id",
           "type": "varchar(255)",
           "primaryKey": false,
-          "notNull": true,
+          "notNull": false,
           "autoincrement": false
         },
         "first_observed": {
@@ -82,16 +82,16 @@
       "indexes": {},
       "foreignKeys": {},
       "compositePrimaryKeys": {
-        "HomeAssistantEntity_id": {
-          "name": "HomeAssistantEntity_id",
+        "synapse_entity_id": {
+          "name": "synapse_entity_id",
           "columns": [
             "id"
           ]
         }
       },
       "uniqueConstraints": {
-        "HomeAssistantEntity_unique_id_unique": {
-          "name": "HomeAssistantEntity_unique_id_unique",
+        "synapse_entity_unique_id_unique": {
+          "name": "synapse_entity_unique_id_unique",
           "columns": [
             "unique_id"
           ]
@@ -99,8 +99,8 @@
       },
       "checkConstraint": {}
     },
-    "HomeAssistantEntityLocals": {
-      "name": "HomeAssistantEntityLocals",
+    "synapse_entity_locals": {
+      "name": "synapse_entity_locals",
       "columns": {
         "app_unique_id": {
           "name": "app_unique_id",
@@ -149,8 +149,8 @@
       "indexes": {},
       "foreignKeys": {},
       "compositePrimaryKeys": {
-        "HomeAssistantEntityLocals_id": {
-          "name": "HomeAssistantEntityLocals_id",
+        "synapse_entity_locals_id": {
+          "name": "synapse_entity_locals_id",
           "columns": [
             "id"
           ]

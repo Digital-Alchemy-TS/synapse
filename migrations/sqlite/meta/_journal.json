@@ -1,0 +1,13 @@
+{
+  "version": "7",
+  "dialect": "sqlite",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "6",
+      "when": 1754747406124,
+      "tag": "0000_white_the_hood",
+      "breakpoints": true
+    }
+  ]
+}

@@ -1,10 +1,10 @@
 import { jsonb, pgTable, serial, text, timestamp } from "drizzle-orm/pg-core";
 
-export const pgHomeAssistantEntity = pgTable("HomeAssistantEntity", {
+export const pgHomeAssistantEntity = pgTable("synapse_entity", {
   app_unique_id: text("app_unique_id").notNull(),
   application_name: text("application_name").notNull(),
   base_state: text("base_state").notNull(),
-  entity_id: text("entity_id").notNull(),
+  entity_id: text("entity_id"),
   first_observed: timestamp("first_observed").notNull().defaultNow(),
   id: serial("id").primaryKey(),
   last_modified: text("last_modified").notNull(),
@@ -13,7 +13,7 @@ export const pgHomeAssistantEntity = pgTable("HomeAssistantEntity", {
   unique_id: text("unique_id").notNull().unique(),
 });
 
-export const pgHomeAssistantEntityLocals = pgTable("HomeAssistantEntityLocals", {
+export const pgHomeAssistantEntityLocals = pgTable("synapse_entity_locals", {
   app_unique_id: text("app_unique_id").notNull(),
   id: serial("id").primaryKey(),
   key: text("key").notNull(),

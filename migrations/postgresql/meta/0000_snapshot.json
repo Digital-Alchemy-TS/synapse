@@ -1,11 +1,11 @@
 {
-  "id": "3581c265-fbe3-428b-8cd6-41608815cb24",
+  "id": "f0d70eb6-2470-4acd-a7c7-0bc4749614d1",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
-    "public.HomeAssistantEntity": {
-      "name": "HomeAssistantEntity",
+    "public.synapse_entity": {
+      "name": "synapse_entity",
       "schema": "",
       "columns": {
         "app_unique_id": {
@@ -30,7 +30,7 @@
           "name": "entity_id",
           "type": "text",
           "primaryKey": false,
-          "notNull": true
+          "notNull": false
         },
         "first_observed": {
           "name": "first_observed",
@@ -74,8 +74,8 @@
       "foreignKeys": {},
       "compositePrimaryKeys": {},
       "uniqueConstraints": {
-        "HomeAssistantEntity_unique_id_unique": {
-          "name": "HomeAssistantEntity_unique_id_unique",
+        "synapse_entity_unique_id_unique": {
+          "name": "synapse_entity_unique_id_unique",
           "nullsNotDistinct": false,
           "columns": [
             "unique_id"
@@ -86,8 +86,8 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.HomeAssistantEntityLocals": {
-      "name": "HomeAssistantEntityLocals",
+    "public.synapse_entity_locals": {
+      "name": "synapse_entity_locals",
       "schema": "",
       "columns": {
         "app_unique_id": {
@@ -117,7 +117,7 @@
         },
         "unique_id": {
           "name": "unique_id",
-          "type": "integer",
+          "type": "text",
           "primaryKey": false,
           "notNull": true
         },
