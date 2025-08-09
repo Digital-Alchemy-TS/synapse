@@ -96,7 +96,7 @@ export function DatabasePostgreSQLService({
   async function loadRow<LOCALS extends object = object>(
     unique_id: string,
   ): Promise<HomeAssistantEntityRow<LOCALS>> {
-    logger.warn({ app_unique_id: config.synapse.METADATA_UNIQUE_ID, unique_id }, "loading entity");
+    logger.trace({ app_unique_id: config.synapse.METADATA_UNIQUE_ID, unique_id }, "loading entity");
 
     try {
       const rows = await database

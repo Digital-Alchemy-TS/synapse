@@ -1,6 +1,6 @@
 import { TServiceParams } from "@digital-alchemy/core";
 
-import { SynapseDatabase } from "../../schema/index.mts";
+import { SynapseDatabase } from "../../schema/common.mts";
 
 export async function DatabaseService({
   config,
@@ -35,7 +35,7 @@ export async function DatabaseService({
           );
           return;
         }
-        logger.warn("app not registered, skipping write");
+        logger.warn({ content, defaults, unique_id }, "app not registered, skipping write");
         return;
       }
       await db().update(unique_id, content, defaults);

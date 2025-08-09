@@ -207,7 +207,7 @@ export function StorageService({
       }
 
       // - load previous value
-      logger.debug({ entity_id: data.entity_id, name: onReady }, `importing value from db`);
+      logger.trace({ data, name: onReady }, `importing value from db`);
       CURRENT_VALUE = JSON.parse(data.state_json);
       initialized = true;
     });
