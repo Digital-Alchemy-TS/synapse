@@ -370,6 +370,9 @@ export function DomainGeneratorService({
 
         // #MARK: set
         set(_, property: Extract<keyof CONFIGURATION, string>, newValue) {
+          if (property === "unique_id") {
+            return false;
+          }
           // * replace all locals
           if (property === "locals") {
             logger.trace({ newValue }, "replace locals");

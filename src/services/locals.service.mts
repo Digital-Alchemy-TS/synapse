@@ -71,7 +71,7 @@ export function SynapseLocalsService({
       }
     }
 
-    lifecycle.onReady(async () => {
+    lifecycle.onBootstrap(async () => {
       await loadFromDb();
       loaded = true;
     });

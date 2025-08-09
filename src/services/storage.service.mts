@@ -219,7 +219,7 @@ export function StorageService({
     });
 
     // * value loading
-    lifecycle.onReady(async () => {
+    lifecycle.onBootstrap(async () => {
       await loadData();
       initialized = true;
     });

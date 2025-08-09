@@ -185,16 +185,18 @@ describe("Generator", () => {
     describe("set", () => {
       it("does not allow setting of expected properties", async () => {
         expect.assertions(2);
-        await synapseTestRunner.run(({ synapse, context }) => {
+        await synapseTestRunner.run(({ synapse, context, lifecycle }) => {
           const sensor = synapse.sensor({ context, name: "test" });
-          expect(() => {
-            // @ts-expect-error it's the test
-            sensor.unique_id = v4();
-          }).toThrow();
-          expect(() => {
-            // @ts-expect-error it's the test
-            sensor.some_random_property = v4();
-          }).toThrow();
+          lifecycle.onReady(() => {
+            expect(() => {
+              // @ts-expect-error it's the test
+              sensor.unique_id = v4();
+            }).toThrow();
+            expect(() => {
+              // @ts-expect-error it's the test
+              sensor.some_random_property = v4();
+            }).toThrow();
+          });
         });
       });
     });
