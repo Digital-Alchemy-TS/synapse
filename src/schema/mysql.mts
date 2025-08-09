@@ -1,15 +1,15 @@
-import { int, mysqlTable, timestamp, varchar } from "drizzle-orm/mysql-core";
+import { int, mysqlTable, text, timestamp, varchar } from "drizzle-orm/mysql-core";
 
 export const mysqlHomeAssistantEntity = mysqlTable("synapse_entity", {
   app_unique_id: varchar("app_unique_id", { length: 255 }).notNull(),
   application_name: varchar("application_name", { length: 255 }).notNull(),
-  base_state: varchar("base_state", { length: 1000 }).notNull(),
+  base_state: text("base_state").notNull(),
   entity_id: varchar("entity_id", { length: 255 }),
   first_observed: timestamp("first_observed").notNull().defaultNow(),
   id: int("id").primaryKey().autoincrement(),
   last_modified: varchar("last_modified", { length: 255 }).notNull(),
   last_reported: varchar("last_reported", { length: 255 }).notNull(),
-  state_json: varchar("state_json", { length: 1000 }).notNull(),
+  state_json: text("state_json").notNull(),
   unique_id: varchar("unique_id", { length: 255 }).notNull().unique(),
 });
 

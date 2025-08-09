@@ -187,7 +187,7 @@ export function DatabasePostgreSQLService({
   async function updateLocal(unique_id: string, key: string, content: unknown) {
     logger.trace({ key, unique_id }, "updateLocal");
 
-    if (content === undefined) {
+    if (is.undefined(content)) {
       await deleteLocal(unique_id, key);
       return;
     }
