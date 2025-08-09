@@ -157,7 +157,7 @@ export function VirtualDate({ context, synapse, logger }: TServiceParams) {
     if (managed) {
       entity.onSetValue(({ value }) => {
         logger.trace({ value }, "[managed] onSetValue");
-        entity.storage.set("native_value", value);
+        void entity.storage.set("native_value", value);
       });
     }
 

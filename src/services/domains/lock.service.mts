@@ -119,15 +119,15 @@ export function VirtualLock({ context, synapse, logger }: TServiceParams) {
     if (managed) {
       entity.onLock(({}) => {
         logger.trace("[managed] onLock");
-        entity.storage.set("is_locked", true);
+        void entity.storage.set("is_locked", true);
       });
       entity.onUnlock(({}) => {
         logger.trace("[managed] onUnlock");
-        entity.storage.set("is_locked", false);
+        void entity.storage.set("is_locked", false);
       });
       entity.onOpen(({}) => {
         logger.trace("[managed] onOpen");
-        entity.storage.set("is_open", true);
+        void entity.storage.set("is_open", true);
       });
     }
     return entity as SynapseLock<PARAMS["attributes"], PARAMS["locals"], DATA>;

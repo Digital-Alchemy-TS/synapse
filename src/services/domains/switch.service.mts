@@ -81,15 +81,15 @@ export function VirtualSwitch({ context, synapse, logger }: TServiceParams) {
     if (managed) {
       entity.onToggle(() => {
         logger.trace("[managed] onToggle");
-        entity.storage.set("is_on", !entity.storage.get("is_on"));
+        void entity.storage.set("is_on", !entity.storage.get("is_on"));
       });
       entity.onTurnOff(() => {
         logger.trace("[managed] onTurnOff");
-        entity.storage.set("is_on", false);
+        void entity.storage.set("is_on", false);
       });
       entity.onTurnOn(() => {
         logger.trace("[managed] onTurnOn");
-        entity.storage.set("is_on", true);
+        void entity.storage.set("is_on", true);
       });
     }
     return entity as SynapseSwitch<PARAMS["attributes"], PARAMS["locals"], DATA>;
