@@ -5,14 +5,8 @@ import { migrate as migratePostgres } from "drizzle-orm/postgres-js/migrator";
 import { join } from "path";
 import postgres from "postgres";
 
-import {
-  HomeAssistantEntityRow,
-  MIGRATION_PATH,
-  pgTables,
-  SynapseDatabase,
-} from "../../schema/index.mts";
-
-type Tables = Awaited<ReturnType<typeof pgTables>>;
+import { HomeAssistantEntityRow, MIGRATION_PATH, SynapseDatabase } from "../../schema/common.mts";
+import { pgHomeAssistantEntity, pgHomeAssistantEntityLocals } from "../../schema/pg.mts";
 
 export function DatabasePostgreSQLService({
   lifecycle,
@@ -23,8 +17,6 @@ export function DatabasePostgreSQLService({
 }: TServiceParams): SynapseDatabase {
   let client: postgres.Sql;
   let database: ReturnType<typeof drizzlePostgres>;
-  let homeAssistantEntity: Tables["homeAssistantEntity"];
-  let homeAssistantEntityLocals: Tables["homeAssistantEntityLocals"];
 
   const application_name = internal.boot.application.name;
   const registeredDefaults = new Map<string, object>();
@@ -40,11 +32,6 @@ export function DatabasePostgreSQLService({
       logger.trace("closing postgres database connection");
       void client?.end();
     });
-
-    // Load library / table refs
-    const tables = await pgTables();
-    homeAssistantEntity = tables.homeAssistantEntity;
-    homeAssistantEntityLocals = tables.homeAssistantEntityLocals;
 
     // Establish connection
     logger.trace("initializing postgres database connection");
@@ -72,7 +59,7 @@ export function DatabasePostgreSQLService({
 
     try {
       await database
-        .insert(homeAssistantEntity)
+        .insert(pgHomeAssistantEntity)
         .values({
           app_unique_id: config.synapse.METADATA_UNIQUE_ID,
           application_name: application_name,
@@ -94,7 +81,7 @@ export function DatabasePostgreSQLService({
             last_reported: now,
             state_json: state_json,
           },
-          target: homeAssistantEntity.unique_id,
+          target: pgHomeAssistantEntity.unique_id,
         });
 
       logger.trace({ unique_id }, "updated entity");
@@ -114,11 +101,11 @@ export function DatabasePostgreSQLService({
     try {
       const rows = await database
         .select()
-        .from(homeAssistantEntity)
+        .from(pgHomeAssistantEntity)
         .where(
           and(
-            eq(homeAssistantEntity.unique_id, unique_id),
-            eq(homeAssistantEntity.app_unique_id, config.synapse.METADATA_UNIQUE_ID),
+            eq(pgHomeAssistantEntity.unique_id, unique_id),
+            eq(pgHomeAssistantEntity.app_unique_id, config.synapse.METADATA_UNIQUE_ID),
           ),
         );
 
@@ -210,7 +197,7 @@ export function DatabasePostgreSQLService({
 
     try {
       await database
-        .insert(homeAssistantEntityLocals)
+        .insert(pgHomeAssistantEntityLocals)
         .values({
           app_unique_id: config.synapse.METADATA_UNIQUE_ID,
           key,
@@ -224,7 +211,7 @@ export function DatabasePostgreSQLService({
             last_modified: last_modified,
             value_json: value_json,
           },
-          target: [homeAssistantEntityLocals.unique_id, homeAssistantEntityLocals.key],
+          target: [pgHomeAssistantEntityLocals.unique_id, pgHomeAssistantEntityLocals.key],
         });
 
       logger.trace({ key, unique_id }, "updated local");
@@ -247,11 +234,11 @@ export function DatabasePostgreSQLService({
     try {
       const locals = await database
         .select()
-        .from(homeAssistantEntityLocals)
+        .from(pgHomeAssistantEntityLocals)
         .where(
           and(
-            eq(homeAssistantEntityLocals.unique_id, unique_id),
-            eq(homeAssistantEntityLocals.app_unique_id, config.synapse.METADATA_UNIQUE_ID),
+            eq(pgHomeAssistantEntityLocals.unique_id, unique_id),
+            eq(pgHomeAssistantEntityLocals.app_unique_id, config.synapse.METADATA_UNIQUE_ID),
           ),
         );
 
@@ -272,12 +259,12 @@ export function DatabasePostgreSQLService({
 
     try {
       await database
-        .delete(homeAssistantEntityLocals)
+        .delete(pgHomeAssistantEntityLocals)
         .where(
           and(
-            eq(homeAssistantEntityLocals.unique_id, unique_id),
-            eq(homeAssistantEntityLocals.key, key),
-            eq(homeAssistantEntityLocals.app_unique_id, config.synapse.METADATA_UNIQUE_ID),
+            eq(pgHomeAssistantEntityLocals.unique_id, unique_id),
+            eq(pgHomeAssistantEntityLocals.key, key),
+            eq(pgHomeAssistantEntityLocals.app_unique_id, config.synapse.METADATA_UNIQUE_ID),
           ),
         );
       logger.trace({ key, unique_id }, "success");
@@ -294,11 +281,11 @@ export function DatabasePostgreSQLService({
 
     try {
       await database
-        .delete(homeAssistantEntityLocals)
+        .delete(pgHomeAssistantEntityLocals)
         .where(
           and(
-            eq(homeAssistantEntityLocals.unique_id, unique_id),
-            eq(homeAssistantEntityLocals.app_unique_id, config.synapse.METADATA_UNIQUE_ID),
+            eq(pgHomeAssistantEntityLocals.unique_id, unique_id),
+            eq(pgHomeAssistantEntityLocals.app_unique_id, config.synapse.METADATA_UNIQUE_ID),
           ),
         );
       logger.trace({ unique_id }, "success");
