@@ -5,14 +5,11 @@ import { drizzle } from "drizzle-orm/better-sqlite3";
 import { migrate } from "drizzle-orm/better-sqlite3/migrator";
 import { join } from "path";
 
+import { HomeAssistantEntityRow, MIGRATION_PATH, SynapseDatabase } from "../../schema/common.mts";
 import {
-  HomeAssistantEntityRow,
-  MIGRATION_PATH,
-  sqliteTables,
-  SynapseDatabase,
-} from "../../schema/index.mts";
-
-type Tables = Awaited<ReturnType<typeof sqliteTables>>;
+  sqliteHomeAssistantEntity,
+  sqliteHomeAssistantEntityLocals,
+} from "../../schema/sqlite.mts";
 
 export function DatabaseSQLiteService({
   lifecycle,
@@ -23,8 +20,6 @@ export function DatabaseSQLiteService({
 }: TServiceParams): SynapseDatabase {
   let sqlite: Database.Database;
   let database: ReturnType<typeof drizzle>;
-  let homeAssistantEntity: Tables["homeAssistantEntity"];
-  let homeAssistantEntityLocals: Tables["homeAssistantEntityLocals"];
 
   const application_name = internal.boot.application.name;
   const registeredDefaults = new Map<string, object>();
@@ -40,11 +35,6 @@ export function DatabaseSQLiteService({
       logger.trace("closing sqlite database connection");
       sqlite?.close();
     });
-
-    // Load library / table refs
-    const tables = await sqliteTables();
-    homeAssistantEntity = tables.homeAssistantEntity;
-    homeAssistantEntityLocals = tables.homeAssistantEntityLocals;
 
     // Establish connection
     const filePath = config.synapse.DATABASE_URL.replace("file:", "");
@@ -71,7 +61,7 @@ export function DatabaseSQLiteService({
 
     try {
       await database
-        .insert(homeAssistantEntity)
+        .insert(sqliteHomeAssistantEntity)
         .values({
           app_unique_id: config.synapse.METADATA_UNIQUE_ID,
           application_name: application_name,
@@ -93,7 +83,7 @@ export function DatabaseSQLiteService({
             last_reported: now,
             state_json: state_json,
           },
-          target: homeAssistantEntity.unique_id,
+          target: sqliteHomeAssistantEntity.unique_id,
         });
 
       logger.trace({ unique_id }, "updated entity");
@@ -113,11 +103,11 @@ export function DatabaseSQLiteService({
     try {
       const rows = await database
         .select()
-        .from(homeAssistantEntity)
+        .from(sqliteHomeAssistantEntity)
         .where(
           and(
-            eq(homeAssistantEntity.unique_id, unique_id),
-            eq(homeAssistantEntity.app_unique_id, config.synapse.METADATA_UNIQUE_ID),
+            eq(sqliteHomeAssistantEntity.unique_id, unique_id),
+            eq(sqliteHomeAssistantEntity.app_unique_id, config.synapse.METADATA_UNIQUE_ID),
           ),
         );
 
@@ -206,7 +196,7 @@ export function DatabaseSQLiteService({
 
     try {
       await database
-        .insert(homeAssistantEntityLocals)
+        .insert(sqliteHomeAssistantEntityLocals)
         .values({
           app_unique_id: config.synapse.METADATA_UNIQUE_ID,
           key,
@@ -220,7 +210,7 @@ export function DatabaseSQLiteService({
             last_modified: last_modified,
             value_json: value_json,
           },
-          target: [homeAssistantEntityLocals.unique_id, homeAssistantEntityLocals.key],
+          target: [sqliteHomeAssistantEntityLocals.unique_id, sqliteHomeAssistantEntityLocals.key],
         });
 
       logger.trace({ key, unique_id }, "updated local");
@@ -238,11 +228,11 @@ export function DatabaseSQLiteService({
     try {
       const locals = await database
         .select()
-        .from(homeAssistantEntityLocals)
+        .from(sqliteHomeAssistantEntityLocals)
         .where(
           and(
-            eq(homeAssistantEntityLocals.unique_id, unique_id),
-            eq(homeAssistantEntityLocals.app_unique_id, config.synapse.METADATA_UNIQUE_ID),
+            eq(sqliteHomeAssistantEntityLocals.unique_id, unique_id),
+            eq(sqliteHomeAssistantEntityLocals.app_unique_id, config.synapse.METADATA_UNIQUE_ID),
           ),
         );
       logger.trace({ unique_id }, "success");
@@ -261,12 +251,12 @@ export function DatabaseSQLiteService({
 
     try {
       await database
-        .delete(homeAssistantEntityLocals)
+        .delete(sqliteHomeAssistantEntityLocals)
         .where(
           and(
-            eq(homeAssistantEntityLocals.unique_id, unique_id),
-            eq(homeAssistantEntityLocals.key, key),
-            eq(homeAssistantEntityLocals.app_unique_id, config.synapse.METADATA_UNIQUE_ID),
+            eq(sqliteHomeAssistantEntityLocals.unique_id, unique_id),
+            eq(sqliteHomeAssistantEntityLocals.key, key),
+            eq(sqliteHomeAssistantEntityLocals.app_unique_id, config.synapse.METADATA_UNIQUE_ID),
           ),
         );
       logger.trace({ key, unique_id }, "success");
@@ -283,11 +273,11 @@ export function DatabaseSQLiteService({
 
     try {
       await database
-        .delete(homeAssistantEntityLocals)
+        .delete(sqliteHomeAssistantEntityLocals)
         .where(
           and(
-            eq(homeAssistantEntityLocals.unique_id, unique_id),
-            eq(homeAssistantEntityLocals.app_unique_id, config.synapse.METADATA_UNIQUE_ID),
+            eq(sqliteHomeAssistantEntityLocals.unique_id, unique_id),
+            eq(sqliteHomeAssistantEntityLocals.app_unique_id, config.synapse.METADATA_UNIQUE_ID),
           ),
         );
 
