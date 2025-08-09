@@ -114,6 +114,103 @@ describe("Storage", () => {
     });
   });
 
+  describe("dump", () => {
+    it("organizes entities by domain and exports their data correctly", async () => {
+      await synapseTestRunner.run(async ({ synapse, context }) => {
+        // Create entities from different domains
+        const sensorId1 = v4();
+        const sensorId2 = v4();
+        const switchId = v4();
+        const buttonId = v4();
+
+        // Create entities with some configuration
+        synapse.sensor({
+          context,
+          device_class: "temperature",
+          name: "temperature_sensor",
+          unique_id: sensorId1,
+          unit_of_measurement: "°C",
+        });
+
+        synapse.sensor({
+          context,
+          device_class: "humidity",
+          name: "humidity_sensor",
+          unique_id: sensorId2,
+          unit_of_measurement: "%",
+        });
+
+        synapse.switch({
+          context,
+          device_class: "outlet",
+          name: "test_switch",
+          unique_id: switchId,
+        });
+
+        synapse.button({
+          context,
+          device_class: "restart",
+          name: "test_button",
+          unique_id: buttonId,
+        });
+
+        // Call dump to get the organized data
+        const dumpResult = synapse.storage.dump();
+
+        // Verify the structure has the expected domains
+        expect(dumpResult).toHaveProperty("sensor");
+        expect(dumpResult).toHaveProperty("switch");
+        expect(dumpResult).toHaveProperty("button");
+
+        // Verify sensor domain has 2 entities
+        expect(dumpResult.sensor).toHaveLength(2);
+        expect(dumpResult.switch).toHaveLength(1);
+        expect(dumpResult.button).toHaveLength(1);
+
+        // Verify sensor entities contain expected exported data
+        const sensorExports = dumpResult.sensor;
+        expect(sensorExports).toEqual(
+          expect.arrayContaining([
+            expect.objectContaining({
+              device_class: "temperature",
+              name: "temperature_sensor",
+              unit_of_measurement: "°C",
+            }),
+            expect.objectContaining({
+              device_class: "humidity",
+              name: "humidity_sensor",
+              unit_of_measurement: "%",
+            }),
+          ]),
+        );
+
+        // Verify switch entity contains expected data
+        expect(dumpResult.switch[0]).toEqual(
+          expect.objectContaining({
+            device_class: "outlet",
+            name: "test_switch",
+          }),
+        );
+
+        // Verify button entity contains expected data
+        expect(dumpResult.button[0]).toEqual(
+          expect.objectContaining({
+            device_class: "restart",
+            name: "test_button",
+          }),
+        );
+
+        // Verify each entity export contains the required unique_id
+        [...sensorExports, ...dumpResult.switch, ...dumpResult.button].forEach(entityData => {
+          expect(entityData).toHaveProperty("unique_id");
+          expect([sensorId1, sensorId2, switchId, buttonId]).toContain(
+            (entityData as Record<string, unknown>).unique_id,
+          );
+        });
+      });
+    });
+  });
+
   it("generates unique_id using using name as a fallback", async () => {
     await synapseTestRunner.run(async ({ synapse, context }) => {
       let provided: string;
