@@ -7,6 +7,17 @@ on:
   push:
     branches:
       - main
+
+# Cancel redundant runs for the same PR/branch
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+# Minimal permissions for security
+permissions:
+  contents: read
+  pull-requests: read
+
 jobs:
   lint-and-build:
     runs-on: ubuntu-latest
