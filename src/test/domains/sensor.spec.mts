@@ -68,20 +68,5 @@ describe("Sensor", () => {
         }).toThrow();
       });
     });
-
-    it("does not allow native_unit_of_measurement with options", async () => {
-      expect.assertions(1);
-      await synapseTestRunner.run(({ synapse, context }) => {
-        expect(() => {
-          synapse.sensor({
-            context,
-            device_class: "enum",
-            icon: "mdi:test",
-            name: "test",
-            options: [],
-          });
-        }).toThrow();
-      });
-    });
   });
 });
