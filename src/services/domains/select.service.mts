@@ -81,7 +81,7 @@ export function VirtualSelect({ context, synapse, logger }: TServiceParams) {
     if (managed) {
       entity.onSelectOption(({ option }) => {
         logger.trace({ option }, "[managed] onSelectOption");
-        entity.storage.set("current_option", option);
+        void entity.storage.set("current_option", option);
       });
     }
 

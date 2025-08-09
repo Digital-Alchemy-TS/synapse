@@ -100,31 +100,31 @@ export function VirtualAlarmControlPanel({ context, synapse, logger }: TServiceP
     if (managed) {
       entity.onArmCustomBypass(() => {
         logger.trace("[managed] onArmCustomBypass");
-        entity.storage.set("state", "armed_away");
+        void entity.storage.set("state", "armed_away");
       });
       entity.onTrigger(() => {
         logger.trace("[managed] onTrigger");
-        entity.storage.set("state", "triggered");
+        void entity.storage.set("state", "triggered");
       });
       entity.onArmVacation(() => {
         logger.trace("[managed] onArmVacation");
-        entity.storage.set("state", "armed_vacation");
+        void entity.storage.set("state", "armed_vacation");
       });
       entity.onArmNight(() => {
         logger.trace("[managed] onArmNight");
-        entity.storage.set("state", "armed_night");
+        void entity.storage.set("state", "armed_night");
       });
       entity.onArmAway(() => {
         logger.trace("[managed] onArmAway");
-        entity.storage.set("state", "armed_away");
+        void entity.storage.set("state", "armed_away");
       });
       entity.onArmHome(() => {
         logger.trace("[managed] onArmHome");
-        entity.storage.set("state", "armed_home");
+        void entity.storage.set("state", "armed_home");
       });
       entity.onAlarmDisarm(() => {
         logger.trace("[managed] onAlarmDisarm");
-        entity.storage.set("state", "disarmed");
+        void entity.storage.set("state", "disarmed");
       });
     }
     return entity;

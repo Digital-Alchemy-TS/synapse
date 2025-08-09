@@ -19,7 +19,6 @@ export function DatabaseMySQLService({
   let database: MySql2Database<Record<string, unknown>>;
 
   const application_name = internal.boot.application.name;
-  const app_unique_id = config.synapse.METADATA_UNIQUE_ID;
   const registeredDefaults = new Map<string, object>();
 
   lifecycle.onPostConfig(async () => {
@@ -62,7 +61,7 @@ export function DatabaseMySQLService({
       await database
         .insert(mysqlHomeAssistantEntity)
         .values({
-          app_unique_id: app_unique_id,
+          app_unique_id: config.synapse.METADATA_UNIQUE_ID,
           application_name: application_name,
           base_state: JSON.stringify(defaults),
           entity_id: entity_id,
@@ -74,7 +73,7 @@ export function DatabaseMySQLService({
         })
         .onDuplicateKeyUpdate({
           set: {
-            app_unique_id: app_unique_id,
+            app_unique_id: config.synapse.METADATA_UNIQUE_ID,
             application_name: application_name,
             base_state: JSON.stringify(defaults),
             entity_id: entity_id,
@@ -105,7 +104,7 @@ export function DatabaseMySQLService({
         .where(
           and(
             eq(mysqlHomeAssistantEntity.unique_id, unique_id),
-            eq(mysqlHomeAssistantEntity.app_unique_id, app_unique_id),
+            eq(mysqlHomeAssistantEntity.app_unique_id, config.synapse.METADATA_UNIQUE_ID),
           ),
         );
 
@@ -199,7 +198,7 @@ export function DatabaseMySQLService({
       await database
         .insert(mysqlHomeAssistantEntityLocals)
         .values({
-          app_unique_id: app_unique_id,
+          app_unique_id: config.synapse.METADATA_UNIQUE_ID,
           key,
           last_modified: last_modified,
           unique_id: unique_id,
@@ -207,7 +206,7 @@ export function DatabaseMySQLService({
         })
         .onDuplicateKeyUpdate({
           set: {
-            app_unique_id: app_unique_id,
+            app_unique_id: config.synapse.METADATA_UNIQUE_ID,
             last_modified: last_modified,
             value_json: value_json,
           },
@@ -237,7 +236,7 @@ export function DatabaseMySQLService({
         .where(
           and(
             eq(mysqlHomeAssistantEntityLocals.unique_id, unique_id),
-            eq(mysqlHomeAssistantEntityLocals.app_unique_id, app_unique_id),
+            eq(mysqlHomeAssistantEntityLocals.app_unique_id, config.synapse.METADATA_UNIQUE_ID),
           ),
         );
 
@@ -260,7 +259,7 @@ export function DatabaseMySQLService({
           and(
             eq(mysqlHomeAssistantEntityLocals.unique_id, unique_id),
             eq(mysqlHomeAssistantEntityLocals.key, key),
-            eq(mysqlHomeAssistantEntityLocals.app_unique_id, app_unique_id),
+            eq(mysqlHomeAssistantEntityLocals.app_unique_id, config.synapse.METADATA_UNIQUE_ID),
           ),
         );
     } catch (error) {
@@ -280,7 +279,7 @@ export function DatabaseMySQLService({
         .where(
           and(
             eq(mysqlHomeAssistantEntityLocals.unique_id, unique_id),
-            eq(mysqlHomeAssistantEntityLocals.app_unique_id, app_unique_id),
+            eq(mysqlHomeAssistantEntityLocals.app_unique_id, config.synapse.METADATA_UNIQUE_ID),
           ),
         );
     } catch (error) {
@@ -300,7 +299,7 @@ export function DatabaseMySQLService({
         .where(
           and(
             eq(mysqlHomeAssistantEntity.unique_id, unique_id),
-            eq(mysqlHomeAssistantEntity.app_unique_id, app_unique_id),
+            eq(mysqlHomeAssistantEntity.app_unique_id, config.synapse.METADATA_UNIQUE_ID),
           ),
         );
 
