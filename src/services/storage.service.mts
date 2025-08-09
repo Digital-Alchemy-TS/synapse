@@ -14,6 +14,7 @@ import {
   AddStateOptions,
   COMMON_CONFIG_KEYS,
   EntityConfigCommon,
+  EVENT_SYNAPSE_PULL_DB,
   generateHash,
   isCommonConfigKey,
   isReactiveConfig,
@@ -192,23 +193,34 @@ export function StorageService({
     } as TSynapseEntityStorage<CONFIGURATION>;
     registry.set(entity.unique_id as TSynapseId, storage as unknown as TSynapseEntityStorage);
 
-    // * value loading
-    lifecycle.onReady(async function onReady() {
+    async function loadData() {
       // - identify id
       const unique_id = entity.unique_id as TSynapseId;
 
       // - ??
       const data = await synapse.database.load(unique_id, CURRENT_VALUE);
       if (is.empty(data?.state_json)) {
-        initialized = true;
         logger.debug({ unique_id }, "initial create entity row");
         await synapse.database.update(unique_id, registry.get(unique_id).export());
         return;
       }
 
       // - load previous value
-      logger.trace({ data, name: onReady }, `importing value from db`);
+      logger.debug({ data, name: loadData }, `importing value from db`);
       CURRENT_VALUE = JSON.parse(data.state_json);
+    }
+
+    event.on(EVENT_SYNAPSE_PULL_DB, async () => {
+      if (!initialized) {
+        throw new InternalError(context, "PULL_BEFORE_INIT", "this should not happen");
+      }
+      logger.info("pulling latest locals values from db");
+      await loadData();
+    });
+
+    // * value loading
+    lifecycle.onReady(async () => {
+      await loadData();
       initialized = true;
     });
 

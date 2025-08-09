@@ -89,3 +89,5 @@ export class SynapseEntityException extends Error {
 export type GetGeneratedEntity<T> = T extends { getEntity: () => ByIdProxy<infer E> }
   ? ByIdProxy<E>
   : never;
+
+export const EVENT_SYNAPSE_PULL_DB = "EVENT_SYNAPSE_PULL_DB";

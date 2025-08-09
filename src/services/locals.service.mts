@@ -1,49 +1,14 @@
-import { TServiceParams } from "@digital-alchemy/core";
+import { InternalError, TServiceParams } from "@digital-alchemy/core";
 
-export function SynapseLocalsService({ synapse, logger, internal }: TServiceParams) {
-  const { is } = internal.utils;
+import { EVENT_SYNAPSE_PULL_DB } from "../index.mts";
 
-  // #MARK: updateLocal
-  async function updateLocal(unique_id: string, key: string, content: unknown) {
-    logger.trace({ key, unique_id }, "updateLocal");
-
-    if (is.undefined(content)) {
-      logger.debug({ key, unique_id }, `delete local (value {undefined})`);
-      await synapse.database.deleteLocal(unique_id, key);
-      return;
-    }
-
-    logger.trace({ key, unique_id }, "update local");
-    await synapse.database.updateLocal(unique_id, key, content);
-  }
-
-  // #MARK: loadLocals
-  /**
-   * locals are only loaded when they are first utilized for a particular entity
-   *
-   * allows for more performant cold boots
-   */
-  async function loadLocals(unique_id: string) {
-    if (!internal.boot.completedLifecycleEvents.has("PostConfig")) {
-      logger.warn("cannot load locals before [PostConfig]");
-      return undefined;
-    }
-    logger.trace({ unique_id }, "initial load of locals");
-    return await synapse.database.loadLocals(unique_id);
-  }
-
-  // #MARK: deleteLocal
-  async function deleteLocal(unique_id: string, key: string) {
-    logger.debug({ key, unique_id }, `delete local (value undefined)`);
-    await synapse.database.deleteLocal(unique_id, key);
-  }
-
-  // #MARK: deleteLocalsByUniqueId
-  async function deleteLocalsByUniqueId(unique_id: string) {
-    logger.debug({ unique_id }, "delete all locals");
-    await synapse.database.deleteLocalsByUniqueId(unique_id);
-  }
-
+export function SynapseLocalsService({
+  synapse,
+  logger,
+  context,
+  event,
+  lifecycle,
+}: TServiceParams) {
   // #MARK: localsProxy
   function localsProxy<LOCALS extends object>(unique_id: string, defaults: LOCALS) {
     let loaded = false;
@@ -60,35 +25,15 @@ export function SynapseLocalsService({ synapse, logger, internal }: TServicePara
         loadedData.delete(property);
 
         // Delete from database
-        if (internal.boot.completedLifecycleEvents.has("PostConfig")) {
-          void deleteLocal(unique_id, property);
-        }
+        void synapse.database.deleteLocal(unique_id, property);
 
         return true;
       },
 
       get(target, property: string) {
-        // Load data on first access if not loaded yet
-        if (!loaded && internal.boot.completedLifecycleEvents.has("PostConfig")) {
-          void loadLocals(unique_id).then(locals => {
-            if (locals) {
-              loadedData.clear();
-              locals.forEach((value, key) => {
-                loadedData.set(key, value);
-                if (key in target) {
-                  (target as Record<string, unknown>)[key] = value;
-                }
-              });
-            }
-            loaded = true;
-          });
-        }
-
-        // Return loaded data if available, otherwise return default
-        if (loadedData.has(property)) {
-          return loadedData.get(property);
-        }
-        return (target as Record<string, unknown>)[property];
+        return loadedData.has(property)
+          ? loadedData.get(property)
+          : (target as Record<string, unknown>)[property];
       },
 
       has(target, property: string) {
@@ -112,45 +57,58 @@ export function SynapseLocalsService({ synapse, logger, internal }: TServicePara
         loadedData.set(property, value);
 
         // Persist to database
-        if (internal.boot.completedLifecycleEvents.has("PostConfig")) {
-          void updateLocal(unique_id, property, value);
-        }
+        void synapse.database.updateLocal(unique_id, property, value);
 
         return true;
       },
     });
 
+    async function loadFromDb() {
+      const locals = await synapse.database.loadLocals(unique_id);
+      loadedData.clear();
+      if (locals) {
+        locals.forEach((value, key) => loadedData.set(key, value));
+      }
+    }
+
+    lifecycle.onReady(async () => {
+      await loadFromDb();
+      loaded = true;
+    });
+
+    async function refresh() {
+      if (!loaded) {
+        throw new InternalError(context, "PULL_BEFORE_INIT", "this should not happen");
+      }
+      logger.info("pulling latest locals values from db");
+      await loadFromDb();
+    }
+
+    event.on(EVENT_SYNAPSE_PULL_DB, refresh);
+
     return {
       proxy,
-      replace(newValue: LOCALS) {
+      refresh,
+      async replace(newValue: LOCALS) {
         loadedData.clear();
         data = { ...newValue } as LOCALS;
-        if (internal.boot.completedLifecycleEvents.has("PostConfig")) {
-          // Clear existing and set new values
-          void deleteLocalsByUniqueId(unique_id).then(() => {
-            Object.entries(newValue).forEach(([key, value]) => {
-              if (value !== undefined) {
-                void updateLocal(unique_id, key, value);
-              }
-            });
-          });
-        }
+        // Clear existing and set new values
+        await synapse.database.deleteLocalsByUniqueId(unique_id);
+        Object.entries(newValue).forEach(([key, value]) => {
+          if (value !== undefined) {
+            void synapse.database.updateLocal(unique_id, key, value);
+          }
+        });
       },
       reset() {
         loadedData.clear();
         data = { ...defaults } as LOCALS;
-        if (internal.boot.completedLifecycleEvents.has("PostConfig")) {
-          void deleteLocalsByUniqueId(unique_id);
-        }
+        void synapse.database.deleteLocalsByUniqueId(unique_id);
       },
     };
   }
 
   return {
-    deleteLocal,
-    deleteLocalsByUniqueId,
-    loadLocals,
     localsProxy,
-    updateLocal,
   };
 }

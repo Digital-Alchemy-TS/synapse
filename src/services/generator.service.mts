@@ -393,7 +393,7 @@ export function DomainGeneratorService({
               return false;
             }
             logger.trace({ property }, "updating storage");
-            void storage.set(property, newValue);
+            storage.set(property, newValue);
             return true;
           }
           // * nothing else is settable right now
