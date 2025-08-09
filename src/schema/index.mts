@@ -2,7 +2,12 @@ import { sql } from "drizzle-orm";
 import { dirname, join } from "path";
 import { fileURLToPath } from "url";
 
-export const MIGRATION_PATH = join(dirname(fileURLToPath(import.meta.url)), "migrations");
+export const MIGRATION_PATH = join(
+  dirname(fileURLToPath(import.meta.url)),
+  "..",
+  "..",
+  "migrations",
+);
 
 export async function pgTables() {
   const { jsonb, pgTable, serial, text, timestamp } = await import("drizzle-orm/pg-core");

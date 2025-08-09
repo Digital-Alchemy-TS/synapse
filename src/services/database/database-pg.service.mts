@@ -27,7 +27,6 @@ export function DatabasePostgreSQLService({
   let homeAssistantEntityLocals: Tables["homeAssistantEntityLocals"];
 
   const application_name = internal.boot.application.name;
-  const app_unique_id = config.synapse.METADATA_UNIQUE_ID;
   const registeredDefaults = new Map<string, object>();
 
   lifecycle.onPostConfig(async () => {
@@ -75,7 +74,7 @@ export function DatabasePostgreSQLService({
       await database
         .insert(homeAssistantEntity)
         .values({
-          app_unique_id: app_unique_id,
+          app_unique_id: config.synapse.METADATA_UNIQUE_ID,
           application_name: application_name,
           base_state: JSON.stringify(defaults),
           entity_id: entity_id,
@@ -87,7 +86,7 @@ export function DatabasePostgreSQLService({
         })
         .onConflictDoUpdate({
           set: {
-            app_unique_id: app_unique_id,
+            app_unique_id: config.synapse.METADATA_UNIQUE_ID,
             application_name: application_name,
             base_state: JSON.stringify(defaults),
             entity_id: entity_id,
@@ -110,7 +109,7 @@ export function DatabasePostgreSQLService({
   async function loadRow<LOCALS extends object = object>(
     unique_id: string,
   ): Promise<HomeAssistantEntityRow<LOCALS>> {
-    logger.trace({ unique_id }, "loading entity");
+    logger.warn({ app_unique_id: config.synapse.METADATA_UNIQUE_ID, unique_id }, "loading entity");
 
     try {
       const rows = await database
@@ -119,7 +118,7 @@ export function DatabasePostgreSQLService({
         .where(
           and(
             eq(homeAssistantEntity.unique_id, unique_id),
-            eq(homeAssistantEntity.app_unique_id, app_unique_id),
+            eq(homeAssistantEntity.app_unique_id, config.synapse.METADATA_UNIQUE_ID),
           ),
         );
 
@@ -213,7 +212,7 @@ export function DatabasePostgreSQLService({
       await database
         .insert(homeAssistantEntityLocals)
         .values({
-          app_unique_id: app_unique_id,
+          app_unique_id: config.synapse.METADATA_UNIQUE_ID,
           key,
           last_modified: last_modified,
           unique_id: unique_id,
@@ -221,7 +220,7 @@ export function DatabasePostgreSQLService({
         })
         .onConflictDoUpdate({
           set: {
-            app_unique_id: app_unique_id,
+            app_unique_id: config.synapse.METADATA_UNIQUE_ID,
             last_modified: last_modified,
             value_json: value_json,
           },
@@ -252,7 +251,7 @@ export function DatabasePostgreSQLService({
         .where(
           and(
             eq(homeAssistantEntityLocals.unique_id, unique_id),
-            eq(homeAssistantEntityLocals.app_unique_id, app_unique_id),
+            eq(homeAssistantEntityLocals.app_unique_id, config.synapse.METADATA_UNIQUE_ID),
           ),
         );
 
@@ -278,7 +277,7 @@ export function DatabasePostgreSQLService({
           and(
             eq(homeAssistantEntityLocals.unique_id, unique_id),
             eq(homeAssistantEntityLocals.key, key),
-            eq(homeAssistantEntityLocals.app_unique_id, app_unique_id),
+            eq(homeAssistantEntityLocals.app_unique_id, config.synapse.METADATA_UNIQUE_ID),
           ),
         );
       logger.trace({ key, unique_id }, "success");
@@ -299,7 +298,7 @@ export function DatabasePostgreSQLService({
         .where(
           and(
             eq(homeAssistantEntityLocals.unique_id, unique_id),
-            eq(homeAssistantEntityLocals.app_unique_id, app_unique_id),
+            eq(homeAssistantEntityLocals.app_unique_id, config.synapse.METADATA_UNIQUE_ID),
           ),
         );
       logger.trace({ unique_id }, "success");
