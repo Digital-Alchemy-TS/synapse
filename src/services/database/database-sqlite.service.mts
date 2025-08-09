@@ -288,7 +288,30 @@ export function DatabaseSQLiteService({
     }
   }
 
+  // Delete entity
+  // #MARK: deleteEntity
+  async function deleteEntity(unique_id: string) {
+    logger.debug({ unique_id }, "delete entity");
+
+    try {
+      await database
+        .delete(sqliteHomeAssistantEntity)
+        .where(
+          and(
+            eq(sqliteHomeAssistantEntity.unique_id, unique_id),
+            eq(sqliteHomeAssistantEntity.app_unique_id, config.synapse.METADATA_UNIQUE_ID),
+          ),
+        );
+
+      logger.trace({ unique_id }, "success");
+    } catch (error) {
+      logger.error({ error, unique_id }, "failed to delete entity");
+      throw error;
+    }
+  }
+
   return {
+    deleteEntity,
     deleteLocal,
     deleteLocalsByUniqueId,
     getDatabase: () => database,

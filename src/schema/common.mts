@@ -19,6 +19,7 @@ export type SynapseDatabase = {
   loadLocals: (unique_id: string) => Promise<Map<string, unknown>>;
   deleteLocal: (unique_id: string, key: string) => Promise<void>;
   deleteLocalsByUniqueId: (unique_id: string) => Promise<void>;
+  deleteEntity: (unique_id: string) => Promise<void>;
 };
 
 // Common entity row type that normalizes different database types

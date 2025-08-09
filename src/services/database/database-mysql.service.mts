@@ -289,7 +289,30 @@ export function DatabaseMySQLService({
     }
   }
 
+  // Delete entity
+  // #MARK: deleteEntity
+  async function deleteEntity(unique_id: string) {
+    logger.debug({ unique_id }, "delete entity");
+
+    try {
+      await database
+        .delete(mysqlHomeAssistantEntity)
+        .where(
+          and(
+            eq(mysqlHomeAssistantEntity.unique_id, unique_id),
+            eq(mysqlHomeAssistantEntity.app_unique_id, app_unique_id),
+          ),
+        );
+
+      logger.trace({ unique_id }, "success");
+    } catch (error) {
+      logger.error({ error, unique_id }, "failed to delete entity");
+      throw error;
+    }
+  }
+
   return {
+    deleteEntity,
     deleteLocal,
     deleteLocalsByUniqueId,
     getDatabase: () => database,

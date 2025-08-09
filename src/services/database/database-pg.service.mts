@@ -295,7 +295,30 @@ export function DatabasePostgreSQLService({
     }
   }
 
+  // Delete entity
+  // #MARK: deleteEntity
+  async function deleteEntity(unique_id: string) {
+    logger.debug({ unique_id }, "delete entity");
+
+    try {
+      await database
+        .delete(pgHomeAssistantEntity)
+        .where(
+          and(
+            eq(pgHomeAssistantEntity.unique_id, unique_id),
+            eq(pgHomeAssistantEntity.app_unique_id, config.synapse.METADATA_UNIQUE_ID),
+          ),
+        );
+
+      logger.trace({ unique_id }, "success");
+    } catch (error) {
+      logger.error({ error, unique_id }, "failed to delete entity");
+      throw error;
+    }
+  }
+
   return {
+    deleteEntity,
     deleteLocal,
     deleteLocalsByUniqueId,
     getDatabase: () => database,

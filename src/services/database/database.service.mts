@@ -16,6 +16,7 @@ export async function DatabaseService({
   const db = () => ADAPTERS[config.synapse.DATABASE_TYPE] || synapse.db_sqlite;
 
   return {
+    deleteEntity: async (unique_id: string) => await db().deleteEntity(unique_id),
     deleteLocal: async (unique_id: string, key: string) => await db().deleteLocal(unique_id, key),
     deleteLocalsByUniqueId: async (unique_id: string) =>
       await db().deleteLocalsByUniqueId(unique_id),

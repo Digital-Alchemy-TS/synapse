@@ -173,8 +173,7 @@ export function StorageService({
         isCommonConfigKey(key) || load_config_keys.includes(key),
       keys: () => load,
       purge() {
-        // synapse.database.del
-        logger.warn("you should report this... I think");
+        void synapse.database.deleteEntity(entity.unique_id);
       },
       set: async (key: Extract<keyof CONFIGURATION, string>, value) => {
         const unique_id = entity.unique_id as TSynapseId;
@@ -207,7 +206,7 @@ export function StorageService({
       }
 
       // - load previous value
-      logger.debug({ data, name: loadData }, `importing value from db`);
+      logger.trace({ data, name: loadData }, `importing value from db`);
       CURRENT_VALUE = JSON.parse(data.state_json);
     }
 
