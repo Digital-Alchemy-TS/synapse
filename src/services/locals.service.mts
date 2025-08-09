@@ -78,7 +78,11 @@ export function SynapseLocalsService({
 
     async function refresh() {
       if (!loaded) {
-        throw new InternalError(context, "PULL_BEFORE_INIT", "this should not happen");
+        throw new InternalError(
+          context,
+          "PULL_BEFORE_INIT",
+          "Locals for this entity are not loaded",
+        );
       }
       logger.info("pulling latest locals values from db");
       await loadFromDb();
@@ -87,6 +91,11 @@ export function SynapseLocalsService({
     event.on(EVENT_SYNAPSE_PULL_DB, refresh);
 
     return {
+      async destroy() {
+        await synapse.database.deleteLocalsByUniqueId(unique_id);
+        event.removeListener(EVENT_SYNAPSE_PULL_DB, refresh);
+        loaded = false;
+      },
       proxy,
       refresh,
       async replace(newValue: LOCALS) {

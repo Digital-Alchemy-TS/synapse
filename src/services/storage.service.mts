@@ -173,6 +173,7 @@ export function StorageService({
         isCommonConfigKey(key) || load_config_keys.includes(key),
       keys: () => load,
       purge() {
+        // synapse.database.del
         logger.warn("you should report this... I think");
       },
       set: async (key: Extract<keyof CONFIGURATION, string>, value) => {

@@ -257,6 +257,7 @@ type ProxyBase<
   NonReactive<CONFIGURATION> &
   BuildCallbacks<EVENT_MAP> &
   EntityConfigCommon<ATTRIBUTES, LOCALS, DATA> & {
+    destroy: () => Promise<void>;
     /**
      * @internal
      *
