@@ -5,14 +5,8 @@ import { migrate as migrateMysql } from "drizzle-orm/mysql2/migrator";
 import mysql from "mysql2/promise";
 import { join } from "path";
 
-import {
-  HomeAssistantEntityRow,
-  MIGRATION_PATH,
-  mysqlTables,
-  SynapseDatabase,
-} from "../../schema/index.mts";
-
-type Tables = Awaited<ReturnType<typeof mysqlTables>>;
+import { HomeAssistantEntityRow, MIGRATION_PATH, SynapseDatabase } from "../../schema/common.mts";
+import { mysqlHomeAssistantEntity, mysqlHomeAssistantEntityLocals } from "../../schema/mysql.mts";
 
 export function DatabaseMySQLService({
   lifecycle,
@@ -23,8 +17,6 @@ export function DatabaseMySQLService({
 }: TServiceParams): SynapseDatabase {
   let mysqlClient: mysql.Connection;
   let database: MySql2Database<Record<string, unknown>>;
-  let homeAssistantEntity: Tables["homeAssistantEntity"];
-  let homeAssistantEntityLocals: Tables["homeAssistantEntityLocals"];
 
   const application_name = internal.boot.application.name;
   const app_unique_id = config.synapse.METADATA_UNIQUE_ID;
@@ -43,9 +35,6 @@ export function DatabaseMySQLService({
     });
 
     // Load library / table refs
-    const tables = await mysqlTables();
-    homeAssistantEntity = tables.homeAssistantEntity;
-    homeAssistantEntityLocals = tables.homeAssistantEntityLocals;
 
     // Establish connection
     logger.trace("initializing mysql database connection");
@@ -71,7 +60,7 @@ export function DatabaseMySQLService({
 
     try {
       await database
-        .insert(homeAssistantEntity)
+        .insert(mysqlHomeAssistantEntity)
         .values({
           app_unique_id: app_unique_id,
           application_name: application_name,
@@ -112,11 +101,11 @@ export function DatabaseMySQLService({
     try {
       const rows = await database
         .select()
-        .from(homeAssistantEntity)
+        .from(mysqlHomeAssistantEntity)
         .where(
           and(
-            eq(homeAssistantEntity.unique_id, unique_id),
-            eq(homeAssistantEntity.app_unique_id, app_unique_id),
+            eq(mysqlHomeAssistantEntity.unique_id, unique_id),
+            eq(mysqlHomeAssistantEntity.app_unique_id, app_unique_id),
           ),
         );
 
@@ -208,7 +197,7 @@ export function DatabaseMySQLService({
 
     try {
       await database
-        .insert(homeAssistantEntityLocals)
+        .insert(mysqlHomeAssistantEntityLocals)
         .values({
           app_unique_id: app_unique_id,
           key,
@@ -244,11 +233,11 @@ export function DatabaseMySQLService({
     try {
       const locals = await database
         .select()
-        .from(homeAssistantEntityLocals)
+        .from(mysqlHomeAssistantEntityLocals)
         .where(
           and(
-            eq(homeAssistantEntityLocals.unique_id, unique_id),
-            eq(homeAssistantEntityLocals.app_unique_id, app_unique_id),
+            eq(mysqlHomeAssistantEntityLocals.unique_id, unique_id),
+            eq(mysqlHomeAssistantEntityLocals.app_unique_id, app_unique_id),
           ),
         );
 
@@ -266,12 +255,12 @@ export function DatabaseMySQLService({
 
     try {
       await database
-        .delete(homeAssistantEntityLocals)
+        .delete(mysqlHomeAssistantEntityLocals)
         .where(
           and(
-            eq(homeAssistantEntityLocals.unique_id, unique_id),
-            eq(homeAssistantEntityLocals.key, key),
-            eq(homeAssistantEntityLocals.app_unique_id, app_unique_id),
+            eq(mysqlHomeAssistantEntityLocals.unique_id, unique_id),
+            eq(mysqlHomeAssistantEntityLocals.key, key),
+            eq(mysqlHomeAssistantEntityLocals.app_unique_id, app_unique_id),
           ),
         );
     } catch (error) {
@@ -287,11 +276,11 @@ export function DatabaseMySQLService({
 
     try {
       await database
-        .delete(homeAssistantEntityLocals)
+        .delete(mysqlHomeAssistantEntityLocals)
         .where(
           and(
-            eq(homeAssistantEntityLocals.unique_id, unique_id),
-            eq(homeAssistantEntityLocals.app_unique_id, app_unique_id),
+            eq(mysqlHomeAssistantEntityLocals.unique_id, unique_id),
+            eq(mysqlHomeAssistantEntityLocals.app_unique_id, app_unique_id),
           ),
         );
     } catch (error) {
