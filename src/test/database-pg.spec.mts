@@ -5,6 +5,7 @@ import { v4 } from "uuid";
 
 import { synapseTestRunner } from "../mock/mock-synapse.module.mts";
 import { pgHomeAssistantEntity } from "../schema/pg.mts";
+import { pgHomeAssistantEntityLocals } from "../schema/pg.mts";
 
 afterEach(async () => {
   await synapseTestRunner.teardown();
@@ -320,6 +321,228 @@ describe("load", () => {
       );
 
       // Restore the original select method
+      vi.restoreAllMocks();
+    });
+  });
+});
+
+describe("locals", () => {
+  it("should insert new local when it doesn't exist", async () => {
+    expect.assertions(4);
+    const unique_id = v4();
+    const key = "test-key";
+    const content = { status: "active", value: 42 };
+
+    await testRunner().run(async ({ synapse, config }) => {
+      // Call updateLocal function
+      await synapse.db_postgres.updateLocal(unique_id, key, content);
+
+      // Query database directly to verify insertion
+      const database = synapse.db_postgres.getDatabase() as PostgresJsDatabase;
+      const rows = await database
+        .select()
+        .from(pgHomeAssistantEntityLocals)
+        .where(
+          and(
+            eq(pgHomeAssistantEntityLocals.unique_id, unique_id),
+            eq(pgHomeAssistantEntityLocals.key, key),
+            eq(pgHomeAssistantEntityLocals.app_unique_id, config.synapse.METADATA_UNIQUE_ID),
+          ),
+        );
+
+      expect(rows).toHaveLength(1);
+      const row = rows[0];
+      expect(row.unique_id).toBe(unique_id);
+      expect(row.key).toBe(key);
+      expect(row.value_json).toEqual(content);
+    });
+  });
+
+  it("should update existing local when it already exists", async () => {
+    expect.assertions(2);
+    const unique_id = v4();
+    const key = "test-key";
+    const initialContent = { status: "initial", value: 10 };
+    const updatedContent = { status: "updated", value: 20 };
+
+    await testRunner().run(async ({ synapse, config }) => {
+      // Insert initial local
+      await synapse.db_postgres.updateLocal(unique_id, key, initialContent);
+
+      // Update the local
+      await synapse.db_postgres.updateLocal(unique_id, key, updatedContent);
+
+      // Query database to verify update
+      const database = synapse.db_postgres.getDatabase() as PostgresJsDatabase;
+      const rows = await database
+        .select()
+        .from(pgHomeAssistantEntityLocals)
+        .where(
+          and(
+            eq(pgHomeAssistantEntityLocals.unique_id, unique_id),
+            eq(pgHomeAssistantEntityLocals.key, key),
+            eq(pgHomeAssistantEntityLocals.app_unique_id, config.synapse.METADATA_UNIQUE_ID),
+          ),
+        );
+
+      expect(rows).toHaveLength(1);
+      expect(rows[0].value_json).toEqual(updatedContent);
+    });
+  });
+
+  it("should delete local when content is undefined", async () => {
+    expect.assertions(1);
+    const unique_id = v4();
+    const key = "test-key";
+    const content = { status: "active" };
+
+    await testRunner().run(async ({ synapse, config }) => {
+      // Insert a local first
+      await synapse.db_postgres.updateLocal(unique_id, key, content);
+
+      // Delete it by setting content to undefined
+      await synapse.db_postgres.updateLocal(unique_id, key, undefined);
+
+      // Query database to verify deletion
+      const database = synapse.db_postgres.getDatabase() as PostgresJsDatabase;
+      const rows = await database
+        .select()
+        .from(pgHomeAssistantEntityLocals)
+        .where(
+          and(
+            eq(pgHomeAssistantEntityLocals.unique_id, unique_id),
+            eq(pgHomeAssistantEntityLocals.key, key),
+            eq(pgHomeAssistantEntityLocals.app_unique_id, config.synapse.METADATA_UNIQUE_ID),
+          ),
+        );
+
+      expect(rows).toHaveLength(0);
+    });
+  });
+
+  it("should load all locals for a unique_id", async () => {
+    expect.assertions(3);
+    const unique_id = v4();
+    const locals = [
+      { content: { value: 1 }, key: "key1" },
+      { content: { value: 2 }, key: "key2" },
+      { content: { value: 3 }, key: "key3" },
+    ];
+
+    await testRunner().run(async ({ synapse }) => {
+      // Insert multiple locals
+      for (const local of locals) {
+        await synapse.db_postgres.updateLocal(unique_id, local.key, local.content);
+      }
+
+      // Load all locals
+      const result = await synapse.db_postgres.loadLocals(unique_id);
+
+      expect(result).toBeInstanceOf(Map);
+      expect(result.size).toBe(3);
+      expect(result.get("key1")).toEqual({ value: 1 });
+    });
+  });
+
+  it("should return empty map when no locals exist", async () => {
+    expect.assertions(2);
+    const unique_id = "test-local-empty";
+
+    await testRunner().run(async ({ synapse }) => {
+      const result = await synapse.db_postgres.loadLocals(unique_id);
+
+      expect(result).toBeInstanceOf(Map);
+      expect(result.size).toBe(0);
+    });
+  });
+
+  it("should delete specific local by key", async () => {
+    expect.assertions(2);
+    const unique_id = v4();
+    const key1 = "key1";
+    const key2 = "key2";
+    const content = { value: "test" };
+
+    await testRunner().run(async ({ synapse, config }) => {
+      // Insert two locals
+      await synapse.db_postgres.updateLocal(unique_id, key1, content);
+      await synapse.db_postgres.updateLocal(unique_id, key2, content);
+
+      // Delete one local
+      await synapse.db_postgres.deleteLocal(unique_id, key1);
+
+      // Query database to verify only one local remains
+      const database = synapse.db_postgres.getDatabase() as PostgresJsDatabase;
+      const rows = await database
+        .select()
+        .from(pgHomeAssistantEntityLocals)
+        .where(
+          and(
+            eq(pgHomeAssistantEntityLocals.unique_id, unique_id),
+            eq(pgHomeAssistantEntityLocals.app_unique_id, config.synapse.METADATA_UNIQUE_ID),
+          ),
+        );
+
+      expect(rows).toHaveLength(1);
+      expect(rows[0].key).toBe(key2);
+    });
+  });
+
+  it("should delete all locals for a unique_id", async () => {
+    expect.assertions(1);
+    const unique_id = v4();
+    const locals = [
+      { content: { value: 1 }, key: "key1" },
+      { content: { value: 2 }, key: "key2" },
+      { content: { value: 3 }, key: "key3" },
+    ];
+
+    await testRunner().run(async ({ synapse, config }) => {
+      // Insert multiple locals
+      for (const local of locals) {
+        await synapse.db_postgres.updateLocal(unique_id, local.key, local.content);
+      }
+
+      // Delete all locals
+      await synapse.db_postgres.deleteLocalsByUniqueId(unique_id);
+
+      // Query database to verify all locals are deleted
+      const database = synapse.db_postgres.getDatabase() as PostgresJsDatabase;
+      const rows = await database
+        .select()
+        .from(pgHomeAssistantEntityLocals)
+        .where(
+          and(
+            eq(pgHomeAssistantEntityLocals.unique_id, unique_id),
+            eq(pgHomeAssistantEntityLocals.app_unique_id, config.synapse.METADATA_UNIQUE_ID),
+          ),
+        );
+
+      expect(rows).toHaveLength(0);
+    });
+  });
+
+  it("should handle errors and re-throw them", async () => {
+    expect.assertions(1);
+    const unique_id = v4();
+    const key = "test-key";
+    const content = { status: "active" };
+
+    await testRunner().run(async ({ synapse }) => {
+      // Mock the database to throw an error
+      const database = synapse.db_postgres.getDatabase() as PostgresJsDatabase;
+
+      // Mock insert to throw an error
+      vi.spyOn(database, "insert").mockImplementation(() => {
+        throw new Error("Database connection failed");
+      });
+
+      // Expect the updateLocal to throw an error
+      await expect(synapse.db_postgres.updateLocal(unique_id, key, content)).rejects.toThrow(
+        "Database connection failed",
+      );
+
+      // Restore the original insert method
       vi.restoreAllMocks();
     });
   });
