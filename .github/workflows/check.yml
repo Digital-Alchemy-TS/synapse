@@ -26,9 +26,9 @@ jobs:
       postgres:
         image: postgres:15
         env:
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_USER: postgres
-          POSTGRES_DB: test_db
+          POSTGRES_PASSWORD: synapse_password
+          POSTGRES_USER: synapse_user
+          POSTGRES_DB: synapse
         options: >-
           --health-cmd pg_isready
           --health-interval 10s
@@ -40,10 +40,10 @@ jobs:
       mysql:
         image: mysql:8.0
         env:
-          MYSQL_ROOT_PASSWORD: mysql
-          MYSQL_DATABASE: test_db
-          MYSQL_USER: mysql
-          MYSQL_PASSWORD: mysql
+          MYSQL_ROOT_PASSWORD: synapse_root_password
+          MYSQL_DATABASE: synapse
+          MYSQL_USER: synapse_user
+          MYSQL_PASSWORD: synapse_password
         options: >-
           --health-cmd="mysqladmin ping"
           --health-interval=10s
@@ -64,8 +64,8 @@ jobs:
       - run: yarn lint
       - run: yarn test
         env:
-          DB_PG: postgresql://postgres:postgres@localhost:5432/test_db
-          DB_MYSQL: mysql://mysql:mysql@localhost:3306/test_db
+          DB_PG: postgresql://synapse_user:synapse_password@localhost:5432/synapse
+          DB_MYSQL: mysql://synapse_user:synapse_password@localhost:3306/synapse
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v5.4.3
         with:
