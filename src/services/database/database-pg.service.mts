@@ -35,8 +35,19 @@ export function DatabasePostgreSQLService({
 
     // Establish connection
     logger.trace("initializing postgres database connection");
-    client = postgres(config.synapse.DATABASE_URL);
-    database = drizzlePostgres(client);
+    client = postgres(config.synapse.DATABASE_URL, {
+      onnotice({ message, ...data }) {
+        logger.trace(data, message);
+      },
+    });
+    database = drizzlePostgres({
+      client,
+      logger: {
+        logQuery(query, params) {
+          logger.trace({ params }, query);
+        },
+      },
+    });
 
     // Run migrations
     try {
@@ -166,13 +177,9 @@ export function DatabasePostgreSQLService({
         "hard config change detected, resetting entity",
       );
     } catch (error) {
-      // Check if this is the expected "entity not found" error
-      if (error instanceof Error && error.message.includes("Entity not found")) {
-        logger.trace({ name: load, unique_id }, `creating new database entry`);
-      } else {
-        // Re-throw unexpected errors
-        throw error;
-      }
+      // Log and re-throw all errors
+      logger.error({ error, unique_id }, "failed to load entity");
+      throw error;
     }
 
     const cleaned = Object.fromEntries(
@@ -224,11 +231,6 @@ export function DatabasePostgreSQLService({
   // Load locals
   // #MARK: loadLocals
   async function loadLocals(unique_id: string) {
-    if (!internal.boot.completedLifecycleEvents.has("PostConfig")) {
-      logger.warn("cannot load locals before [PostConfig]");
-      return undefined;
-    }
-
     logger.trace({ unique_id }, "initial load of locals");
 
     try {
