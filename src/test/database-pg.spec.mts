@@ -301,6 +301,39 @@ describe("load", () => {
     });
   });
 
+  it("should return early when defaults are equal to current base state", async () => {
+    expect.assertions(4);
+    const unique_id = v4();
+    const defaults = { status: "default", value: 42 };
+
+    await testRunner().run(async ({ synapse, config }) => {
+      // First call to load to create entity with defaults
+      const firstResult = await synapse.db_postgres.load(unique_id, defaults);
+      expect(firstResult).toBeDefined();
+      expect(firstResult?.base_state).toBe(JSON.stringify(defaults));
+
+      // Second call with same defaults should return early without updating
+      const secondResult = await synapse.db_postgres.load(unique_id, defaults);
+
+      // Should return the same entity without modification
+      expect(secondResult?.base_state).toBe(JSON.stringify(defaults));
+
+      // Verify only one entity exists in database (no duplicate created)
+      const database = synapse.db_postgres.getDatabase() as PostgresJsDatabase;
+      const rows = await database
+        .select()
+        .from(pgHomeAssistantEntity)
+        .where(
+          and(
+            eq(pgHomeAssistantEntity.unique_id, unique_id),
+            eq(pgHomeAssistantEntity.app_unique_id, config.synapse.METADATA_UNIQUE_ID),
+          ),
+        );
+
+      expect(rows).toHaveLength(1);
+    });
+  });
+
   it("should re-throw unexpected errors", async () => {
     expect.assertions(1);
     const unique_id = v4();
