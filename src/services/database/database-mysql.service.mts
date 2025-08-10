@@ -222,11 +222,6 @@ export function DatabaseMySQLService({
   // Load locals
   // #MARK: loadLocals
   async function loadLocals(unique_id: string) {
-    if (!internal.boot.completedLifecycleEvents.has("PostConfig")) {
-      logger.warn("cannot load locals before [PostConfig]");
-      return undefined;
-    }
-
     logger.trace({ unique_id }, "initial load of locals");
 
     try {
