@@ -8,7 +8,7 @@ export default defineConfig({
       include: ["src"],
       exclude: ["src/mock", "src/demo"],
       provider: "v8",
-      reporter: ["html", "lcov", "clover"],
+      reporter: ["html", "lcov", "clover", "text"],
     },
   },
 });
