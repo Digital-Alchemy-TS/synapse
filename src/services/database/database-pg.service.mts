@@ -245,9 +245,7 @@ export function DatabasePostgreSQLService({
         );
 
       logger.trace({ unique_id }, "success");
-      return new Map<string, unknown>(
-        locals.map(i => [i.key, JSON.parse(JSON.stringify(i.value_json))]),
-      );
+      return new Map<string, unknown>(locals.map(i => [i.key, i.value_json]));
     } catch (error) {
       logger.error({ error, unique_id }, "failed to load locals");
       throw error;

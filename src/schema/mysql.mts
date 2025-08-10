@@ -21,7 +21,7 @@ export const mysqlHomeAssistantEntityLocals = mysqlTable(
     key: varchar("key", { length: 255 }).notNull(),
     last_modified: timestamp("last_modified").notNull().defaultNow(),
     unique_id: varchar("unique_id", { length: 255 }).notNull(),
-    value_json: varchar("value_json", { length: 1000 }).notNull(),
+    value_json: text("value_json").notNull(),
   },
   table => [unique().on(table.unique_id, table.key)],
 );
