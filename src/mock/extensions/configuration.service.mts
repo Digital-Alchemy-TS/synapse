@@ -1,35 +1,11 @@
 import { TServiceParams } from "@digital-alchemy/core";
-import { rmSync } from "fs";
-import { join } from "path";
-import { cwd } from "process";
 
 export function MockSynapseConfiguration({
-  logger,
   synapse,
   config,
   lifecycle,
-  internal,
   mock_assistant,
 }: TServiceParams) {
-  internal.boilerplate.configuration.set("synapse", "EMIT_HEARTBEAT", false);
-  internal.boilerplate.configuration.set("synapse", "SQLITE_DB", join(cwd(), "vi_sqlite.db"));
-
-  lifecycle.onPreInit(() => {
-    if (config.mock_synapse.CLEANUP_DB !== "before") {
-      return;
-    }
-    logger.info("removing database file (before)");
-    rmSync(config.synapse.SQLITE_DB);
-  });
-
-  lifecycle.onShutdownComplete(() => {
-    if (config.mock_synapse.CLEANUP_DB !== "after") {
-      return;
-    }
-    logger.info("removing database file (after)");
-    rmSync(config.synapse.SQLITE_DB);
-  });
-
   function setupConfigured() {
     setupInstalled();
     synapse.configure.isRegistered = () => true;

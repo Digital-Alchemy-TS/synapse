@@ -14,6 +14,7 @@ type KeysWithMultipleValues<T> = {
 
 // #MARK: Number
 type NumberDeviceMapping = {
+  temperature: "K" | "°C" | "°F";
   apparent_power: "VA";
   atmospheric_pressure: "cbar" | "bar" | "hPa" | "inHg" | "kPa" | "mbar" | "Pa" | "psi";
   current: "A" | "mA";

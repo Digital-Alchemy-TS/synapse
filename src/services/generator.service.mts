@@ -243,6 +243,14 @@ export function DomainGeneratorService({
               return getEntity;
             }
 
+            // #MARK: getEntity
+            case "destroy": {
+              return async function () {
+                await locals.destroy();
+                await storage.purge();
+              };
+            }
+
             // #MARK: child
             case "child": {
               return function (context: TContext) {
@@ -362,10 +370,14 @@ export function DomainGeneratorService({
 
         // #MARK: set
         set(_, property: Extract<keyof CONFIGURATION, string>, newValue) {
+          if (property === "unique_id") {
+            return false;
+          }
           // * replace all locals
           if (property === "locals") {
             logger.trace({ newValue }, "replace locals");
-            return locals.replace(newValue);
+            void locals.replace(newValue);
+            return false;
           }
           // * manage entity config properties
           if (storage.isStored(property)) {
@@ -392,7 +404,7 @@ export function DomainGeneratorService({
               return false;
             }
             logger.trace({ property }, "updating storage");
-            storage.set(property, newValue);
+            void storage.set(property, newValue);
             return true;
           }
           // * nothing else is settable right now

@@ -6,19 +6,28 @@
   "version": "25.8.2",
   "scripts": {
     "start:mock": "tsx src/mock/main.mts",
+    "demo": "tsx src/demo/main.mts",
     "build": "rm -rf dist; tsc",
     "test": "vitest --no-file-parallelism",
     "lint": "eslint src",
     "prepublishOnly": "npm run build",
     "upgrade": "yarn up '@digital-alchemy/*'",
-    "act": "act pull_request"
+    "act": "act pull_request",
+    "db:generate": "drizzle-kit generate",
+    "db:generate:sqlite": "DATABASE_TYPE=sqlite drizzle-kit generate",
+    "db:generate:postgresql": "DATABASE_TYPE=postgresql drizzle-kit generate",
+    "db:generate:mysql": "DATABASE_TYPE=mysql drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate",
+    "db:studio": "drizzle-kit studio",
+    "db:init": "tsx scripts/generate-migration.mts"
   },
   "author": {
     "url": "https://github.com/zoe-codez",
     "name": "Zoe Codez"
   },
   "files": [
-    "dist/**/*"
+    "dist/**/*",
+    "!dist/demo/**/*"
   ],
   "engines": {
     "node": ">=20"
@@ -28,12 +37,14 @@
   },
   "license": "MIT",
   "dependencies": {
-    "better-sqlite3": "^12.2.0"
+    "better-sqlite3": "^12.2.0",
+    "drizzle-orm": "^0.44.4",
+    "mysql2": "^3.14.3",
+    "postgres": "^3.4.7"
   },
   "peerDependencies": {
     "@digital-alchemy/core": "*",
     "@digital-alchemy/hass": "*",
-    "better-sqlite3": "^11",
     "dayjs": "*",
     "uuid": "*"
   },
@@ -41,27 +52,31 @@
     "@cspell/eslint-plugin": "^9.2.0",
     "@digital-alchemy/core": "^25.8.1",
     "@digital-alchemy/hass": "^25.7.1",
-    "@eslint/compat": "^1.3.1",
+    "@eslint/compat": "^1.3.2",
     "@eslint/eslintrc": "^3.3.1",
-    "@eslint/js": "^9.32.0",
+    "@eslint/js": "^9.33.0",
     "@types/better-sqlite3": "^7.6.13",
     "@types/bun": "^1.2.19",
-    "@types/node": "^24.1.0",
+    "@types/node": "^24.2.1",
     "@types/node-cron": "^3.0.11",
+    "@types/pg": "^8.15.5",
     "@types/uuid": "^10.0.0",
     "@types/ws": "^8.18.1",
-    "@typescript-eslint/eslint-plugin": "8.38.0",
-    "@typescript-eslint/parser": "8.38.0",
+    "@typescript-eslint/eslint-plugin": "8.39.0",
+    "@typescript-eslint/parser": "8.39.0",
+    "@vitest/coverage-v8": "^3.2.4",
+    "@vitest/ui": "^3.2.4",
     "bun": "^1.2.19",
     "bun-types": "^1.2.19",
     "dayjs": "^1.11.13",
     "dotenv": "^17.2.1",
-    "eslint": "9.32.0",
+    "drizzle-kit": "^0.31.4",
+    "eslint": "9.33.0",
     "eslint-config-prettier": "10.1.8",
     "eslint-plugin-import": "^2.32.0",
     "eslint-plugin-jsonc": "^2.20.1",
     "eslint-plugin-no-unsanitized": "^4.1.2",
-    "eslint-plugin-prettier": "^5.5.3",
+    "eslint-plugin-prettier": "^5.5.4",
     "eslint-plugin-security": "^3.0.1",
     "eslint-plugin-simple-import-sort": "^12.1.1",
     "eslint-plugin-sonarjs": "^3.0.4",

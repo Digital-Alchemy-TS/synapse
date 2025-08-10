@@ -7,9 +7,51 @@ on:
   push:
     branches:
       - main
+
+# Cancel redundant runs for the same PR/branch
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+# Minimal permissions for security
+permissions:
+  contents: read
+  pull-requests: read
+
 jobs:
   lint-and-build:
     runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: synapse_password
+          POSTGRES_USER: synapse_user
+          POSTGRES_DB: synapse
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: synapse_root_password
+          MYSQL_DATABASE: synapse
+          MYSQL_USER: synapse_user
+          MYSQL_PASSWORD: synapse_password
+        options: >-
+          --health-cmd="mysqladmin ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=3
+        ports:
+          - 3306:3306
+
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -20,7 +62,10 @@ jobs:
       - run: yarn
       - run: yarn build
       - run: yarn lint
-      - run: yarn test
+      - run: yarn test --coverage
+        env:
+          DB_PG: postgresql://synapse_user:synapse_password@localhost:5432/synapse
+          DB_MYSQL: mysql://synapse_user:synapse_password@localhost:3306/synapse
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v5.4.3
         with:

@@ -1,4 +1,4 @@
-import { CreateLibrary, InternalConfig } from "@digital-alchemy/core";
+import { CreateLibrary, InternalConfig, StringConfig } from "@digital-alchemy/core";
 import { LIB_HASS } from "@digital-alchemy/hass";
 import { join } from "path";
 import { cwd } from "process";
@@ -6,10 +6,13 @@ import { cwd } from "process";
 import { HassDeviceMetadata } from "./helpers/index.mts";
 import {
   ConfigurationService,
+  DatabaseMySQLService,
+  DatabasePostgreSQLService,
+  DatabaseService,
+  DatabaseSQLiteService,
   DeviceService,
   DiscoveryService,
   DomainGeneratorService,
-  SQLiteService,
   StorageService,
   SynapseLocalsService,
   SynapseSocketService,
@@ -98,6 +101,17 @@ const DOMAINS = {
 
 export const LIB_SYNAPSE = CreateLibrary({
   configuration: {
+    DATABASE_TYPE: {
+      default: "sqlite",
+      description: "Database type to use (sqlite, postgresql, mysql)",
+      enum: ["sqlite", "postgresql", "mysql"],
+      type: "string",
+    } as StringConfig<"sqlite" | "postgresql" | "mysql">,
+    DATABASE_URL: {
+      default: `file:${join(cwd(), "synapse_storage.db")}`,
+      description: "Database connection URL",
+      type: "string",
+    },
     EMIT_HEARTBEAT: {
       default: true,
       description: [
@@ -131,11 +145,6 @@ export const LIB_SYNAPSE = CreateLibrary({
       description: ["A string to uniquely identify this application", "Should be uuid or md5 sum"],
       type: "string",
     },
-    SQLITE_DB: {
-      default: join(cwd(), "synapse_storage.db"),
-      description: "Location to persist entity state at",
-      type: "string",
-    },
     TRACE_SIBLING_HEARTBEATS: {
       default: false,
       description: [
@@ -147,12 +156,31 @@ export const LIB_SYNAPSE = CreateLibrary({
   },
   depends: [LIB_HASS],
   name: "synapse",
-  priorityInit: ["generator", "storage", "locals"],
+  priorityInit: ["locals", "generator", "storage", "db_mysql", "db_postgres", "db_sqlite"],
   services: {
     /**
      * @internal
      */
     configure: ConfigurationService,
+
+    /**
+     * @internal
+     *
+     * Used to persist entity state
+     */
+    database: DatabaseService,
+    /**
+     * internal use
+     */
+    db_mysql: DatabaseMySQLService,
+    /**
+     * internal use
+     */
+    db_postgres: DatabasePostgreSQLService,
+    /**
+     * internal use
+     */
+    db_sqlite: DatabaseSQLiteService,
 
     /**
      * Internal tools to create the device that registers with entities
@@ -184,14 +212,6 @@ export const LIB_SYNAPSE = CreateLibrary({
      * @internal
      */
     socket: SynapseSocketService,
-
-    /**
-     * @internal
-     *
-     * Used to persist entity state
-     */
-    sqlite: SQLiteService,
-
     /**
      * @internal
      */

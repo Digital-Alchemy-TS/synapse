@@ -5,12 +5,6 @@ import { LIB_MOCK_ASSISTANT } from "@digital-alchemy/hass/mock-assistant";
 import { LIB_SYNAPSE } from "../synapse.module.mts";
 import { MockSynapseConfiguration } from "./extensions/configuration.service.mts";
 
-enum CleanupOptions {
-  before = "before",
-  after = "after",
-  none = "none",
-}
-
 enum InstallState {
   none = "none",
   registered = "registered",
@@ -20,11 +14,6 @@ enum InstallState {
 
 export const LIB_MOCK_SYNAPSE = CreateLibrary({
   configuration: {
-    CLEANUP_DB: {
-      default: "after",
-      enum: Object.values(CleanupOptions),
-      type: "string",
-    } as StringConfig<`${CleanupOptions}`>,
     INSTALL_STATE: {
       default: "configured",
       enum: Object.values(InstallState),
@@ -49,6 +38,15 @@ export const synapseTestRunner = createModule
   .fromLibrary(LIB_SYNAPSE)
   .extend()
   .toTest()
-  .setOptions({ configSources: { argv: false, env: false, file: false } })
+  .setOptions({
+    configSources: { argv: false, env: false, file: false },
+  })
+  .configure({
+    synapse: {
+      DATABASE_TYPE: "sqlite",
+      DATABASE_URL: ":memory:",
+      EMIT_HEARTBEAT: false,
+    },
+  })
   .appendLibrary(LIB_MOCK_SYNAPSE)
   .appendLibrary(LIB_MOCK_ASSISTANT);

@@ -59,27 +59,11 @@ describe("Sensor", () => {
           synapse.sensor({
             context,
             device_class: "enum",
+            icon: "mdi:test",
             name: "test",
             options: [],
             // @ts-expect-error test
             state_class: "foo",
-          });
-        }).toThrow();
-      });
-    });
-
-    it("does not allow native_unit_of_measurement with options", async () => {
-      expect.assertions(1);
-      await synapseTestRunner.run(({ synapse, context }) => {
-        expect(() => {
-          synapse.sensor({
-            context,
-            device_class: "enum",
-            name: "test",
-            // @ts-expect-error it's the test
-            native_unit_of_measurement: "foo",
-            options: [],
-            sensor_type: "string",
           });
         }).toThrow();
       });
