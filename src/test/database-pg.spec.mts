@@ -31,7 +31,7 @@ it("exists", async () => {
 describe("update", () => {
   it("should insert new entity when it doesn't exist", async () => {
     expect.assertions(6);
-    const unique_id = "test-entity-123";
+    const unique_id = v4();
     const content = { status: "active", value: 42 };
     const defaults = { status: "inactive", value: 0 };
 
@@ -63,7 +63,7 @@ describe("update", () => {
 
   it("should update existing entity when it already exists", async () => {
     expect.assertions(3);
-    const unique_id = "test-entity-update";
+    const unique_id = v4();
     const initialContent = { status: "initial", value: 10 };
     const updatedContent = { status: "updated", value: 20 };
     const defaults = { status: "default", value: 0 };
@@ -96,7 +96,7 @@ describe("update", () => {
 
   it("should handle onConflictDoUpdate correctly", async () => {
     expect.assertions(3);
-    const unique_id = "test-entity-conflict";
+    const unique_id = v4();
     const content1 = { status: "first", value: 100 };
     const content2 = { status: "second", value: 200 };
     const defaults = { status: "default", value: 0 };
@@ -129,7 +129,7 @@ describe("update", () => {
 
   it("should set timestamps correctly", async () => {
     expect.assertions(3);
-    const unique_id = "test-entity-timestamps";
+    const unique_id = v4();
     const content = { status: "active" };
     const defaults = { status: "default", value: 0 };
 
@@ -162,7 +162,7 @@ describe("update", () => {
 
   it("should handle entity_id lookup from hass entity registry", async () => {
     expect.assertions(1);
-    const unique_id = "test-entity-registry";
+    const unique_id = v4();
     const content = { status: "active" };
     const defaults = { status: "default", value: 0 };
 
@@ -203,7 +203,7 @@ describe("update", () => {
 
   it("should handle undefined entity_id when entity not found in registry", async () => {
     expect.assertions(1);
-    const unique_id = "test-entity-no-registry";
+    const unique_id = v4();
     const content = { status: "active" };
     const defaults = { status: "default", value: 0 };
 
@@ -231,7 +231,7 @@ describe("update", () => {
 
   it("should handle errors and re-throw them", async () => {
     expect.assertions(1);
-    const unique_id = "test-entity-error";
+    const unique_id = v4();
     const content = { status: "active" };
     const defaults = { status: "default", value: 0 };
 
@@ -274,7 +274,7 @@ describe("load", () => {
 
   it("should use registered defaults when defaults parameter is not provided", async () => {
     expect.assertions(1);
-    const unique_id = "test-entity-defaults";
+    const unique_id = v4();
     const content = { status: "active" };
     const registeredDefaults = { status: "registered", value: 999 };
 
@@ -446,7 +446,7 @@ describe("locals", () => {
 
   it("should return empty map when no locals exist", async () => {
     expect.assertions(2);
-    const unique_id = "test-local-empty";
+    const unique_id = v4();
 
     await testRunner().run(async ({ synapse }) => {
       const result = await synapse.db_postgres.loadLocals(unique_id);
@@ -543,6 +543,81 @@ describe("locals", () => {
       );
 
       // Restore the original insert method
+      vi.restoreAllMocks();
+    });
+  });
+});
+
+describe("deleteEntity", () => {
+  it("should delete entity when it exists", async () => {
+    expect.assertions(2);
+    const unique_id = v4();
+    const content = { status: "active" };
+    const defaults = { status: "default", value: 0 };
+
+    await testRunner().run(async ({ synapse, config }) => {
+      // First create an entity
+      await synapse.db_postgres.update(unique_id, content, defaults);
+
+      // Verify entity exists
+      const database = synapse.db_postgres.getDatabase() as PostgresJsDatabase;
+      let rows = await database
+        .select()
+        .from(pgHomeAssistantEntity)
+        .where(
+          and(
+            eq(pgHomeAssistantEntity.unique_id, unique_id),
+            eq(pgHomeAssistantEntity.app_unique_id, config.synapse.METADATA_UNIQUE_ID),
+          ),
+        );
+      expect(rows).toHaveLength(1);
+
+      // Delete the entity
+      await synapse.db_postgres.deleteEntity(unique_id);
+
+      // Verify entity is deleted
+      rows = await database
+        .select()
+        .from(pgHomeAssistantEntity)
+        .where(
+          and(
+            eq(pgHomeAssistantEntity.unique_id, unique_id),
+            eq(pgHomeAssistantEntity.app_unique_id, config.synapse.METADATA_UNIQUE_ID),
+          ),
+        );
+      expect(rows).toHaveLength(0);
+    });
+  });
+
+  it("should handle deleting non-existent entity gracefully", async () => {
+    expect.assertions(1);
+    const unique_id = v4();
+
+    await testRunner().run(async ({ synapse }) => {
+      // Try to delete an entity that doesn't exist
+      await expect(synapse.db_postgres.deleteEntity(unique_id)).resolves.not.toThrow();
+    });
+  });
+
+  it("should handle errors and re-throw them", async () => {
+    expect.assertions(1);
+    const unique_id = v4();
+
+    await testRunner().run(async ({ synapse }) => {
+      // Mock the database to throw an error
+      const database = synapse.db_postgres.getDatabase() as PostgresJsDatabase;
+
+      // Mock delete to throw an error
+      vi.spyOn(database, "delete").mockImplementation(() => {
+        throw new Error("Database connection failed");
+      });
+
+      // Expect the deleteEntity to throw an error
+      await expect(synapse.db_postgres.deleteEntity(unique_id)).rejects.toThrow(
+        "Database connection failed",
+      );
+
+      // Restore the original delete method
       vi.restoreAllMocks();
     });
   });
