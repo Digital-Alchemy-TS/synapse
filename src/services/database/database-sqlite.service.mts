@@ -1,8 +1,9 @@
 import { is, TServiceParams } from "@digital-alchemy/core";
-import Database from "better-sqlite3";
+import type BetterSqliteDatabase from "better-sqlite3";
+import type { Database } from "bun:sqlite";
 import { and, eq } from "drizzle-orm";
-import { drizzle } from "drizzle-orm/better-sqlite3";
-import { migrate } from "drizzle-orm/better-sqlite3/migrator";
+import { drizzle as betterSqliteDrizzle } from "drizzle-orm/better-sqlite3";
+import { drizzle as bunSqliteDrizzle } from "drizzle-orm/bun-sqlite";
 import { join } from "path";
 
 import { HomeAssistantEntityRow, MIGRATION_PATH, SynapseDatabase } from "../../schema/common.mts";
@@ -18,8 +19,8 @@ export function DatabaseSQLiteService({
   hass,
   internal,
 }: TServiceParams): SynapseDatabase {
-  let sqlite: Database.Database;
-  let database: ReturnType<typeof drizzle>;
+  let sqlite: BetterSqliteDatabase.Database | Database;
+  let database: ReturnType<typeof betterSqliteDrizzle> | ReturnType<typeof bunSqliteDrizzle>;
 
   const application_name = internal.boot.application.name;
   const registeredDefaults = new Map<string, object>();
@@ -36,20 +37,58 @@ export function DatabaseSQLiteService({
       sqlite?.close();
     });
 
+    // Detect runtime and dynamically import appropriate modules
+    const isBun = typeof Bun !== "undefined";
+
+    if (isBun) {
+      await initBun();
+      return;
+    }
+    await initBetterSqlite3();
+  });
+
+  async function initBetterSqlite3() {
+    // Node.js better-sqlite3 implementation
+    const Database = (await import("better-sqlite3")).default;
+    const { drizzle } = await import("drizzle-orm/better-sqlite3");
+    const { migrate } = await import("drizzle-orm/better-sqlite3/migrator");
+
     // Establish connection
     const filePath = config.synapse.DATABASE_URL.replace("file:", "");
-    logger.trace({ filePath }, "initializing sqlite database connection");
+    logger.trace({ filePath }, "initializing better-sqlite3 database connection");
     sqlite = new Database(filePath);
     database = drizzle(sqlite);
 
     // Run migrations
     try {
       await migrate(database, { migrationsFolder: join(MIGRATION_PATH, "sqlite") });
-      logger.trace("sqlite database migrations completed");
+      logger.trace("better-sqlite3 database migrations completed");
     } catch (error) {
       logger.warn({ error }, "migration failed, continuing with existing schema");
     }
-  });
+  }
+
+  async function initBun() {
+    const { Database } = await import("bun:sqlite");
+    const { drizzle } = await import("drizzle-orm/bun-sqlite");
+    const { migrate } = await import("drizzle-orm/bun-sqlite/migrator");
+
+    // Establish connection using Bun's SQLite
+    const filePath = config.synapse.DATABASE_URL.replace("file:", "");
+    logger.trace({ filePath }, "initializing bun sqlite database connection");
+    sqlite = new Database(filePath);
+
+    // Create custom Drizzle adapter for Bun SQLite
+    database = drizzle(sqlite);
+
+    // Run migrations for Bun SQLite
+    try {
+      await migrate(database, { migrationsFolder: join(MIGRATION_PATH, "sqlite") });
+      logger.trace("bun sqlite database migrations completed");
+    } catch (error) {
+      logger.warn({ error }, "bun migration failed, continuing with existing schema");
+    }
+  }
 
   // Update entity
   // #MARK: update
