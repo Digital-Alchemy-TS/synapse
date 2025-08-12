@@ -1,16 +1,14 @@
 import { TServiceParams } from "@digital-alchemy/core";
-import { DeviceDetails, HassConfig, MIN_SUPPORTED_HASS_VERSION } from "@digital-alchemy/hass";
+import { DeviceDetails, HassConfig } from "@digital-alchemy/hass";
 import { v4 } from "uuid";
 
 import { synapseTestRunner } from "../mock/index.mts";
 
 const NOT_INSTALLED = {
   components: [],
-  version: MIN_SUPPORTED_HASS_VERSION,
 } as HassConfig;
 const INSTALLED = {
   components: ["synapse"],
-  version: MIN_SUPPORTED_HASS_VERSION,
 } as HassConfig;
 
 afterEach(async () => {
