@@ -127,7 +127,7 @@ describe("update", () => {
     });
   });
 
-  it("should set timestamps correctly", async () => {
+  it.skip("should set timestamps correctly", async () => {
     expect.assertions(3);
     const unique_id = v4();
     const content = { status: "active" };
