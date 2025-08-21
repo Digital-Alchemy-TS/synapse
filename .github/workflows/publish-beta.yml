@@ -1,0 +1,91 @@
+
+name: Publish Beta
+
+on:
+  pull_request:
+    types: [labeled]
+
+permissions:
+  contents: read
+
+jobs:
+  publish-beta:
+    if: contains(github.event.pull_request.labels.*.name, 'publish-beta')
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: synapse_password
+          POSTGRES_USER: synapse_user
+          POSTGRES_DB: synapse
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: synapse_root_password
+          MYSQL_DATABASE: synapse
+          MYSQL_USER: synapse_user
+          MYSQL_PASSWORD: synapse_password
+        options: >-
+          --health-cmd="mysqladmin ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=3
+        ports:
+          - 3306:3306
+
+    steps:
+    - name: Check merge status
+      if: |
+        github.event.pull_request.mergeable != true &&
+        !contains(['OWNER', 'MEMBER'], github.event.pull_request.author_association)
+      run: |
+        echo "PR is not in a mergeable state and author is not an admin. The publish step will be skipped."
+        exit 1
+
+    - uses: actions/checkout@v4
+      with:
+        ref: ${{ github.event.pull_request.head.sha }}
+    - uses: actions/setup-node@v4
+      with:
+        node-version: '22'
+        registry-url: 'https://registry.npmjs.org/'
+    - run: corepack enable
+    - run: yarn config set enableImmutableInstalls false
+    - run: yarn
+    - run: yarn build
+    - run: yarn lint
+    - run: yarn test
+      env:
+        DB_PG: postgresql://synapse_user:synapse_password@localhost:5432/synapse
+        DB_MYSQL: mysql://synapse_user:synapse_password@localhost:3306/synapse
+
+    # Verify that the package version is a beta version
+    - name: Check package version for beta
+      run: |
+        PACKAGE_VERSION=$(node -p "require('./package.json').version")
+        echo "Package version: $PACKAGE_VERSION"
+
+        if [[ "$PACKAGE_VERSION" != *"-beta"* ]]; then
+          echo "❌ Beta release failed: Package version '$PACKAGE_VERSION' must contain '-beta'"
+          exit 1
+        fi
+        echo "✅ Beta version check passed"
+
+    - name: Publish to npm (beta)
+      if: |
+        github.event.pull_request.mergeable == true ||
+        contains(['OWNER', 'MEMBER'], github.event.pull_request.author_association)
+      env:
+        NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+      run: |
+        npm config set //registry.npmjs.org/:_authToken $NPM_TOKEN
+        npm publish --tag beta
