@@ -1,9 +1,11 @@
 name: Publish
 
 on:
-  push:
-    tags:
-      - 'v*'
+  release:
+    types: [published, prereleased]
+
+permissions:
+  contents: read
 
 jobs:
   publish:
