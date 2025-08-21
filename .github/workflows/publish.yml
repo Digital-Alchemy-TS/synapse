@@ -10,6 +10,13 @@ permissions:
 jobs:
   publish:
     runs-on: ubuntu-latest
+    concurrency:
+      group: publish-${{ github.event.release.tag_name }}
+      cancel-in-progress: true
+    environment:
+      name: npm
+      url: ${{ github.event.release.html_url }}
+
     services:
       postgres:
         image: postgres:15

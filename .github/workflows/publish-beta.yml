@@ -10,7 +10,6 @@ permissions:
 
 jobs:
   publish-beta:
-    # This job only runs if the PR was labeled with 'publish-beta'
     if: contains(github.event.pull_request.labels.*.name, 'publish-beta')
     runs-on: ubuntu-latest
     services:
