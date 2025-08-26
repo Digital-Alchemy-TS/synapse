@@ -51,7 +51,7 @@ jobs:
         echo "PR is not in a mergeable state and author is not an admin. The publish step will be skipped."
         exit 1
 
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
       with:
         ref: ${{ github.event.pull_request.head.sha }}
     - uses: actions/setup-node@v4
