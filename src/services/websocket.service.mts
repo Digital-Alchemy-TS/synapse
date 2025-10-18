@@ -1,5 +1,6 @@
-import { SECOND, TServiceParams } from "@digital-alchemy/core";
-import { TUniqueId } from "@digital-alchemy/hass";
+import type { TServiceParams } from "@digital-alchemy/core";
+import { SECOND } from "@digital-alchemy/core";
+import type { TUniqueId } from "@digital-alchemy/hass";
 import { hostname, userInfo } from "os";
 
 export function SynapseWebSocketService({
@@ -8,7 +9,6 @@ export function SynapseWebSocketService({
   hass,
   scheduler,
   config,
-  context,
   synapse,
   internal,
 }: TServiceParams) {
@@ -58,7 +58,7 @@ export function SynapseWebSocketService({
   });
 
   lifecycle.onPreShutdown(async () => {
-    logger.warn("::: SENDING GOING OFFLINE");
+    logger.trace("sending going offline");
     await hass.socket.sendMessage({
       type: "synapse/going_offline",
     });
