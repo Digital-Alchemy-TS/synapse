@@ -60,15 +60,24 @@ export function DomainGeneratorService({
       }
       logger.trace({ name }, "set up bus transfer");
       registeredEvents.add(name);
-      hass.socket.onEvent({
+      void hass.socket.subscribe({
         context,
-        event: [config.synapse.EVENT_NAMESPACE, name, getIdentifier()].join("/"),
-        exec: ({ data }: BaseEvent) => {
+        event_type: [config.synapse.EVENT_NAMESPACE, name].join("/"),
+        exec: data => {
           logger.trace({ data, name }, `receive`);
           const target = `synapse/${name}/${data.unique_id}`;
           event.emit(target, data);
         },
       });
+      // hass.socket.onEvent({
+      //   context,
+      //   event: [config.synapse.EVENT_NAMESPACE, name, getIdentifier()].join("/"),
+      //   exec: ({ data }: BaseEvent) => {
+      //     logger.trace({ data, name }, `receive`);
+      //     const target = `synapse/${name}/${data.unique_id}`;
+      //     event.emit(target, data);
+      //   },
+      // });
     });
   }
 

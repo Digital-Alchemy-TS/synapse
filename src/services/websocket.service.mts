@@ -29,6 +29,7 @@ export function SynapseWebSocketService({
     await hass.socket.sendMessage({
       app_metadata: {
         app: internal.boot.application.name,
+        cleanup: config.synapse.ENTITY_CLEANUP_METHOD,
         device: synapse.device.getInfo(),
         hash: synapse.storage.hash(),
         hostname: hostname(),

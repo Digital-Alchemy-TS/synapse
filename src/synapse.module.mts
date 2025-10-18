@@ -121,9 +121,7 @@ export const LIB_SYNAPSE = CreateLibrary({
     },
     ENTITY_CLEANUP_METHOD: {
       default: "delete",
-      description: [
-        "Controls integration behavior for entities that do not currently exist in code",
-      ],
+      description: "Controls integration behavior for entities that do not currently exist in code",
       enum: ["abandon", "delete"],
       type: "string",
     } as StringConfig<"delete" | "abandon">,
