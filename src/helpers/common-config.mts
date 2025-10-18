@@ -1,16 +1,17 @@
-import { CronExpression, is, TBlackHole, TContext } from "@digital-alchemy/core";
-import {
+import type { CronExpression, TBlackHole, TContext } from "@digital-alchemy/core";
+import { is } from "@digital-alchemy/core";
+import type {
   ByIdProxy,
   ENTITY_STATE,
   PICK_ENTITY,
   RemoveCallback,
   TEntityUpdateCallback,
 } from "@digital-alchemy/hass";
-import { CamelCase } from "type-fest";
+import type { CamelCase } from "type-fest";
 
-import { CreateRemovableCallback, TEventMap } from "./base-domain.mts";
-import { TSynapseEntityStorage } from "./storage.mts";
-import { TSynapseDeviceId } from "./utility.mts";
+import type { CreateRemovableCallback, TEventMap } from "./base-domain.mts";
+import type { TSynapseEntityStorage } from "./storage.mts";
+import type { TSynapseDeviceId } from "./utility.mts";
 
 export type EntityConfigCommon<
   ATTRIBUTES extends object,

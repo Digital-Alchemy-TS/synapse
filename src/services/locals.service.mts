@@ -1,4 +1,5 @@
-import { InternalError, TServiceParams } from "@digital-alchemy/core";
+import type { TServiceParams } from "@digital-alchemy/core";
+import { InternalError } from "@digital-alchemy/core";
 
 import { EVENT_SYNAPSE_PULL_DB } from "../index.mts";
 

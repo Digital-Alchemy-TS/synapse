@@ -1,6 +1,6 @@
-import { EntityRegistryItem, HassEntitySetupMapping } from "@digital-alchemy/hass";
+import type { EntityRegistryItem, HassEntitySetupMapping } from "@digital-alchemy/hass";
 import { and, eq } from "drizzle-orm";
-import { MySql2Database } from "drizzle-orm/mysql2";
+import type { MySql2Database } from "drizzle-orm/mysql2";
 import { v4 } from "uuid";
 
 import { synapseTestRunner } from "../mock/mock-synapse.module.mts";

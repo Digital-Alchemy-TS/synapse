@@ -1,10 +1,10 @@
-import { TBlackHole, TContext } from "@digital-alchemy/core";
-import { TRawDomains } from "@digital-alchemy/hass";
+import type { TBlackHole, TContext } from "@digital-alchemy/core";
+import type { TRawDomains } from "@digital-alchemy/hass";
 import { createHash } from "crypto";
-import { EmptyObject } from "type-fest";
+import type { EmptyObject } from "type-fest";
 
-import { EntityConfigCommon, NonReactive } from "./common-config.mts";
-import { TSynapseId } from "./utility.mts";
+import type { EntityConfigCommon, NonReactive } from "./common-config.mts";
+import type { TSynapseId } from "./utility.mts";
 
 export type RemovableCallback<DATA extends unknown = unknown> = (
   data: DATA,

@@ -1,7 +1,7 @@
-import { TServiceParams } from "@digital-alchemy/core";
-import { ButtonDeviceClass, ByIdProxy, PICK_ENTITY } from "@digital-alchemy/hass";
+import type { TServiceParams } from "@digital-alchemy/core";
+import type { ButtonDeviceClass, ByIdProxy, PICK_ENTITY } from "@digital-alchemy/hass";
 
-import {
+import type {
   AddEntityOptions,
   BasicAddParams,
   CallbackData,

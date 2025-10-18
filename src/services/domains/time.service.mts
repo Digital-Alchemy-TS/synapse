@@ -1,8 +1,8 @@
-import { TServiceParams } from "@digital-alchemy/core";
-import { ByIdProxy, PICK_ENTITY } from "@digital-alchemy/hass";
+import type { TServiceParams } from "@digital-alchemy/core";
+import type { ByIdProxy, PICK_ENTITY } from "@digital-alchemy/hass";
 import dayjs from "dayjs";
 
-import {
+import type {
   AddEntityOptions,
   BasicAddParams,
   CallbackData,

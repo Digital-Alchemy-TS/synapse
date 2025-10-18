@@ -1,4 +1,4 @@
-import { TServiceParams } from "@digital-alchemy/core";
+import type { TServiceParams } from "@digital-alchemy/core";
 import { createHash } from "crypto";
 import fs from "fs";
 import { hostname } from "os";
@@ -6,7 +6,8 @@ import { dirname, join } from "path";
 import { cwd } from "process";
 import { fileURLToPath } from "url";
 
-import { HassDeviceMetadata, md5ToUUID, TSynapseDeviceId } from "../helpers/utility.mts";
+import type { HassDeviceMetadata, TSynapseDeviceId } from "../helpers/utility.mts";
+import { md5ToUUID } from "../helpers/utility.mts";
 
 const host = hostname();
 

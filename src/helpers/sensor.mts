@@ -1,7 +1,7 @@
-import { Dayjs } from "dayjs";
-import { Get } from "type-fest";
+import type { Dayjs } from "dayjs";
+import type { Get } from "type-fest";
 
-import { EntityConfigCommon, SettableConfiguration } from "./common-config.mts";
+import type { EntityConfigCommon, SettableConfiguration } from "./common-config.mts";
 
 // A helper type to check if a type is a union.
 // It works by checking if the type is "distributive" over itself.

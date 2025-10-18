@@ -1,5 +1,5 @@
-import { TContext } from "@digital-alchemy/core";
-import { ByIdProxy } from "@digital-alchemy/hass";
+import type { TContext } from "@digital-alchemy/core";
+import type { ByIdProxy } from "@digital-alchemy/hass";
 
 export type OnOff = "on" | "off" | "unavailable";
 

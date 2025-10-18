@@ -1,15 +1,16 @@
-import { TServiceParams } from "@digital-alchemy/core";
-import { ByIdProxy, PICK_ENTITY } from "@digital-alchemy/hass";
-import dayjs, { ConfigType, Dayjs } from "dayjs";
+import type { TServiceParams } from "@digital-alchemy/core";
+import type { ByIdProxy, PICK_ENTITY } from "@digital-alchemy/hass";
+import type { ConfigType, Dayjs } from "dayjs";
+import dayjs from "dayjs";
 
-import {
+import type {
   AddEntityOptions,
   BasicAddParams,
   CallbackData,
   SettableConfiguration,
-  SynapseEntityException,
   SynapseEntityProxy,
 } from "../../helpers/index.mts";
+import { SynapseEntityException } from "../../helpers/index.mts";
 
 export type DateTimeConfiguration<DATA extends object, DATE_TYPE extends TypeOptions = "iso"> = {
   /**

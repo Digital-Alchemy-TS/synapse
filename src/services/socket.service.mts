@@ -1,5 +1,6 @@
-import { SECOND, TServiceParams } from "@digital-alchemy/core";
-import { TUniqueId } from "@digital-alchemy/hass";
+import type { TServiceParams } from "@digital-alchemy/core";
+import { SECOND } from "@digital-alchemy/core";
+import type { TUniqueId } from "@digital-alchemy/hass";
 
 type HeartBeatPayload = {
   now: number;

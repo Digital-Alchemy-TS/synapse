@@ -2,7 +2,7 @@ import dayjs from "dayjs";
 import { v4 } from "uuid";
 
 import { synapseTestRunner } from "../../mock/index.mts";
-import { SynapseDateFormat } from "../../services/index.mts";
+import type { SynapseDateFormat } from "../../services/index.mts";
 
 describe("Date", () => {
   afterEach(() => vi.restoreAllMocks());
