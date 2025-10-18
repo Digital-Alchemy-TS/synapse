@@ -13,8 +13,6 @@ export function SynapseWebSocketService({
   internal,
 }: TServiceParams) {
   let goingOffline = false;
-  const getIdentifier = () => internal.boot.application.name;
-  const name = (a: string) => [config.synapse.EVENT_NAMESPACE, a, getIdentifier()].join("/");
 
   async function _emitHeartBeat() {
     const hash = synapse.storage.hash();
@@ -84,7 +82,11 @@ export function SynapseWebSocketService({
     } else {
       logger.warn({ data, name: send, unique_id }, `updating unregistered entity`);
     }
-    await hass.socket.fireEvent(name("update"), { data, unique_id });
+    await hass.socket.sendMessage({
+      data,
+      type: "synapse/patch_entity",
+      unique_id,
+    });
   }
 
   return {
