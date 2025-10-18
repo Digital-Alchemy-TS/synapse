@@ -1,6 +1,6 @@
-import { TServiceParams } from "@digital-alchemy/core";
+import type { TServiceParams } from "@digital-alchemy/core";
 
-import { SynapseDatabase } from "../../schema/common.mts";
+import type { SynapseDatabase } from "../../schema/common.mts";
 
 export async function DatabaseService({
   config,

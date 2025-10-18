@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-magic-numbers */
-import { SECOND, TServiceParams } from "@digital-alchemy/core";
+import type { TServiceParams } from "@digital-alchemy/core";
+import { SECOND } from "@digital-alchemy/core";
 
 export function DemoEntityGenerator({ scheduler, synapse, context, logger }: TServiceParams) {
   try {

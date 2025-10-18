@@ -1,6 +1,6 @@
-import { EntityRegistryItem, HassEntitySetupMapping } from "@digital-alchemy/hass";
+import type { EntityRegistryItem, HassEntitySetupMapping } from "@digital-alchemy/hass";
 import { and, eq } from "drizzle-orm";
-import { BetterSQLite3Database } from "drizzle-orm/better-sqlite3";
+import type { BetterSQLite3Database } from "drizzle-orm/better-sqlite3";
 import { v4 } from "uuid";
 
 import { synapseTestRunner } from "../mock/mock-synapse.module.mts";

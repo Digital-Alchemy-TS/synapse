@@ -1,8 +1,8 @@
-import { TServiceParams } from "@digital-alchemy/core";
-import { ByIdProxy, PICK_ENTITY } from "@digital-alchemy/hass";
-import { EmptyObject } from "type-fest";
+import type { TServiceParams } from "@digital-alchemy/core";
+import type { ByIdProxy, PICK_ENTITY } from "@digital-alchemy/hass";
+import type { EmptyObject } from "type-fest";
 
-import {
+import type {
   AddEntityOptions,
   BasicAddParams,
   CallbackData,

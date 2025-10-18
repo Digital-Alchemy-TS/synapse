@@ -1,6 +1,6 @@
-import { EntityRegistryItem, HassEntitySetupMapping } from "@digital-alchemy/hass";
+import type { EntityRegistryItem, HassEntitySetupMapping } from "@digital-alchemy/hass";
 import { and, eq } from "drizzle-orm";
-import { PostgresJsDatabase } from "drizzle-orm/postgres-js";
+import type { PostgresJsDatabase } from "drizzle-orm/postgres-js";
 import { v4 } from "uuid";
 
 import { synapseTestRunner } from "../mock/mock-synapse.module.mts";

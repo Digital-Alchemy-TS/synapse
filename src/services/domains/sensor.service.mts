@@ -1,7 +1,7 @@
-import { TServiceParams } from "@digital-alchemy/core";
-import { ByIdProxy, PICK_ENTITY } from "@digital-alchemy/hass";
+import type { TServiceParams } from "@digital-alchemy/core";
+import type { ByIdProxy, PICK_ENTITY } from "@digital-alchemy/hass";
 
-import {
+import type {
   AddEntityOptions,
   CallbackData,
   DateSensor,
@@ -9,9 +9,9 @@ import {
   ExtraSensorInfo,
   SensorConfiguration,
   SensorDeviceClasses,
-  SynapseEntityException,
   SynapseEntityProxy,
 } from "../../helpers/index.mts";
+import { SynapseEntityException } from "../../helpers/index.mts";
 
 export type SensorEvents = {
   //
