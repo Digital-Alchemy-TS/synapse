@@ -11,11 +11,10 @@ import {
   DatabaseService,
   DatabaseSQLiteService,
   DeviceService,
-  DiscoveryService,
   DomainGeneratorService,
   StorageService,
   SynapseLocalsService,
-  SynapseSocketService,
+  SynapseWebSocketService,
   VirtualBinarySensor,
   VirtualButton,
   VirtualDate,
@@ -120,6 +119,14 @@ export const LIB_SYNAPSE = CreateLibrary({
       ],
       type: "boolean",
     },
+    ENTITY_CLEANUP_METHOD: {
+      default: "delete",
+      description: [
+        "Controls integration behavior for entities that do not currently exist in code",
+      ],
+      enum: ["abandon", "delete"],
+      type: "string",
+    } as StringConfig<"delete" | "abandon">,
     EVENT_NAMESPACE: {
       default: "digital_alchemy",
       description: [
@@ -190,13 +197,6 @@ export const LIB_SYNAPSE = CreateLibrary({
     /**
      * @internal
      *
-     * Discovery features
-     */
-    discovery: DiscoveryService,
-
-    /**
-     * @internal
-     *
      * Used to assist creation of domains
      */
     generator: DomainGeneratorService,
@@ -211,7 +211,7 @@ export const LIB_SYNAPSE = CreateLibrary({
     /**
      * @internal
      */
-    socket: SynapseSocketService,
+    socket: SynapseWebSocketService,
     /**
      * @internal
      */
