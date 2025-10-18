@@ -12,18 +12,18 @@ export function DemoEntityGenerator({ scheduler, synapse, context, logger }: TSe
       sw_version: "1.0.0",
     });
 
-    // // Create a temperature sensor that updates every 30 seconds
-    // const temperatureSensor = synapse.sensor<{
-    //   device_class: "temperature";
-    // }>({
-    //   context,
-    //   device_class: "temperature",
-    //   device_id: demoDevice,
-    //   name: "Demo Temperature Sensor",
-    //   state: 22.5,
-    //   suggested_object_id: "demo_temperature_sensor",
-    //   unit_of_measurement: "°C",
-    // });
+    // Create a temperature sensor that updates every 30 seconds
+    const temperatureSensor = synapse.sensor<{
+      device_class: "temperature";
+    }>({
+      context,
+      device_class: "temperature",
+      device_id: demoDevice,
+      name: "Demo Temperature Sensor",
+      state: 22.5,
+      suggested_object_id: "demo_temperature_sensor",
+      unit_of_measurement: "°C",
+    });
 
     // // Create a binary sensor for demo purposes
     // const motionSensor = synapse.binary_sensor({
