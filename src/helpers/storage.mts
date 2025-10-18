@@ -1,8 +1,8 @@
-import { ENTITY_STATE, PICK_ENTITY, TRawDomains } from "@digital-alchemy/hass";
+import type { ENTITY_STATE, PICK_ENTITY, TRawDomains } from "@digital-alchemy/hass";
 
-import { AddEntityOptions, TSerialize } from "./base-domain.mts";
-import { EntityConfigCommon, Updatable } from "./common-config.mts";
-import { TSynapseId } from "./utility.mts";
+import type { AddEntityOptions, TSerialize } from "./base-domain.mts";
+import type { EntityConfigCommon, Updatable } from "./common-config.mts";
+import type { TSynapseId } from "./utility.mts";
 
 export type TSynapseEntityStorage<CONFIGURATION extends object = object> = {
   unique_id: TSynapseId;

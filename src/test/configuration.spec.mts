@@ -1,5 +1,5 @@
-import { TServiceParams } from "@digital-alchemy/core";
-import { DeviceDetails, HassConfig } from "@digital-alchemy/hass";
+import type { TServiceParams } from "@digital-alchemy/core";
+import type { DeviceDetails, HassConfig } from "@digital-alchemy/hass";
 import { v4 } from "uuid";
 
 import { synapseTestRunner } from "../mock/index.mts";

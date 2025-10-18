@@ -1,7 +1,7 @@
-import { TServiceParams } from "@digital-alchemy/core";
-import { Dayjs } from "dayjs";
+import type { TServiceParams } from "@digital-alchemy/core";
+import type { Dayjs } from "dayjs";
 
-import {
+import type {
   AddEntityOptions,
   BasicAddParams,
   CallbackData,

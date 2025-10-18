@@ -1,6 +1,6 @@
-import { TServiceParams } from "@digital-alchemy/core";
+import type { TServiceParams } from "@digital-alchemy/core";
 
-import { AddEntityOptions, BasicAddParams, CallbackData } from "../../helpers/index.mts";
+import type { AddEntityOptions, BasicAddParams, CallbackData } from "../../helpers/index.mts";
 
 export type NotifyConfiguration = {
   //

@@ -1,7 +1,7 @@
-import { TServiceParams } from "@digital-alchemy/core";
-import { ValveDeviceClass } from "@digital-alchemy/hass";
+import type { TServiceParams } from "@digital-alchemy/core";
+import type { ValveDeviceClass } from "@digital-alchemy/hass";
 
-import {
+import type {
   AddEntityOptions,
   BasicAddParams,
   CallbackData,

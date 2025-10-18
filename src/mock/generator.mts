@@ -1,5 +1,6 @@
 /* eslint-disable sonarjs/pseudo-random */
-import { SECOND, TServiceParams } from "@digital-alchemy/core";
+import type { TServiceParams } from "@digital-alchemy/core";
+import { SECOND } from "@digital-alchemy/core";
 
 type LocalData = {
   foo: number;

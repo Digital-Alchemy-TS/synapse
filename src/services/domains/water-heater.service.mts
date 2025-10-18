@@ -1,12 +1,12 @@
-import { TServiceParams } from "@digital-alchemy/core";
+import type { TServiceParams } from "@digital-alchemy/core";
 
-import {
+import type {
   AddEntityOptions,
   BasicAddParams,
   CallbackData,
   SettableConfiguration,
 } from "../../helpers/index.mts";
-import { DateConfiguration } from "./date.service.mts";
+import type { DateConfiguration } from "./date.service.mts";
 
 export type WaterHeaterConfiguration<DATA extends object, OPERATIONS extends string = string> = {
   /**

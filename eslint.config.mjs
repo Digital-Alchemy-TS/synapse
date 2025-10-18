@@ -65,6 +65,7 @@ export default [
       "@typescript-eslint/no-floating-promises": "error",
       "unicorn/no-null": "off",
       "sonarjs/no-empty-function": "off",
+      "@typescript-eslint/consistent-type-imports": "error",
       "sonarjs/no-unused-expressions": "off",
       "@typescript-eslint/no-unused-expressions": "off",
       "unicorn/no-empty-file": "off",

@@ -1,4 +1,4 @@
-import { TServiceParams } from "@digital-alchemy/core";
+import type { TServiceParams } from "@digital-alchemy/core";
 import { createHash } from "crypto";
 import { hostname, userInfo } from "os";
 

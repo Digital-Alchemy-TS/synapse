@@ -1,4 +1,5 @@
-import { CreateLibrary, createModule, StringConfig } from "@digital-alchemy/core";
+import type { StringConfig } from "@digital-alchemy/core";
+import { CreateLibrary, createModule } from "@digital-alchemy/core";
 import { LIB_HASS } from "@digital-alchemy/hass";
 import { LIB_MOCK_ASSISTANT } from "@digital-alchemy/hass/mock-assistant";
 
