@@ -4,7 +4,7 @@ import { LIB_HASS } from "@digital-alchemy/hass";
 import { join } from "path";
 import { cwd } from "process";
 
-import type { HassDeviceMetadata } from "./helpers/index.mts";
+import type { CleanupModes, HassDeviceMetadata } from "./helpers/index.mts";
 import {
   ConfigurationService,
   DatabaseMySQLService,
@@ -125,7 +125,7 @@ export const LIB_SYNAPSE = CreateLibrary({
       description: "Controls integration behavior for entities that do not currently exist in code",
       enum: ["abandon", "delete"],
       type: "string",
-    } as StringConfig<"delete" | "abandon">,
+    } as StringConfig<CleanupModes>,
     EVENT_NAMESPACE: {
       default: "digital_alchemy",
       description: [

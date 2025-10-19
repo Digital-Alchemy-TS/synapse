@@ -50,7 +50,15 @@ export function DemoEntityGenerator({ scheduler, synapse, context, logger }: TSe
           logger.error("turn_on");
         },
       });
+      // Set up button press callback
+      demoButton.onPress(() => {
+        logger.info("Demo button onPress callback triggered");
+        // Toggle the switch when button is pressed
+        const currentState = demoSwitch.is_on || false;
+        demoSwitch.is_on = !currentState;
+      });
     }, 10 * SECOND);
+
     // Create a button that logs when pressed
     const demoButton = synapse.button({
       context,
@@ -61,6 +69,11 @@ export function DemoEntityGenerator({ scheduler, synapse, context, logger }: TSe
         logger.info("Demo button pressed!");
       },
       suggested_object_id: "demo_button",
+    });
+
+    demoButton.onPress(async () => {
+      const list = await synapse.socket.listAbandonedEntities();
+      logger.error({ list }, "listAbandonedEntities");
     });
 
     // Set up periodic updates to simulate real device behavior
@@ -78,16 +91,8 @@ export function DemoEntityGenerator({ scheduler, synapse, context, logger }: TSe
         motionSensor.is_on = !motionSensor.is_on;
       }
 
-      logger.debug("Updated demo entities", { temperature: newTemp });
+      logger.debug({ temperature: newTemp }, "Updated demo entities");
     }, 5 * SECOND);
-
-    // // Set up button press callback
-    // demoButton.onPress(() => {
-    //   logger.info("Demo button onPress callback triggered");
-    //   // Toggle the switch when button is pressed
-    //   const currentState = demoSwitch.is_on || false;
-    //   demoSwitch.is_on = !currentState;
-    // });
 
     logger.info("Demo entity generation completed successfully");
   } catch (error) {

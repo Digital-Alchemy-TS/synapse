@@ -34,7 +34,7 @@ await DEMO_APP.bootstrap({
   configuration: {
     boilerplate: { LOG_LEVEL: "debug" },
     synapse: {
-      // ENTITY_CLEANUP_METHOD: "abandon",
+      ENTITY_CLEANUP_METHOD: "abandon",
       METADATA: {
         hw_version: "1.0.0",
         manufacturer: "Digital Alchemy",

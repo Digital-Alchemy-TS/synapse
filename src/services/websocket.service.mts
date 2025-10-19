@@ -3,6 +3,8 @@ import { SECOND } from "@digital-alchemy/core";
 import type { TUniqueId } from "@digital-alchemy/hass";
 import { hostname, userInfo } from "os";
 
+import type { AbandonedEntityResponse } from "../index.mts";
+
 export function SynapseWebSocketService({
   logger,
   lifecycle,
@@ -23,7 +25,7 @@ export function SynapseWebSocketService({
     });
   }
 
-  async function _registerApp() {
+  async function sendRegistration(type: string) {
     await hass.socket.sendMessage({
       app_metadata: {
         app: internal.boot.application.name,
@@ -36,7 +38,7 @@ export function SynapseWebSocketService({
         username: userInfo().username,
         ...synapse.storage.dump(),
       },
-      type: "synapse/register",
+      type,
       unique_id: config.synapse.METADATA_UNIQUE_ID,
     });
   }
@@ -47,12 +49,16 @@ export function SynapseWebSocketService({
       async () => await _emitHeartBeat(),
       config.synapse.HEARTBEAT_INTERVAL * SECOND,
     );
+    hass.socket.registerMessageHandler("synapse/request_configuration", async () => {
+      logger.info("resending registration");
+      void sendRegistration("synapse/update_configuration");
+    });
   });
 
   // * onConnect
   hass.socket.onConnect(async () => {
     logger.debug("sending application registration");
-    await _registerApp();
+    await sendRegistration("synapse/register");
   });
 
   lifecycle.onPreShutdown(async () => {
@@ -62,6 +68,20 @@ export function SynapseWebSocketService({
     });
     goingOffline = true;
   });
+
+  async function listAbandonedEntities() {
+    if (config.synapse.ENTITY_CLEANUP_METHOD === "delete") {
+      logger.error(
+        { ENTITY_CLEANUP_METHOD: config.synapse.ENTITY_CLEANUP_METHOD },
+        "cannot list abandoned entities",
+      );
+      return [];
+    }
+    const result = await hass.socket.sendMessage<AbandonedEntityResponse>({
+      type: "synapse/abandoned_entities",
+    });
+    return result.abandoned_entities;
+  }
 
   async function send(unique_id: string, data: object): Promise<void> {
     if (goingOffline) {
@@ -91,7 +111,8 @@ export function SynapseWebSocketService({
 
   return {
     _emitHeartBeat,
-    _registerApp,
+    listAbandonedEntities,
     send,
+    sendRegistration,
   };
 }
