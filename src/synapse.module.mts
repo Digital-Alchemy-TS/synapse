@@ -4,7 +4,7 @@ import { LIB_HASS } from "@digital-alchemy/hass";
 import { join } from "path";
 import { cwd } from "process";
 
-import type { HassDeviceMetadata } from "./helpers/index.mts";
+import type { CleanupModes, HassDeviceMetadata } from "./helpers/index.mts";
 import {
   ConfigurationService,
   DatabaseMySQLService,
@@ -12,11 +12,10 @@ import {
   DatabaseService,
   DatabaseSQLiteService,
   DeviceService,
-  DiscoveryService,
   DomainGeneratorService,
   StorageService,
   SynapseLocalsService,
-  SynapseSocketService,
+  SynapseWebSocketService,
   VirtualBinarySensor,
   VirtualButton,
   VirtualDate,
@@ -121,6 +120,12 @@ export const LIB_SYNAPSE = CreateLibrary({
       ],
       type: "boolean",
     },
+    ENTITY_CLEANUP_METHOD: {
+      default: "delete",
+      description: "Controls integration behavior for entities that do not currently exist in code",
+      enum: ["abandon", "delete"],
+      type: "string",
+    } as StringConfig<CleanupModes>,
     EVENT_NAMESPACE: {
       default: "digital_alchemy",
       description: [
@@ -191,13 +196,6 @@ export const LIB_SYNAPSE = CreateLibrary({
     /**
      * @internal
      *
-     * Discovery features
-     */
-    discovery: DiscoveryService,
-
-    /**
-     * @internal
-     *
      * Used to assist creation of domains
      */
     generator: DomainGeneratorService,
@@ -212,7 +210,7 @@ export const LIB_SYNAPSE = CreateLibrary({
     /**
      * @internal
      */
-    socket: SynapseSocketService,
+    socket: SynapseWebSocketService,
     /**
      * @internal
      */

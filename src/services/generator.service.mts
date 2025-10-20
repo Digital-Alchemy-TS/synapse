@@ -12,7 +12,6 @@ import type {
 
 import type {
   AddEntityOptions,
-  BaseEvent,
   CreateRemovableCallback,
   DomainGeneratorOptions,
   EntityConfigCommon,
@@ -24,15 +23,13 @@ import type {
 } from "../helpers/index.mts";
 import { formatObjectId, generateHash } from "../helpers/index.mts";
 
-export function DomainGeneratorService({
-  logger,
-  internal,
-  synapse,
-  event,
-  hass,
-  context,
-  config,
-}: TServiceParams) {
+type TransferResponse = {
+  event: Record<string, unknown> & { unique_id: string };
+  type: string;
+  unique_id: string;
+};
+
+export function DomainGeneratorService({ logger, internal, synapse, event, hass }: TServiceParams) {
   const { is } = internal.utils;
   // #MARK: removableListener
   function removableListener<DATA extends object>(
@@ -60,14 +57,9 @@ export function DomainGeneratorService({
       }
       logger.trace({ name }, "set up bus transfer");
       registeredEvents.add(name);
-      hass.socket.onEvent({
-        context,
-        event: [config.synapse.EVENT_NAMESPACE, name, getIdentifier()].join("/"),
-        exec: ({ data }: BaseEvent) => {
-          logger.trace({ data, name }, `receive`);
-          const target = `synapse/${name}/${data.unique_id}`;
-          event.emit(target, data);
-        },
+      hass.socket.registerMessageHandler<TransferResponse>(`synapse/${name}`, data => {
+        logger.trace({ data, name }, `receive`);
+        event.emit(`synapse/${name}/${data.event.unique_id}`, data.event);
       });
     });
   }
