@@ -34,6 +34,18 @@ export function SynapseWebSocketService({
         hash: synapse.storage.hash(),
         hostname: hostname(),
         secondary_devices: synapse.device.list(),
+        service: [
+          {
+            description: "Restart a specific device",
+            fields: {
+              device_id: { required: true, type: "string" },
+              // foo: { type: "string" },
+              force: { required: false, type: "boolean" },
+            },
+            name: "restart_device",
+            unique_id: "restart_device_001",
+          },
+        ],
         title: config.synapse.METADATA_TITLE,
         username: userInfo().username,
         ...synapse.storage.dump(),
@@ -52,6 +64,9 @@ export function SynapseWebSocketService({
     hass.socket.registerMessageHandler("synapse/request_configuration", async () => {
       logger.info("resending registration");
       void sendRegistration("synapse/update_configuration");
+    });
+    hass.socket.registerMessageHandler("synapse/service_call", async data => {
+      logger.error({ data }, `received data`);
     });
   });
 
