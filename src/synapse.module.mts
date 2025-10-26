@@ -113,6 +113,12 @@ export const LIB_SYNAPSE = CreateLibrary({
       description: "Database connection URL",
       type: "string",
     },
+    DEFAULT_SERVICE_DOMAIN: {
+      default: "synapse",
+      description:
+        "The default domain to apply when generating services (can be overridden per-service).",
+      type: "string",
+    },
     EMIT_HEARTBEAT: {
       default: true,
       description: [
