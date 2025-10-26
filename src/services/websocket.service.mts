@@ -1,6 +1,6 @@
 import type { TServiceParams } from "@digital-alchemy/core";
 import { SECOND } from "@digital-alchemy/core";
-import type { TUniqueId } from "@digital-alchemy/hass";
+import type { ServiceListField, TUniqueId } from "@digital-alchemy/hass";
 import { hostname, userInfo } from "os";
 
 import type { AbandonedEntityResponse } from "../index.mts";
@@ -15,6 +15,7 @@ export function SynapseWebSocketService({
   internal,
 }: TServiceParams) {
   let goingOffline = false;
+  const SERVICE_REGISTRY = new Map<string, ServiceListField>();
 
   async function _emitHeartBeat() {
     const hash = synapse.storage.hash();
@@ -34,18 +35,7 @@ export function SynapseWebSocketService({
         hash: synapse.storage.hash(),
         hostname: hostname(),
         secondary_devices: synapse.device.list(),
-        service: [
-          {
-            description: "Restart a specific device",
-            fields: {
-              device_id: { required: true, type: "string" },
-              // foo: { type: "string" },
-              force: { required: false, type: "boolean" },
-            },
-            name: "restart_device",
-            unique_id: "restart_device_001",
-          },
-        ],
+        service: [...SERVICE_REGISTRY.values()],
         title: config.synapse.METADATA_TITLE,
         username: userInfo().username,
         ...synapse.storage.dump(),
@@ -125,6 +115,7 @@ export function SynapseWebSocketService({
   }
 
   return {
+    SERVICE_REGISTRY,
     _emitHeartBeat,
     listAbandonedEntities,
     send,

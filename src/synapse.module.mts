@@ -13,6 +13,7 @@ import {
   DatabaseSQLiteService,
   DeviceService,
   DomainGeneratorService,
+  ServiceService,
   StorageService,
   SynapseLocalsService,
   SynapseWebSocketService,
@@ -206,6 +207,11 @@ export const LIB_SYNAPSE = CreateLibrary({
      * Used to power `synapseEntity.locals`
      */
     locals: SynapseLocalsService,
+
+    /**
+     * lol
+     */
+    service: ServiceService,
 
     /**
      * @internal

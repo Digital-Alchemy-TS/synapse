@@ -34,6 +34,62 @@ export function DemoEntityGenerator({ scheduler, synapse, context, logger }: TSe
       suggested_object_id: "demo_motion_sensor",
     });
 
+    synapse.service(
+      {
+        context,
+        name: "",
+        schema: {
+          description: "Created via synapse generator",
+          fields: {
+            delay: {
+              default: 0,
+              description: "Delay in seconds",
+              required: true,
+              selector: {
+                number: {
+                  max: 300,
+                  min: 0,
+                  step: 1,
+                  unit_of_measurement: "s",
+                },
+              },
+            },
+            message: {
+              description: "Message to send",
+              required: true,
+              selector: {
+                text: {
+                  multiline: true,
+                },
+              },
+            },
+            target_entity: {
+              description: "Entity to target",
+              required: false,
+              selector: {
+                entity: {
+                  // filter: {
+                  //   domain: "binary_sensor",
+                  // },
+                },
+              },
+            },
+          },
+          response: {
+            optional: true,
+          },
+          target: {
+            entity: {
+              domain: "sensor",
+            },
+          },
+        },
+      },
+      () => {
+        //
+      },
+    );
+
     // Create a switch that can be controlled
     // setTimeout(() => {
     //   logger.warn("CREATE");

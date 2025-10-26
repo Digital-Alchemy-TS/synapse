@@ -4,5 +4,6 @@ export * from "./device.service.mts";
 export * from "./domains/index.mts";
 export * from "./generator.service.mts";
 export * from "./locals.service.mts";
+export * from "./service.service.mts";
 export * from "./storage.service.mts";
 export * from "./websocket.service.mts";
