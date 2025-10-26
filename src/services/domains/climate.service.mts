@@ -148,7 +148,6 @@ export function VirtualClimate({ context, synapse }: TServiceParams) {
       "set_temperature",
     ],
     context,
-    // @ts-expect-error it's fine
     domain: "climate",
     load_config_keys: [
       "current_humidity",

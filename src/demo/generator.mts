@@ -34,30 +34,84 @@ export function DemoEntityGenerator({ scheduler, synapse, context, logger }: TSe
       suggested_object_id: "demo_motion_sensor",
     });
 
-    // Create a switch that can be controlled
-    setTimeout(() => {
-      logger.warn("CREATE");
-      const demoSwitch = synapse.switch({
+    synapse.service(
+      {
         context,
-        device_id: demoDevice,
-        is_on: false,
-        name: "Demo Switch",
-        suggested_object_id: "demo_switch",
-        turn_off() {
-          logger.error("turn_off");
+        description: "No description",
+        fields: {
+          delay: {
+            default: 0,
+            description: "Delay in seconds",
+            required: true,
+            selector: {
+              number: {
+                max: 300,
+                min: 0,
+                step: 1,
+                unit_of_measurement: "s",
+              },
+            },
+          },
+          message: {
+            description: "Message to send",
+            required: true,
+            selector: {
+              text: {
+                multiline: true,
+              },
+            },
+          },
+          target_entity: {
+            description: "Entity to target",
+            required: false,
+            selector: {
+              entity: {
+                // filter: {
+                //   domain: "binary_sensor",
+                // },
+              },
+            },
+          },
         },
-        turn_on() {
-          logger.error("turn_on");
+        name: "test_service",
+        response: {
+          optional: true,
         },
-      });
-      // Set up button press callback
-      demoButton.onPress(() => {
-        logger.info("Demo button onPress callback triggered");
-        // Toggle the switch when button is pressed
-        const currentState = demoSwitch.is_on || false;
-        demoSwitch.is_on = !currentState;
-      });
-    }, 10 * SECOND);
+        target: {
+          entity: {
+            domain: "sensor",
+          },
+        },
+      },
+      async data => {
+        logger.warn({ data }, "HIT");
+      },
+    );
+
+    // Create a switch that can be controlled
+    // setTimeout(() => {
+    //   logger.warn("CREATE");
+    //   const demoSwitch = synapse.switch({
+    //     context,
+    //     device_id: demoDevice,
+    //     is_on: false,
+    //     name: "Demo Switch",
+    //     suggested_object_id: "demo_switch",
+    //     turn_off() {
+    //       logger.error("turn_off");
+    //     },
+    //     turn_on() {
+    //       logger.error("turn_on");
+    //     },
+    //   });
+    //   // Set up button press callback
+    //   demoButton.onPress(() => {
+    //     logger.info("Demo button onPress callback triggered");
+    //     // Toggle the switch when button is pressed
+    //     const currentState = demoSwitch.is_on || false;
+    //     demoSwitch.is_on = !currentState;
+    //   });
+    // }, 10 * SECOND);
 
     // Create a button that logs when pressed
     const demoButton = synapse.button({

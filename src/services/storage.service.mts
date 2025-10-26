@@ -1,13 +1,5 @@
 import type { TServiceParams } from "@digital-alchemy/core";
-import {
-  CronExpression,
-  debounce,
-  DOWN,
-  HALF,
-  InternalError,
-  SECOND,
-  UP,
-} from "@digital-alchemy/core";
+import { CronExpression, debounce, HALF, InternalError, SECOND } from "@digital-alchemy/core";
 import type { TRawDomains, TUniqueId } from "@digital-alchemy/hass";
 
 import type {
@@ -237,9 +229,11 @@ export function StorageService({
       registry.get(id as TSynapseId) as unknown as TSynapseEntityStorage<CONFIGURATION>,
     hash: () =>
       generateHash(
-        [...registry.keys(), ...synapse.device.idList()]
-          .toSorted((a, b) => (a > b ? UP : DOWN))
-          .join("|"),
+        JSON.stringify({
+          devices: [...synapse.device.idList()],
+          registry: [...registry.keys()],
+          services: [...synapse.socket.SERVICE_REGISTRY.keys()],
+        }),
       ),
   };
 }
