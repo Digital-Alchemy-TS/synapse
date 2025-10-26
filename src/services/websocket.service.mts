@@ -1,21 +1,34 @@
-import type { TServiceParams } from "@digital-alchemy/core";
+import type { TContext, TServiceParams } from "@digital-alchemy/core";
 import { SECOND } from "@digital-alchemy/core";
 import type { ServiceListField, TUniqueId } from "@digital-alchemy/hass";
 import { hostname, userInfo } from "os";
 
-import type { AbandonedEntityResponse } from "../index.mts";
+import { type AbandonedEntityResponse, SERVICE_CALL_EVENT } from "../index.mts";
+
+type ServiceRegistryData = {
+  context: TContext;
+  schema: ServiceListField;
+};
+type ServiceCallData = {
+  id: `service_call_${number}`;
+  service_data: {};
+  service_name: string;
+  service_unique_id: string;
+  type: "synapse/service/call";
+};
 
 export function SynapseWebSocketService({
   logger,
   lifecycle,
   hass,
   scheduler,
+  event,
   config,
   synapse,
   internal,
 }: TServiceParams) {
   let goingOffline = false;
-  const SERVICE_REGISTRY = new Map<string, ServiceListField>();
+  const SERVICE_REGISTRY = new Map<string, ServiceRegistryData>();
 
   async function _emitHeartBeat() {
     const hash = synapse.storage.hash();
@@ -55,9 +68,15 @@ export function SynapseWebSocketService({
       logger.info("resending registration");
       void sendRegistration("synapse/update_configuration");
     });
-    hass.socket.registerMessageHandler("synapse/service_call", async data => {
-      logger.error({ data }, `received data`);
-    });
+
+    hass.socket.registerMessageHandler<ServiceCallData>(
+      "synapse/service_call",
+      async ({ service_data, service_name }) => {
+        const evt = SERVICE_CALL_EVENT(service_name);
+        logger.warn({ evt, name: service_name, service_data }, `received service call`);
+        event.emit(evt, service_data);
+      },
+    );
   });
 
   // * onConnect
@@ -114,9 +133,14 @@ export function SynapseWebSocketService({
     });
   }
 
+  async function hashUpdateEvent() {
+    //
+  }
+
   return {
     SERVICE_REGISTRY,
     _emitHeartBeat,
+    hashUpdateEvent,
     listAbandonedEntities,
     send,
     sendRegistration,

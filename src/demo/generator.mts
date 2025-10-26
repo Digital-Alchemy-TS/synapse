@@ -37,9 +37,9 @@ export function DemoEntityGenerator({ scheduler, synapse, context, logger }: TSe
     synapse.service(
       {
         context,
-        name: "",
+        name: "test_service",
         schema: {
-          description: "Created via synapse generator",
+          description: "Created via synapse generator asdf",
           fields: {
             delay: {
               default: 0,
@@ -85,8 +85,8 @@ export function DemoEntityGenerator({ scheduler, synapse, context, logger }: TSe
           },
         },
       },
-      () => {
-        //
+      async data => {
+        logger.warn({ data }, "HIT");
       },
     );
 

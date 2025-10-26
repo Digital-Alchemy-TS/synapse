@@ -10,6 +10,8 @@ export type SynapseServiceCreateOptions<SCHEMA extends SynapseServiceListField> 
   schema: SCHEMA;
 };
 
-export type SynapseServiceCreateCallback = () => void | Promise<void>;
+export type SynapseServiceCreateCallback = (data: Record<string, unknown>) => void | Promise<void>;
 
 export type SynapseServiceListField = Omit<ServiceListField, "name">;
+
+export const SERVICE_CALL_EVENT = (event_name: string) => `synapse/service_call/${event_name}`;
