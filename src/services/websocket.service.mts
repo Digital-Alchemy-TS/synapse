@@ -21,6 +21,7 @@ export function SynapseWebSocketService({
   hass,
   scheduler,
   event,
+  context,
   config,
   synapse,
   internal,
@@ -83,6 +84,25 @@ export function SynapseWebSocketService({
   hass.socket.onConnect(async () => {
     logger.debug("sending application registration");
     await sendRegistration("synapse/register");
+  });
+
+  hass.socket.onEvent({
+    context,
+    event: "synapse/discovery",
+    exec() {
+      // Only respond if not already registered
+      if (synapse.configure.isRegistered()) {
+        logger.trace("skipping discovery response: already registered");
+        return;
+      }
+
+      logger.debug("responding to discovery request");
+      void hass.socket.fireEvent("synapse/identify", {
+        app: internal.boot.application.name,
+        title: config.synapse.METADATA_TITLE,
+        unique_id: config.synapse.METADATA_UNIQUE_ID,
+      });
+    },
   });
 
   lifecycle.onPreShutdown(async () => {
