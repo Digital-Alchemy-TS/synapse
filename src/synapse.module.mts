@@ -158,6 +158,12 @@ export const LIB_SYNAPSE = CreateLibrary({
       description: ["A string to uniquely identify this application", "Should be uuid or md5 sum"],
       type: "string",
     },
+    REBUILD_ON_ENTITY_CHANGE: {
+      default: false,
+      description:
+        "If part of the entity config changes, reset entity data and treat as brand new entity",
+      type: "boolean",
+    },
     TRACE_SIBLING_HEARTBEATS: {
       default: false,
       description: [

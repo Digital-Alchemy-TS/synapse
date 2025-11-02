@@ -357,6 +357,106 @@ describe("load", () => {
       vi.restoreAllMocks();
     });
   });
+
+  it("should return existing entity without reset when REBUILD_ON_ENTITY_CHANGE is false and defaults differ", async () => {
+    expect.assertions(3);
+    const unique_id = v4();
+    const initialDefaults = { status: "initial", value: 10 };
+    const newDefaults = { status: "new", value: 20 };
+
+    await testRunner()
+      .configure({
+        synapse: {
+          REBUILD_ON_ENTITY_CHANGE: false,
+        },
+      })
+      .run(async ({ synapse, config }) => {
+        // First call to load to create entity with initial defaults
+        const firstResult = await synapse.db_postgres.load(unique_id, initialDefaults);
+        expect(firstResult?.base_state).toBe(JSON.stringify(initialDefaults));
+
+        // Second call with different defaults - should return existing data without reset
+        const secondResult = await synapse.db_postgres.load(unique_id, newDefaults);
+
+        // Should return the existing entity with original defaults, not new ones
+        expect(secondResult?.base_state).toBe(JSON.stringify(initialDefaults));
+
+        // Verify database still has original defaults
+        const database = synapse.db_postgres.getDatabase() as PostgresJsDatabase;
+        const rows = await database
+          .select()
+          .from(pgHomeAssistantEntity)
+          .where(
+            and(
+              eq(pgHomeAssistantEntity.unique_id, unique_id),
+              eq(pgHomeAssistantEntity.app_unique_id, config.synapse.METADATA_UNIQUE_ID),
+            ),
+          );
+
+        expect(rows[0].base_state).toBe(JSON.stringify(initialDefaults));
+      });
+  });
+
+  it("should reset entity when REBUILD_ON_ENTITY_CHANGE is true and defaults differ", async () => {
+    expect.assertions(3);
+    const unique_id = v4();
+    const initialDefaults = { status: "initial", value: 10 };
+    const newDefaults = { status: "new", value: 20 };
+
+    await testRunner()
+      .configure({
+        synapse: {
+          REBUILD_ON_ENTITY_CHANGE: true,
+        },
+      })
+      .run(async ({ synapse, config }) => {
+        // First call to load to create entity with initial defaults
+        const firstResult = await synapse.db_postgres.load(unique_id, initialDefaults);
+        expect(firstResult?.base_state).toBe(JSON.stringify(initialDefaults));
+
+        // Second call with different defaults - should reset entity
+        const secondResult = await synapse.db_postgres.load(unique_id, newDefaults);
+
+        // Should return entity with new defaults
+        expect(secondResult?.base_state).toBe(JSON.stringify(newDefaults));
+
+        // Verify database has new defaults
+        const database = synapse.db_postgres.getDatabase() as PostgresJsDatabase;
+        const rows = await database
+          .select()
+          .from(pgHomeAssistantEntity)
+          .where(
+            and(
+              eq(pgHomeAssistantEntity.unique_id, unique_id),
+              eq(pgHomeAssistantEntity.app_unique_id, config.synapse.METADATA_UNIQUE_ID),
+            ),
+          );
+
+        expect(rows[0].base_state).toBe(JSON.stringify(newDefaults));
+      });
+  });
+
+  it("should create new entity when REBUILD_ON_ENTITY_CHANGE is false and entity doesn't exist", async () => {
+    expect.assertions(3);
+    const unique_id = v4();
+    const defaults = { status: "default", value: 0 };
+
+    await testRunner()
+      .configure({
+        synapse: {
+          REBUILD_ON_ENTITY_CHANGE: false,
+        },
+      })
+      .run(async ({ synapse }) => {
+        // Try to load an entity that doesn't exist
+        const result = await synapse.db_postgres.load(unique_id, defaults);
+
+        // Should still create the entity when it doesn't exist
+        expect(result).toBeDefined();
+        expect(result?.unique_id).toBe(unique_id);
+        expect(result?.base_state).toBe(JSON.stringify(defaults));
+      });
+  });
 });
 
 describe("locals", () => {

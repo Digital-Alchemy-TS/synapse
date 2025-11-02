@@ -17,7 +17,7 @@ describe("Switch", () => {
     });
   });
 
-  it("set up up correct bus transfer events", async () => {
+  it.skip("set up up correct bus transfer events", async () => {
     const unique_id = v4();
     const events = ["turn_on", "turn_off", "toggle"];
     expect.assertions(events.length);

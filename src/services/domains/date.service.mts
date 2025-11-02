@@ -137,21 +137,21 @@ export function VirtualDate({ context, synapse, logger }: TServiceParams) {
   ): SynapseDate<DATE_TYPE, PARAMS["attributes"], PARAMS["locals"], DATA> {
     const { managed = true, ...entityOptions } = options;
 
-    // // Set default value based on date_type
-    // if (!entityOptions.native_value) {
-    //   const now = dayjs();
-    //   switch (entityOptions.date_type) {
-    //     case "dayjs":
-    //       entityOptions.native_value = now as CallbackType<DATE_TYPE>;
-    //       break;
-    //     case "date":
-    //       entityOptions.native_value = now.toDate() as CallbackType<DATE_TYPE>;
-    //       break;
-    //     default:
-    //       entityOptions.native_value = now.format(FORMAT) as CallbackType<DATE_TYPE>;
-    //       break;
-    //   }
-    // }
+    // Set default value based on date_type
+    if (!entityOptions.native_value) {
+      const now = dayjs();
+      switch (entityOptions.date_type) {
+        case "dayjs":
+          entityOptions.native_value = now as CallbackType<DATE_TYPE>;
+          break;
+        case "date":
+          entityOptions.native_value = now.toDate() as CallbackType<DATE_TYPE>;
+          break;
+        default:
+          entityOptions.native_value = now.format(FORMAT) as CallbackType<DATE_TYPE>;
+          break;
+      }
+    }
 
     // @ts-expect-error it's fine
     const entity = generate.addEntity<PARAMS["attributes"], PARAMS["locals"], DATA>(entityOptions);

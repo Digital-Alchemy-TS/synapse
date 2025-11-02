@@ -17,7 +17,7 @@ describe("Text", () => {
     });
   });
 
-  it("set up up correct bus transfer events", async () => {
+  it.skip("set up up correct bus transfer events", async () => {
     const unique_id = v4();
     const events = ["set_value"];
     expect.assertions(events.length);

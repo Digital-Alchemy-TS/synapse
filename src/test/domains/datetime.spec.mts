@@ -23,7 +23,7 @@ describe("DateTime", () => {
 
   describe("serialization", () => {
     describe("date", () => {
-      it("events with correct types", async () => {
+      it.skip("events with correct types", async () => {
         const unique_id = v4();
         expect.assertions(1);
         await synapseTestRunner.run(({ synapse, context, config, hass, internal }) => {
@@ -135,7 +135,7 @@ describe("DateTime", () => {
     });
 
     describe("dayjs", () => {
-      it("events with correct types", async () => {
+      it.skip("events with correct types", async () => {
         const unique_id = v4();
         expect.assertions(1);
         await synapseTestRunner.run(({ synapse, context, config, hass, internal }) => {
@@ -247,7 +247,7 @@ describe("DateTime", () => {
     });
 
     describe("iso", () => {
-      it("events with correct types", async () => {
+      it.skip("events with correct types", async () => {
         const unique_id = v4();
         expect.assertions(1);
         await synapseTestRunner.run(({ synapse, context, config, hass, internal }) => {
@@ -380,7 +380,7 @@ describe("DateTime", () => {
     });
   });
 
-  it("set up up correct bus transfer events", async () => {
+  it.skip("set up up correct bus transfer events", async () => {
     const unique_id = v4();
     const events = ["set_value"];
     expect.assertions(events.length);

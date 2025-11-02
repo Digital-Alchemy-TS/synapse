@@ -153,6 +153,16 @@ export function DatabaseMySQLService({
   ): Promise<HomeAssistantEntityRow<LOCALS>> {
     try {
       const data = await loadRow<LOCALS>(unique_id);
+
+      // If entity exists and REBUILD_ON_ENTITY_CHANGE is false, always return existing data
+      if (data && !config.synapse.REBUILD_ON_ENTITY_CHANGE) {
+        logger.trace(
+          { unique_id },
+          "entity exists, returning database value (REBUILD_ON_ENTITY_CHANGE=false)",
+        );
+        return data;
+      }
+
       const cleaned = Object.fromEntries(
         Object.entries(defaults)
           .filter(([, value]) => value !== undefined)
