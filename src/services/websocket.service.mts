@@ -136,10 +136,6 @@ export function SynapseWebSocketService({
       logger.debug({ name: send }, `socket connection isn't active, not sending update event`);
       return;
     }
-    if (!synapse.configure.isRegistered()) {
-      logger.trace({ data, name: send, unique_id }, `skipping update: not registered`);
-      return;
-    }
     const entity_id = hass.idBy.unique_id(unique_id as TUniqueId);
     if (entity_id) {
       logger.trace({ entity_id, name: send }, `update`);
@@ -153,14 +149,9 @@ export function SynapseWebSocketService({
     });
   }
 
-  async function hashUpdateEvent() {
-    //
-  }
-
   return {
     SERVICE_REGISTRY,
     _emitHeartBeat,
-    hashUpdateEvent,
     listAbandonedEntities,
     send,
     sendRegistration,

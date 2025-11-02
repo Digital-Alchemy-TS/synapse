@@ -125,6 +125,21 @@ export function DemoEntityGenerator({ scheduler, synapse, context, logger }: TSe
       suggested_object_id: "demo_button",
     });
 
+    synapse.number({
+      context,
+      mode: "slider",
+      name: "Gallons",
+      native_max_value: 20,
+      native_min_value: 1,
+      step: 0.5,
+    });
+
+    synapse.select({
+      context,
+      name: "Current mode",
+      options: ["a", "b", "c", "d"],
+    });
+
     demoButton.onPress(async () => {
       const list = await synapse.socket.listAbandonedEntities();
       logger.error({ list }, "listAbandonedEntities");
