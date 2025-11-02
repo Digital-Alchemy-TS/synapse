@@ -140,6 +140,12 @@ export function DemoEntityGenerator({ scheduler, synapse, context, logger }: TSe
       options: ["a", "b", "c", "d"],
     });
 
+    synapse.date({
+      context,
+      date_type: "dayjs",
+      name: "Tent 1 Grow Start",
+    });
+
     demoButton.onPress(async () => {
       const list = await synapse.socket.listAbandonedEntities();
       logger.error({ list }, "listAbandonedEntities");

@@ -165,7 +165,14 @@ export function DatabasePostgreSQLService({
     try {
       const data = await loadRow<LOCALS>(unique_id);
       const cleaned = Object.fromEntries(
-        Object.entries(defaults).filter(([, value]) => value !== undefined),
+        Object.entries(defaults)
+          .filter(([, value]) => value !== undefined)
+          .map(([key, value]) => [
+            key,
+            is.object(value) && "toISOString" in value && is.function(value.toISOString)
+              ? value.toISOString()
+              : value,
+          ]),
       );
       registeredDefaults.set(unique_id, cleaned);
 
