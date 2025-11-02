@@ -42,7 +42,6 @@ export function ServiceService({
       options.domain ??= config.synapse.DEFAULT_SERVICE_DOMAIN;
       SERVICE_REGISTRY.set(options.name, options);
 
-      setImmediate(() => void synapse.socket.hashUpdateEvent());
       const eventName = SERVICE_CALL_EVENT(options.name);
       logger.trace({ eventName, name: options.name }, `registering service call listener`);
       event.on(eventName, callback);
