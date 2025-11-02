@@ -76,7 +76,7 @@ export function DatabasePostgreSQLService({
         .values({
           app_unique_id: config.synapse.METADATA_UNIQUE_ID,
           application_name: application_name,
-          base_state: JSON.stringify(defaults),
+          base_state: JSON.stringify(defaults || {}),
           entity_id: entity_id,
           first_observed: new Date(),
           last_modified: now,
@@ -88,7 +88,7 @@ export function DatabasePostgreSQLService({
           set: {
             app_unique_id: config.synapse.METADATA_UNIQUE_ID,
             application_name: application_name,
-            base_state: JSON.stringify(defaults),
+            base_state: JSON.stringify(defaults || {}),
             entity_id: entity_id,
             last_modified: now,
             last_reported: now,
@@ -133,7 +133,9 @@ export function DatabasePostgreSQLService({
         app_unique_id: row.app_unique_id,
         application_name: row.application_name,
         base_state:
-          typeof row.base_state === "string" ? row.base_state : JSON.stringify(row.base_state),
+          typeof row.base_state === "string"
+            ? row.base_state
+            : JSON.stringify(row.base_state || {}),
         entity_id: row.entity_id,
         first_observed:
           row.first_observed instanceof Date
