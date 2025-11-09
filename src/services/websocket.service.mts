@@ -86,7 +86,7 @@ export function SynapseWebSocketService({
 
     hass.socket.onEvent({
       context,
-      event: "synapse/registration_ready",
+      event: "synapse/user_config_completed",
       async exec({ data }: { data: { unique_id: string } }) {
         if (data.unique_id !== config.synapse.METADATA_UNIQUE_ID) {
           return;
