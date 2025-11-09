@@ -35,7 +35,7 @@ export function ConfigurationService({
       logger.info("application confirmed registration");
     } else if (configured && !state) {
       configured = false;
-      logger.info("application registation deleted");
+      logger.info("application registration deleted");
     }
     return state;
   }
