@@ -20,11 +20,12 @@ import type {
   SynapseEntityProxy,
   TEventMap,
   TSynapseId,
+  UnknownObject,
 } from "../helpers/index.mts";
 import { formatObjectId, generateHash } from "../helpers/index.mts";
 
 type TransferResponse = {
-  event: Record<string, unknown> & { unique_id: string };
+  event: UnknownObject & { unique_id: string };
   type: string;
   unique_id: string;
 };

@@ -1,4 +1,5 @@
-import { SECOND, type TServiceParams } from "@digital-alchemy/core";
+import type { TServiceParams } from "@digital-alchemy/core";
+import { SECOND } from "@digital-alchemy/core";
 
 export function DemoEntityGenerator({ scheduler, synapse, context, logger }: TServiceParams) {
   try {
@@ -8,7 +9,7 @@ export function DemoEntityGenerator({ scheduler, synapse, context, logger }: TSe
     const demoDevice = synapse.device.register("demo_device", {
       manufacturer: "Digital Alchemy",
       model: "Synapse Demo",
-      name: "Synapse Demo Device",
+      name: "Synapse Dynamic Demo Device",
       sw_version: "1.0.0",
     });
 
@@ -18,7 +19,7 @@ export function DemoEntityGenerator({ scheduler, synapse, context, logger }: TSe
     }>({
       context,
       device_class: "temperature",
-      device_id: demoDevice,
+      // device_id: demoDevice,
       name: "Demo Temperature Sensor",
       state: 22.5,
       suggested_object_id: "demo_temperature_sensor",

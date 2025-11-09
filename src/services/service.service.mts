@@ -3,11 +3,13 @@ import { InternalError } from "@digital-alchemy/core";
 
 import type {
   FieldList,
+  ServiceCallData,
   SynapseServiceCreate,
   SynapseServiceCreateCallback,
   SynapseServiceCreateOptions,
 } from "../index.mts";
-import { SERVICE_CALL_EVENT } from "../index.mts";
+
+const SERVICE_CALL_EVENT = (event_name: string) => `synapse/service_call/${event_name}`;
 
 export function ServiceService({
   synapse,
@@ -17,7 +19,21 @@ export function ServiceService({
   lifecycle,
   config,
   event,
+  hass,
 }: TServiceParams): SynapseServiceCreate {
+  /**
+   * Common handler for all inbound socket messages of a type
+   *
+   */
+  hass.socket.registerMessageHandler<ServiceCallData>(
+    "synapse/service_call",
+    async ({ service_data, service_name }) => {
+      const evt = SERVICE_CALL_EVENT(service_name);
+      logger.trace({ evt, name: service_name, service_data }, `received service call`);
+      event.emit(evt, service_data);
+    },
+  );
+
   return function <SCHEMA extends FieldList>(
     options: SynapseServiceCreateOptions<SCHEMA>,
     callback: SynapseServiceCreateCallback,
@@ -47,6 +63,7 @@ export function ServiceService({
       event.on(eventName, callback);
       remove.add(
         internal.removeFn(() => {
+          logger.debug({ eventName, name: options.name }, "removing event handle");
           event.removeListener(eventName, callback);
         }),
       );

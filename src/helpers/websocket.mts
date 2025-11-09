@@ -1,8 +1,10 @@
+import type { UnknownObject } from "./service.mts";
+
 export type CleanupModes = "abandon" | "delete";
 
 export type AbandonedEntityResponse = {
   success: boolean;
-  abandoned_entities: Record<string, unknown>[];
+  abandoned_entities: UnknownObject[];
   total_abandoned: number;
   total_registry_entities: number;
   current_configuration_entities: number;
