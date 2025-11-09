@@ -22,8 +22,8 @@ export function ServiceService({
   hass,
 }: TServiceParams): SynapseServiceCreate {
   /**
-   * Common handler for all inbound socket messages of a type
-   *
+   * Common handler for all inbound 'synapse/service_call' socket messages.
+   * Routes incoming service call messages to registered service callbacks.
    */
   hass.socket.registerMessageHandler<ServiceCallData>(
     "synapse/service_call",
