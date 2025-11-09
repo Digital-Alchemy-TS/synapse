@@ -1,6 +1,7 @@
 import type { TServiceParams } from "@digital-alchemy/core";
 import { InternalError } from "@digital-alchemy/core";
 
+import type { UnknownObject } from "../index.mts";
 import { EVENT_SYNAPSE_PULL_DB } from "../index.mts";
 
 export function SynapseLocalsService({
@@ -11,7 +12,7 @@ export function SynapseLocalsService({
   lifecycle,
 }: TServiceParams) {
   // #MARK: localsProxy
-  function localsProxy<LOCALS extends object>(unique_id: string, defaults: LOCALS) {
+  function localsProxy<LOCALS extends UnknownObject>(unique_id: string, defaults: LOCALS) {
     let loaded = false;
     let data = { ...defaults } as LOCALS;
     const loadedData = new Map<string, unknown>();
@@ -20,9 +21,7 @@ export function SynapseLocalsService({
     const proxy = new Proxy(data, {
       deleteProperty(target, property: string) {
         // Remove from target
-        (target as Record<string, unknown>)[property] = (defaults as Record<string, unknown>)[
-          property
-        ];
+        (target as UnknownObject)[property] = (defaults as UnknownObject)[property];
 
         // Remove from loaded data
         loadedData.delete(property);
@@ -36,7 +35,7 @@ export function SynapseLocalsService({
       get(target, property: string) {
         return loadedData.has(property)
           ? loadedData.get(property)
-          : (target as Record<string, unknown>)[property];
+          : (target as UnknownObject)[property];
       },
 
       has(target, property: string) {
@@ -54,7 +53,7 @@ export function SynapseLocalsService({
 
       set(target, property: string, value: unknown) {
         // Update the target
-        (target as Record<string, unknown>)[property] = value;
+        (target as UnknownObject)[property] = value;
 
         // Store in loaded data
         loadedData.set(property, value);

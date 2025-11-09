@@ -2,6 +2,7 @@ import type { TServiceParams } from "@digital-alchemy/core";
 import { createHash } from "crypto";
 import { hostname, userInfo } from "os";
 
+
 export function ConfigurationService({
   lifecycle,
   config,
@@ -11,20 +12,29 @@ export function ConfigurationService({
   synapse,
 }: TServiceParams) {
   const { is } = internal.utils;
-  let extensionInstalled = false;
+  let configured = false;
 
   function uniqueProperties(): string[] {
     return [hostname(), userInfo().username, internal.boot.application.name];
   }
 
+  /**
+   * Health sensor will always exist for this app, and has a hard coded attribute
+   */
   function isRegistered() {
-    return (
-      extensionInstalled &&
-      hass.device.current.some(
-        // eslint-disable-next-line @typescript-eslint/no-magic-numbers
-        device => String(device?.identifiers?.[0]?.[1]) === config.synapse.METADATA_UNIQUE_ID,
-      )
+    const state = hass.device.current.some(
+      // eslint-disable-next-line @typescript-eslint/no-magic-numbers
+      device => String(device?.identifiers?.[0]?.[1]) === config.synapse.METADATA_UNIQUE_ID,
     );
+
+    if (!configured && state) {
+      configured = true;
+      logger.info("application confirmed registration");
+    } else if (configured && !state) {
+      configured = false;
+      logger.info("application registration deleted");
+    }
+    return state;
   }
 
   // setting up the default that can't be declared at the module level
@@ -51,12 +61,14 @@ export function ConfigurationService({
     const hassConfig = await hass.fetch.getConfig();
     const installed = hassConfig.components.some(i => i.startsWith("synapse"));
     if (installed) {
-      logger.debug("extension is installed!");
-      extensionInstalled = true;
+      logger.debug("extension is installed");
+      if (isRegistered()) {
+        logger.debug("app already configured in hass");
+        configured = true;
+      }
       return true;
     }
     logger.error(`synapse extension is not installed`);
-    // retry
     return false;
   }
 

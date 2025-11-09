@@ -32,7 +32,7 @@ declare module "@digital-alchemy/core" {
 
 await DEMO_APP.bootstrap({
   configuration: {
-    boilerplate: { LOG_LEVEL: "debug" },
+    boilerplate: { LOG_LEVEL: "info" },
     synapse: {
       ENTITY_CLEANUP_METHOD: "abandon",
       METADATA: {
@@ -44,5 +44,8 @@ await DEMO_APP.bootstrap({
       METADATA_TITLE: "Synapse Demo Integration",
       METADATA_UNIQUE_ID: "synapse-demo-integration",
     },
+  },
+  loggerOptions: {
+    // pretty: false,
   },
 });

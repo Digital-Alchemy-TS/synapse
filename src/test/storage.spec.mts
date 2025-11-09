@@ -1,6 +1,7 @@
 import { ENTITY_REGISTRY_UPDATED } from "@digital-alchemy/hass";
 import { v4 } from "uuid";
 
+import type { UnknownObject } from "../index.mts";
 import { synapseTestRunner } from "../mock/index.mts";
 
 describe("Storage", () => {
@@ -204,7 +205,7 @@ describe("Storage", () => {
         [...sensorExports, ...dumpResult.switch, ...dumpResult.button].forEach(entityData => {
           expect(entityData).toHaveProperty("unique_id");
           expect([sensorId1, sensorId2, switchId, buttonId]).toContain(
-            (entityData as Record<string, unknown>).unique_id,
+            (entityData as UnknownObject).unique_id,
           );
         });
       });

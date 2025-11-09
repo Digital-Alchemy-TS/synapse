@@ -6,6 +6,8 @@ import type {
   ServiceListServiceTarget,
 } from "@digital-alchemy/hass";
 
+export type UnknownObject = Record<string, unknown>;
+
 export type SynapseServiceCreate<SCHEMA extends FieldList = FieldList> = (
   options: SynapseServiceCreateOptions<SCHEMA>,
   callback: SynapseServiceCreateCallback,
@@ -24,8 +26,21 @@ export type SynapseServiceCreateOptions<FIELDS extends FieldList = FieldList> = 
 
 export type FieldList = Record<string, ServiceListFieldDescription>;
 
-export type SynapseServiceCreateCallback = (data: Record<string, unknown>) => void | Promise<void>;
+export type BuildSynapseServiceRequestData<
+  OPTIONS extends SynapseServiceCreateOptions<FIELDS>,
+  FIELDS extends FieldList = FieldList,
+> = {
+  [NAME in keyof FIELDS]: unknown;
+};
+
+export type SynapseServiceCreateCallback = (data: UnknownObject) => void | Promise<void>;
 
 export type SynapseServiceListField = Omit<ServiceListField, "name">;
 
-export const SERVICE_CALL_EVENT = (event_name: string) => `synapse/service_call/${event_name}`;
+export type ServiceCallData<DATA extends UnknownObject = UnknownObject> = {
+  id: `service_call_${number}`;
+  service_data: DATA;
+  service_name: string;
+  service_unique_id: string;
+  type: "synapse/service/call";
+};

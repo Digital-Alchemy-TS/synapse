@@ -36,7 +36,7 @@ export async function DatabaseService({
           );
           return;
         }
-        logger.warn({ content, defaults, unique_id }, "app not registered, skipping write");
+        logger.debug({ content, defaults, unique_id }, "app not registered, skipping write");
         return;
       }
       await db().update(unique_id, content, defaults);
