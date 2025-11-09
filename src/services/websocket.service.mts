@@ -77,7 +77,8 @@ export function SynapseWebSocketService({
     );
 
     /**
-     * Occurs
+     * Occurs when Home Assistant requests configuration to be resent.
+     * Responds by resending the registration information.
      */
     hass.socket.registerMessageHandler("synapse/request_configuration", async () => {
       logger.info("resending registration");
