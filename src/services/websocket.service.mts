@@ -33,7 +33,6 @@ export function SynapseWebSocketService({
   }
 
   async function sendRegistration(type: string) {
-    inspect.defaultOptions.depth = 20;
     // console.log([...SERVICE_REGISTRY.values()]);
     // console.log({
     //   app_metadata: {
