@@ -2,9 +2,6 @@ import type { TServiceParams } from "@digital-alchemy/core";
 import { createHash } from "crypto";
 import { hostname, userInfo } from "os";
 
-type SynapseHealthSensorAttributes = {
-  application_unique_id: string;
-};
 
 export function ConfigurationService({
   lifecycle,
