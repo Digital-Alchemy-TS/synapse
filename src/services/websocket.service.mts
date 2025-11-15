@@ -64,7 +64,10 @@ export function SynapseWebSocketService({
     hass.socket.onEvent({
       context,
       event: "synapse/request_re_registration",
-      async exec() {
+      async exec({ data }: { data: { unique_id: string } }) {
+        if (data.unique_id !== config.synapse.METADATA_UNIQUE_ID) {
+          return;
+        }
         logger.info("re-registration requested, resending registration");
         await sendRegistration();
       },
