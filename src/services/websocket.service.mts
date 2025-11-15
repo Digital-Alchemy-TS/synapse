@@ -66,6 +66,7 @@ export function SynapseWebSocketService({
       event: "synapse/request_re_registration",
       async exec({ data }: { data: { unique_id: string } }) {
         if (data.unique_id !== config.synapse.METADATA_UNIQUE_ID) {
+          logger.info("ignoring re-registration request");
           return;
         }
         logger.info("re-registration requested, resending registration");
