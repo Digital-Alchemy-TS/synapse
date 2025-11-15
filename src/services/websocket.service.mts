@@ -28,6 +28,7 @@ export function SynapseWebSocketService({
     await hass.socket.sendMessage({
       hash,
       type: "synapse/heartbeat",
+      unique_id: config.synapse.METADATA_UNIQUE_ID,
     });
   }
 
@@ -66,7 +67,12 @@ export function SynapseWebSocketService({
       event: "synapse/request_re_registration",
       async exec({ data }: { data: { unique_id: string } }) {
         if (data.unique_id !== config.synapse.METADATA_UNIQUE_ID) {
-          logger.info("ignoring re-registration request");
+          logger.info(
+            { data },
+            "ignoring re-registration request [%s] != [%s]",
+            data.unique_id,
+            config.synapse.METADATA_UNIQUE_ID,
+          );
           return;
         }
         logger.info("re-registration requested, resending registration");
@@ -88,12 +94,14 @@ export function SynapseWebSocketService({
   });
 
   // * onConnect
-  hass.socket.onConnect(async () => {
-    if (!synapse.configure.isRegistered()) {
-      return;
-    }
-    logger.debug("sending application registration");
-    await sendRegistration();
+  hass.socket.onConnect(() => {
+    lifecycle.onReady(async () => {
+      if (!synapse.configure.isRegistered()) {
+        return;
+      }
+      logger.debug("sending application registration");
+      await sendRegistration();
+    });
   });
 
   hass.socket.onEvent({
