@@ -31,24 +31,7 @@ export function SynapseWebSocketService({
     });
   }
 
-  async function sendRegistration(type: string) {
-    // console.log([...SERVICE_REGISTRY.values()]);
-    // console.log({
-    //   app_metadata: {
-    //     app: internal.boot.application.name,
-    //     cleanup: config.synapse.ENTITY_CLEANUP_METHOD,
-    //     device: synapse.device.getInfo(),
-    //     hash: synapse.storage.hash(),
-    //     hostname: hostname(),
-    //     secondary_devices: synapse.device.list(),
-    //     service: [...SERVICE_REGISTRY.values()],
-    //     title: config.synapse.METADATA_TITLE,
-    //     username: userInfo().username,
-    //     ...synapse.storage.dump(),
-    //   },
-    //   type,
-    //   unique_id: config.synapse.METADATA_UNIQUE_ID,
-    // });
+  async function sendRegistration() {
     await hass.socket.sendMessage({
       app_metadata: {
         app: internal.boot.application.name,
@@ -62,7 +45,7 @@ export function SynapseWebSocketService({
         username: userInfo().username,
         ...synapse.storage.dump(),
       },
-      type,
+      type: "synapse/application_online_ready",
       unique_id: config.synapse.METADATA_UNIQUE_ID,
     });
   }
@@ -78,9 +61,13 @@ export function SynapseWebSocketService({
      * Occurs when Home Assistant requests configuration to be resent.
      * Responds by resending the registration information.
      */
-    hass.socket.registerMessageHandler("synapse/request_configuration", async () => {
-      logger.info("resending registration");
-      void sendRegistration("synapse/rebuild_config");
+    hass.socket.onEvent({
+      context,
+      event: "synapse/request_re_registration",
+      async exec() {
+        logger.info("re-registration requested, resending registration");
+        await sendRegistration();
+      },
     });
 
     hass.socket.onEvent({
@@ -91,7 +78,7 @@ export function SynapseWebSocketService({
           return;
         }
         logger.info("application accepted in user config flow");
-        await sendRegistration("synapse/application_online_ready");
+        await sendRegistration();
       },
     });
   });
@@ -102,7 +89,7 @@ export function SynapseWebSocketService({
       return;
     }
     logger.debug("sending application registration");
-    await sendRegistration("synapse/application_online_ready");
+    await sendRegistration();
   });
 
   hass.socket.onEvent({
