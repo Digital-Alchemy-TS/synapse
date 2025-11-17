@@ -2,12 +2,23 @@ import type { RemoveCallback, TServiceParams } from "@digital-alchemy/core";
 import { InternalError } from "@digital-alchemy/core";
 
 import type {
+  BuildServiceData,
   FieldList,
   ServiceCallData,
   SynapseServiceCreate,
   SynapseServiceCreateCallback,
   SynapseServiceCreateOptions,
 } from "../index.mts";
+
+type InferSchemaFromOptions<OPTIONS> = OPTIONS extends { fields: infer FIELDS }
+  ? FIELDS extends FieldList
+    ? FIELDS
+    : FieldList
+  : OPTIONS extends { fields?: infer FIELDS }
+    ? FIELDS extends FieldList
+      ? FIELDS
+      : FieldList
+    : FieldList;
 
 const SERVICE_CALL_EVENT = (event_name: string) => `synapse/service_call/${event_name}`;
 
@@ -34,9 +45,9 @@ export function ServiceService({
     },
   );
 
-  return function <SCHEMA extends FieldList>(
-    options: SynapseServiceCreateOptions<SCHEMA>,
-    callback: SynapseServiceCreateCallback,
+  return function <OPTIONS extends SynapseServiceCreateOptions<FieldList>>(
+    options: OPTIONS,
+    callback: SynapseServiceCreateCallback<BuildServiceData<InferSchemaFromOptions<OPTIONS>>>,
   ) {
     const remove = new Set<RemoveCallback>();
 
