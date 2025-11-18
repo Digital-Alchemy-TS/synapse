@@ -1,8 +1,6 @@
 import type {
-  ALL_DOMAINS,
   HassThemeMapping,
   PICK_ENTITY,
-  PICK_FROM_PLATFORM,
   ServiceListSelector,
   SupportedCountries,
   TAreaId,
@@ -10,134 +8,12 @@ import type {
   TDeviceId,
   TFloorId,
   TLabelId,
-  TPlatformId,
 } from "@digital-alchemy/hass";
 
-export const inferSymbol = Symbol();
-export type inferSymbol = typeof inferSymbol;
+import { Entity } from "./selector-entity.mts";
+import type { FieldDescription, FieldMetadata, SelectOptionUnion } from "./utils.mts";
+import { createField } from "./utils.mts";
 
-/**
- * Extracts a single option value from either a string or an object with a value property.
- */
-type ExtractOptionValue<OPTION> = OPTION extends string
-  ? OPTION
-  : OPTION extends { value: infer VALUE }
-    ? VALUE extends string
-      ? VALUE
-      : never
-    : never;
-
-/**
- * Extracts the union of all option values from a select selector's options array.
- * Handles both string options and object options with value property.
- */
-type SelectOptionUnion<OPTIONS extends ServiceListSelector["select"]> = OPTIONS extends {
-  options: infer OPTION_ARRAY;
-}
-  ? OPTION_ARRAY extends readonly (infer OPTION)[]
-    ? ExtractOptionValue<OPTION>
-    : never
-  : never;
-
-/**
- * Extracts the domain union type from a single domain or array of domains.
- * Used to properly type PICK_FROM_PLATFORM when domain is provided.
- */
-type ExtractDomainUnion<DOMAIN> = DOMAIN extends readonly (infer D)[]
-  ? D extends ALL_DOMAINS
-    ? D
-    : ALL_DOMAINS
-  : DOMAIN extends ALL_DOMAINS
-    ? DOMAIN
-    : ALL_DOMAINS;
-
-/**
- * Common metadata properties for all field descriptions.
- */
-type FieldMetadata<BRANDED> = {
-  default?: BRANDED;
-  description?: string;
-  required?: boolean;
-};
-
-/**
- * Creates a field description object with selector, optional metadata, and branded type.
- */
-type FieldDescription<
-  TYPE extends keyof ServiceListSelector,
-  OPTIONS extends ServiceListSelector[TYPE],
-  BRANDED,
-> = {
-  [inferSymbol]: BRANDED;
-  default?: BRANDED;
-  description?: string;
-  required?: boolean;
-  selector: {
-    [K in TYPE]: {
-      [P in K]: OPTIONS;
-    } & {
-      [P in Exclude<keyof ServiceListSelector, K>]?: never;
-    };
-  }[TYPE];
-};
-
-/**
- * Factory function to create field descriptions with proper typing.
- * Overload for null selectors.
- */
-function createField<TYPE extends keyof ServiceListSelector, OPTIONS extends null, BRANDED>(
-  type: TYPE,
-  options: FieldMetadata<BRANDED>,
-  branded: BRANDED,
-): FieldDescription<TYPE, OPTIONS, BRANDED>;
-/**
- * Factory function to create field descriptions with proper typing.
- * Overload for non-null selectors.
- */
-function createField<
-  TYPE extends keyof ServiceListSelector,
-  OPTIONS extends ServiceListSelector[TYPE],
-  BRANDED,
->(
-  type: TYPE,
-  options: OPTIONS & FieldMetadata<BRANDED>,
-  branded: BRANDED,
-): FieldDescription<TYPE, OPTIONS, BRANDED>;
-function createField<
-  TYPE extends keyof ServiceListSelector,
-  OPTIONS extends ServiceListSelector[TYPE],
-  BRANDED,
->(
-  type: TYPE,
-  options: FieldMetadata<BRANDED> | (OPTIONS & FieldMetadata<BRANDED>),
-  branded: BRANDED,
-): FieldDescription<TYPE, OPTIONS, BRANDED> {
-  const {
-    default: default_value,
-    description,
-    required,
-    ...selectorOptions
-  } = options as FieldMetadata<BRANDED> | (OPTIONS & FieldMetadata<BRANDED>);
-  const hasSelectorOptions = Object.keys(selectorOptions).length > 0;
-  const selectorValue = hasSelectorOptions ? (selectorOptions as OPTIONS) : (null as OPTIONS);
-  return {
-    default: default_value,
-    description,
-    [inferSymbol]: branded,
-    required,
-    selector: {
-      [type]: selectorValue,
-    } as {
-      [K in TYPE]: {
-        [P in K]: OPTIONS;
-      } & {
-        [P in Exclude<keyof ServiceListSelector, K>]?: never;
-      };
-    }[TYPE],
-  } as FieldDescription<TYPE, OPTIONS, BRANDED>;
-}
-
-// Overloaded functions for selectors with multiple option
 // #MARK: Area
 function Area(
   options: ServiceListSelector["area"] & { multiple?: false } & FieldMetadata<TAreaId>,
@@ -165,97 +41,7 @@ function Device(
   const branded = (options.multiple ? [] : undefined) as TDeviceId | TDeviceId[];
   return createField("device", options, branded);
 }
-
-// #MARK: Entity
 // Overloads with integration parameter (uses PICK_FROM_PLATFORM)
-function Entity<
-  INTEGRATION extends TPlatformId,
-  DOMAIN extends ALL_DOMAINS | ALL_DOMAINS[] = ALL_DOMAINS,
->(
-  options: ServiceListSelector["entity"] & {
-    multiple?: false;
-    domain?: DOMAIN;
-    integration: INTEGRATION;
-  } & FieldMetadata<PICK_FROM_PLATFORM<INTEGRATION, ExtractDomainUnion<DOMAIN>>>,
-): FieldDescription<
-  "entity",
-  ServiceListSelector["entity"] & { multiple?: false; domain?: DOMAIN; integration: INTEGRATION },
-  PICK_FROM_PLATFORM<INTEGRATION, ExtractDomainUnion<DOMAIN>>
->;
-function Entity<
-  INTEGRATION extends TPlatformId,
-  DOMAIN extends ALL_DOMAINS | ALL_DOMAINS[] = ALL_DOMAINS,
->(
-  options: ServiceListSelector["entity"] & {
-    multiple: true;
-    domain?: DOMAIN;
-    integration: INTEGRATION;
-  } & FieldMetadata<PICK_FROM_PLATFORM<INTEGRATION, ExtractDomainUnion<DOMAIN>>[]>,
-): FieldDescription<
-  "entity",
-  ServiceListSelector["entity"] & { multiple: true; domain?: DOMAIN; integration: INTEGRATION },
-  PICK_FROM_PLATFORM<INTEGRATION, ExtractDomainUnion<DOMAIN>>[]
->;
-function Entity<INTEGRATION extends TPlatformId>(
-  options: ServiceListSelector["entity"] & {
-    multiple?: false;
-    integration: INTEGRATION;
-  } & FieldMetadata<PICK_FROM_PLATFORM<INTEGRATION, ALL_DOMAINS>>,
-): FieldDescription<
-  "entity",
-  ServiceListSelector["entity"] & { multiple?: false; integration: INTEGRATION },
-  PICK_FROM_PLATFORM<INTEGRATION, ALL_DOMAINS>
->;
-function Entity<INTEGRATION extends TPlatformId>(
-  options: ServiceListSelector["entity"] & {
-    multiple: true;
-    integration: INTEGRATION;
-  } & FieldMetadata<PICK_FROM_PLATFORM<INTEGRATION, ALL_DOMAINS>[]>,
-): FieldDescription<
-  "entity",
-  ServiceListSelector["entity"] & { multiple: true; integration: INTEGRATION },
-  PICK_FROM_PLATFORM<INTEGRATION, ALL_DOMAINS>[]
->;
-// Overloads without integration parameter (uses PICK_ENTITY)
-function Entity<DOMAIN extends ALL_DOMAINS = ALL_DOMAINS>(
-  options: ServiceListSelector["entity"] & { multiple?: false; domain?: DOMAIN } & FieldMetadata<
-      PICK_ENTITY<DOMAIN>
-    >,
-): FieldDescription<
-  "entity",
-  ServiceListSelector["entity"] & { multiple?: false; domain?: DOMAIN },
-  PICK_ENTITY<DOMAIN>
->;
-function Entity<DOMAIN extends ALL_DOMAINS = ALL_DOMAINS>(
-  options: ServiceListSelector["entity"] & { multiple: true; domain?: DOMAIN } & FieldMetadata<
-      PICK_ENTITY<DOMAIN>[]
-    >,
-): FieldDescription<
-  "entity",
-  ServiceListSelector["entity"] & { multiple: true; domain?: DOMAIN },
-  PICK_ENTITY<DOMAIN>[]
->;
-function Entity(
-  options: ServiceListSelector["entity"] & { multiple?: false } & FieldMetadata<PICK_ENTITY>,
-): FieldDescription<"entity", ServiceListSelector["entity"] & { multiple?: false }, PICK_ENTITY>;
-function Entity(
-  options: ServiceListSelector["entity"] & { multiple: true } & FieldMetadata<PICK_ENTITY[]>,
-): FieldDescription<"entity", ServiceListSelector["entity"] & { multiple: true }, PICK_ENTITY[]>;
-function Entity(
-  options:
-    | (ServiceListSelector["entity"] & FieldMetadata<PICK_ENTITY | PICK_ENTITY[]>)
-    | (ServiceListSelector["entity"] & {
-        integration?: TPlatformId;
-      } & FieldMetadata<
-          | PICK_ENTITY
-          | PICK_ENTITY[]
-          | PICK_FROM_PLATFORM<TPlatformId, ALL_DOMAINS>
-          | PICK_FROM_PLATFORM<TPlatformId, ALL_DOMAINS>[]
-        >),
-): FieldDescription<"entity", ServiceListSelector["entity"], PICK_ENTITY | PICK_ENTITY[]> {
-  const branded = (options.multiple ? [] : undefined) as PICK_ENTITY | PICK_ENTITY[];
-  return createField("entity", options, branded);
-}
 
 // #MARK: Floor
 function Floor(
@@ -377,6 +163,7 @@ function Text(
   return createField("text", options, branded);
 }
 
+// #MARK: ServiceField
 export const ServiceField = {
   Action: (options: FieldMetadata<string>) => createField("action", options, undefined as string),
 

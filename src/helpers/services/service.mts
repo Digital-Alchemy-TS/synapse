@@ -7,7 +7,7 @@ import type {
   ServiceListServiceTarget,
 } from "@digital-alchemy/hass";
 
-import type { inferSymbol } from "./service-fields.mts";
+import type { inferSymbol } from "./utils.mts";
 
 export type UnknownObject = Record<string, unknown>;
 
