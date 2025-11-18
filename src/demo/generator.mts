@@ -1,6 +1,8 @@
 import type { TServiceParams } from "@digital-alchemy/core";
 import { SECOND } from "@digital-alchemy/core";
 
+import { ServiceField } from "../index.mts";
+
 export function DemoEntityGenerator({ scheduler, synapse, context, logger }: TServiceParams) {
   try {
     logger.info("Starting demo entity generation...");
@@ -35,44 +37,35 @@ export function DemoEntityGenerator({ scheduler, synapse, context, logger }: TSe
       suggested_object_id: "demo_motion_sensor",
     });
 
-    synapse.service(
+    synapse.service.create(
       {
         context,
         description: "No description",
         fields: {
-          delay: {
+          delay: ServiceField.Number({
             default: 0,
             description: "Delay in seconds",
+            max: 300,
+            min: 0,
             required: true,
-            selector: {
-              number: {
-                max: 300,
-                min: 0,
-                step: 1,
-                unit_of_measurement: "s",
-              },
-            },
-          },
-          message: {
+            step: 1,
+            unit_of_measurement: "s",
+          }),
+          message: ServiceField.Text({
             description: "Message to send",
+            multiline: true,
             required: true,
-            selector: {
-              text: {
-                multiline: true,
-              },
-            },
-          },
-          target_entity: {
+          }),
+          target_entity: ServiceField.Entity({
             description: "Entity to target",
+            domain: ["binary_sensor", "button", "climate"],
+            integration: "synapse",
             required: false,
-            selector: {
-              entity: {
-                // filter: {
-                //   domain: "binary_sensor",
-                // },
-              },
-            },
-          },
+            // domain: ["binary_sensor"] satisfies ALL_DOMAINS[],
+            // filter: {
+            //   domain: "binary_sensor",
+            // },
+          }),
         },
         name: "test_service",
         response: {
@@ -85,6 +78,12 @@ export function DemoEntityGenerator({ scheduler, synapse, context, logger }: TSe
         },
       },
       async data => {
+        if (data.target_entity === "climate.test_climate") {
+          //
+        }
+        if (data.delay) {
+          //
+        }
         logger.warn({ data }, "HIT");
       },
     );

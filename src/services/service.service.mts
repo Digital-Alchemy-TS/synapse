@@ -5,20 +5,10 @@ import type {
   BuildServiceData,
   FieldList,
   ServiceCallData,
-  SynapseServiceCreate,
   SynapseServiceCreateCallback,
   SynapseServiceCreateOptions,
-} from "../index.mts";
-
-type InferSchemaFromOptions<OPTIONS> = OPTIONS extends { fields: infer FIELDS }
-  ? FIELDS extends FieldList
-    ? FIELDS
-    : FieldList
-  : OPTIONS extends { fields?: infer FIELDS }
-    ? FIELDS extends FieldList
-      ? FIELDS
-      : FieldList
-    : FieldList;
+  SynapseServiceReturn,
+} from "../helpers/index.mts";
 
 const SERVICE_CALL_EVENT = (event_name: string) => `synapse/service_call/${event_name}`;
 
@@ -31,7 +21,7 @@ export function ServiceService({
   config,
   event,
   hass,
-}: TServiceParams): SynapseServiceCreate {
+}: TServiceParams): SynapseServiceReturn {
   /**
    * Common handler for all inbound 'synapse/service_call' socket messages.
    * Routes incoming service call messages to registered service callbacks.
@@ -45,9 +35,17 @@ export function ServiceService({
     },
   );
 
-  return function <OPTIONS extends SynapseServiceCreateOptions<FieldList>>(
+  function create<OPTIONS extends SynapseServiceCreateOptions<FieldList>>(
     options: OPTIONS,
-    callback: SynapseServiceCreateCallback<BuildServiceData<InferSchemaFromOptions<OPTIONS>>>,
+    callback: SynapseServiceCreateCallback<
+      BuildServiceData<
+        OPTIONS extends { fields: infer FIELDS }
+          ? FIELDS extends FieldList
+            ? FIELDS
+            : never
+          : never
+      >
+    >,
   ) {
     const remove = new Set<RemoveCallback>();
 
@@ -87,5 +85,10 @@ export function ServiceService({
         remove.delete(i);
       });
     });
+  }
+
+  return {
+    create,
+    fields: {},
   };
 }

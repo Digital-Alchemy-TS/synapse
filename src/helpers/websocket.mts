@@ -1,4 +1,4 @@
-import type { UnknownObject } from "./service.mts";
+import type { UnknownObject } from "./services/service.mts";
 
 export type CleanupModes = "abandon" | "delete";
 
