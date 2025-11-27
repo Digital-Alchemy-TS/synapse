@@ -6,7 +6,7 @@
   "version": "25.10.19-beta.8",
   "scripts": {
     "start:mock": "tsx src/mock/main.mts",
-    "demo": "tsx src/demo/main.mts",
+    "dev": "tsx src/demo/main.mts",
     "build": "rm -rf dist; tsc",
     "test": "vitest --no-file-parallelism",
     "lint": "eslint src",

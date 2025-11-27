@@ -1,13 +1,16 @@
 import type { RemoveCallback, TServiceParams } from "@digital-alchemy/core";
 import { InternalError } from "@digital-alchemy/core";
+import type { ServiceListServiceTarget } from "@digital-alchemy/hass";
 
 import type {
   BuildServiceData,
+  BuildServiceDataWithTarget,
   FieldList,
   ServiceCallData,
   SynapseServiceCreateCallback,
   SynapseServiceCreateOptions,
   SynapseServiceReturn,
+  ValidateServiceOptions,
 } from "../helpers/index.mts";
 
 const SERVICE_CALL_EVENT = (event_name: string) => `synapse/service_call/${event_name}`;
@@ -35,16 +38,35 @@ export function ServiceService({
     },
   );
 
-  function create<OPTIONS extends SynapseServiceCreateOptions<FieldList>>(
-    options: OPTIONS,
+  function create<FIELDS extends FieldList, OPTIONS extends SynapseServiceCreateOptions<FIELDS>>(
+    options: ValidateServiceOptions<FIELDS, OPTIONS>,
     callback: SynapseServiceCreateCallback<
-      BuildServiceData<
-        OPTIONS extends { fields: infer FIELDS }
-          ? FIELDS extends FieldList
-            ? FIELDS
-            : never
-          : never
-      >
+      OPTIONS extends {
+        target: infer TARGET;
+      }
+        ? TARGET extends ServiceListServiceTarget
+          ? BuildServiceDataWithTarget<
+              OPTIONS extends { fields: infer ACTUAL_FIELDS }
+                ? ACTUAL_FIELDS extends FieldList
+                  ? ACTUAL_FIELDS
+                  : FIELDS
+                : FIELDS,
+              TARGET
+            >
+          : BuildServiceData<
+              OPTIONS extends { fields: infer ACTUAL_FIELDS }
+                ? ACTUAL_FIELDS extends FieldList
+                  ? ACTUAL_FIELDS
+                  : FIELDS
+                : FIELDS
+            >
+        : BuildServiceData<
+            OPTIONS extends { fields: infer ACTUAL_FIELDS }
+              ? ACTUAL_FIELDS extends FieldList
+                ? ACTUAL_FIELDS
+                : FIELDS
+              : FIELDS
+          >
     >,
   ) {
     const remove = new Set<RemoveCallback>();
@@ -88,7 +110,7 @@ export function ServiceService({
   }
 
   return {
-    create,
+    create: create as SynapseServiceReturn["create"],
     fields: {},
   };
 }
