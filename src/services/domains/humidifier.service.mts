@@ -62,12 +62,8 @@ export type HumidifierEvents = {
   set_humidity: {
     humidity: number;
   };
-  turn_on: {
-    //
-  };
-  turn_off: {
-    //
-  };
+  turn_on: {};
+  turn_off: {};
 };
 
 export function VirtualHumidifier({ context, synapse }: TServiceParams) {

@@ -24,12 +24,8 @@ export type RemoteEvents = {
   turn_off: { activity?: string };
   toggle: { activity?: string };
   send_command: { command: string[] };
-  learn_command: {
-    //
-  };
-  delete_command: {
-    //
-  };
+  learn_command: {};
+  delete_command: {};
 };
 
 export function VirtualRemote({ context, synapse }: TServiceParams) {

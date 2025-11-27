@@ -47,12 +47,8 @@ export type FanEvents = {
     percentage?: number;
     preset_mode?: string;
   };
-  turn_off: {
-    //
-  };
-  toggle: {
-    //
-  };
+  turn_off: {};
+  toggle: {};
   oscillate: { oscillating: boolean };
 };
 

@@ -48,18 +48,10 @@ export type CameraConfiguration<DATA extends object> = {
 };
 
 export type CameraEvents = {
-  turn_on: {
-    //
-  };
-  turn_off: {
-    //
-  };
-  enable_motion_detection: {
-    //
-  };
-  disable_motion_detection: {
-    //
-  };
+  turn_on: {};
+  turn_off: {};
+  enable_motion_detection: {};
+  disable_motion_detection: {};
 };
 
 export function VirtualCamera({ context, synapse }: TServiceParams) {

@@ -24,30 +24,14 @@ export type VacuumConfiguration<DATA extends object, FAN_SPEEDS extends string =
 };
 
 export type VacuumEvents = {
-  clean_spot: {
-    //
-  };
-  locate: {
-    //
-  };
-  pause: {
-    //
-  };
-  return_to_base: {
-    //
-  };
-  send_command: {
-    //
-  };
-  set_fan_speed: {
-    //
-  };
-  start: {
-    //
-  };
-  stop: {
-    //
-  };
+  clean_spot: {};
+  locate: {};
+  pause: {};
+  return_to_base: {};
+  send_command: {};
+  set_fan_speed: {};
+  start: {};
+  stop: {};
 };
 
 export function VirtualVacuum({ context, synapse }: TServiceParams) {

@@ -135,9 +135,7 @@ export type BuildServiceDataWithTarget<
 
 export type SynapseServiceReturn = {
   create: SynapseServiceCreate;
-  fields: {
-    //
-  };
+  fields: {};
 };
 
 type HasTargetOverrideKey<FIELDS extends FieldList> =

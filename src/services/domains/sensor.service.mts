@@ -13,9 +13,7 @@ import type {
 } from "../../helpers/index.mts";
 import { SynapseEntityException } from "../../helpers/index.mts";
 
-export type SensorEvents = {
-  //
-};
+export type SensorEvents = {};
 
 const DATE_SENSOR_TYPES = new Set(["date", "iso", "dayjs"]);
 

@@ -105,18 +105,10 @@ export type ClimateConfiguration<
 };
 
 type ClimateEvents = {
-  set_hvac_mode: {
-    //
-  };
-  turn_on: {
-    //
-  };
-  turn_off: {
-    //
-  };
-  toggle: {
-    //
-  };
+  set_hvac_mode: {};
+  turn_on: {};
+  turn_off: {};
+  toggle: {};
   set_preset_mode: {
     preset_mode: string;
   };

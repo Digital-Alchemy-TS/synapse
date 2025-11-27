@@ -33,30 +33,14 @@ export type CoverConfiguration<DATA extends object> = {
 };
 
 export type CoverEvents = {
-  stop_cover_tilt: {
-    //
-  };
-  set_cover_tilt_position: {
-    //
-  };
-  close_cover_tilt: {
-    //
-  };
-  open_cover_tilt: {
-    //
-  };
-  stop_cover: {
-    //
-  };
-  set_cover_position: {
-    //
-  };
-  close_cover: {
-    //
-  };
-  open_cover: {
-    //
-  };
+  stop_cover_tilt: {};
+  set_cover_tilt_position: {};
+  close_cover_tilt: {};
+  open_cover_tilt: {};
+  stop_cover: {};
+  set_cover_position: {};
+  close_cover: {};
+  open_cover: {};
 };
 
 export function VirtualCover({ context, synapse }: TServiceParams) {

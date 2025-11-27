@@ -20,9 +20,7 @@ export type BinarySensorConfiguration<DATA extends object> = {
   is_on?: SettableConfiguration<boolean, DATA>;
 };
 
-export type BinarySensorEvents = {
-  //
-};
+export type BinarySensorEvents = {};
 
 /**
  * Convenient type for binary sensor entities with optional attributes and locals

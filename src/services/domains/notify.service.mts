@@ -2,9 +2,7 @@ import type { TServiceParams } from "@digital-alchemy/core";
 
 import type { AddEntityOptions, BasicAddParams, CallbackData } from "../../helpers/index.mts";
 
-export type NotifyConfiguration = {
-  //
-};
+export type NotifyConfiguration = {};
 
 export type NotifyEvents = {
   send_message: {
