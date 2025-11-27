@@ -3,7 +3,7 @@
   "name": "@digital-alchemy/synapse",
   "repository": "https://github.com/Digital-Alchemy-TS/synapse",
   "homepage": "https://docs.digital-alchemy.app/Synapse",
-  "version": "25.10.19-beta.8",
+  "version": "25.10.19-beta.9",
   "scripts": {
     "start:mock": "tsx src/mock/main.mts",
     "dev": "tsx src/demo/main.mts",
