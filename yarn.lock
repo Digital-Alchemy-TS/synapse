@@ -627,9 +627,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@digital-alchemy/hass@npm:^25.11.23":
-  version: 25.11.23
-  resolution: "@digital-alchemy/hass@npm:25.11.23"
+"@digital-alchemy/hass@npm:^25.11.27":
+  version: 25.11.27
+  resolution: "@digital-alchemy/hass@npm:25.11.27"
   dependencies:
     dayjs: "npm:^1.11.19"
     semver: "npm:^7.7.3"
@@ -640,7 +640,7 @@ __metadata:
     "@digital-alchemy/core": "*"
   bin:
     mock-assistant: scripts/mock-assistant.sh
-  checksum: 10/3ccd1ad0b9725b364a8237e54b6acc59debf67ecce9436f9b51aef783c7c65107923e3131b0794ea3cc9507abc31b9fdd6e7c5f13fa7d527663d5f578131a129
+  checksum: 10/20ed42ea0ae1d5fb52ac6f9cf525a6dfcad2b4ca62eeb8c1effbc6526f9d339b9883a8747f618dddf26500b2c388d69aff2de6c5a1e1456750e6d7f4ac2cfc94
   languageName: node
   linkType: hard
 
@@ -650,7 +650,7 @@ __metadata:
   dependencies:
     "@cspell/eslint-plugin": "npm:^9.3.2"
     "@digital-alchemy/core": "npm:^25.11.23"
-    "@digital-alchemy/hass": "npm:^25.11.23"
+    "@digital-alchemy/hass": "npm:^25.11.27"
     "@eslint/compat": "npm:^2.0.0"
     "@eslint/eslintrc": "npm:^3.3.1"
     "@eslint/js": "npm:^9.39.1"
