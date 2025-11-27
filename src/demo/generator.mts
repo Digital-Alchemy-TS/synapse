@@ -61,10 +61,6 @@ export function DemoEntityGenerator({ scheduler, synapse, context, logger }: TSe
             domain: ["binary_sensor", "button", "climate"],
             integration: "synapse",
             required: false,
-            // domain: ["binary_sensor"] satisfies ALL_DOMAINS[],
-            // filter: {
-            //   domain: "binary_sensor",
-            // },
           }),
         },
         name: "test_service",

@@ -1,7 +1,8 @@
+import { hostname, userInfo } from "node:os";
+
 import type { TServiceParams } from "@digital-alchemy/core";
 import { SECOND } from "@digital-alchemy/core";
 import type { TUniqueId } from "@digital-alchemy/hass";
-import { hostname, userInfo } from "os";
 
 import type { SynapseServiceCreateOptions } from "../index.mts";
 import { type AbandonedEntityResponse } from "../index.mts";

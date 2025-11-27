@@ -1,5 +1,6 @@
-import fs from "fs";
-import os from "os";
+import fs from "node:fs";
+import os from "node:os";
+
 import { v4 } from "uuid";
 
 import { synapseTestRunner } from "../mock/index.mts";
