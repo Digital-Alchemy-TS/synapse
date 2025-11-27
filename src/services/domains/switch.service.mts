@@ -22,15 +22,9 @@ export type SwitchConfiguration<DATA extends object> = {
 };
 
 export type SwitchEvents = {
-  turn_on: {
-    //
-  };
-  turn_off: {
-    //
-  };
-  toggle: {
-    //
-  };
+  turn_on: {};
+  turn_off: {};
+  toggle: {};
 };
 
 /**

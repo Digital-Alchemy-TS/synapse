@@ -1,5 +1,6 @@
+import type { EventEmitter } from "node:events";
+
 import type { ByIdProxy, HassEntityContext } from "@digital-alchemy/hass";
-import type { EventEmitter } from "events";
 import { v4 } from "uuid";
 
 import { synapseTestRunner } from "../mock/index.mts";

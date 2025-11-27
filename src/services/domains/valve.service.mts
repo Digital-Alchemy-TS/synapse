@@ -35,18 +35,10 @@ export type ValveConfiguration<DATA extends object> = {
 };
 
 export type ValveEvents = {
-  open_valve: {
-    //
-  };
-  close_valve: {
-    //
-  };
-  set_valve_position: {
-    //
-  };
-  stop_valve: {
-    //
-  };
+  open_valve: {};
+  close_valve: {};
+  set_valve_position: {};
+  stop_valve: {};
 };
 
 export function VirtualValve({ context, synapse }: TServiceParams) {

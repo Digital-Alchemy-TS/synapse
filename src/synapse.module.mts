@@ -1,8 +1,9 @@
+import { join } from "node:path";
+import { cwd } from "node:process";
+
 import type { InternalConfig, StringConfig } from "@digital-alchemy/core";
 import { CreateLibrary } from "@digital-alchemy/core";
 import { LIB_HASS } from "@digital-alchemy/hass";
-import { join } from "path";
-import { cwd } from "process";
 
 import type { CleanupModes, HassDeviceMetadata } from "./helpers/index.mts";
 import {
@@ -162,14 +163,6 @@ export const LIB_SYNAPSE = CreateLibrary({
       default: false,
       description:
         "If part of the entity config changes, reset entity data and treat as brand new entity",
-      type: "boolean",
-    },
-    TRACE_SIBLING_HEARTBEATS: {
-      default: false,
-      description: [
-        "Set to true to output debug info about other synapse apps emitting heartbeats to the same instance of Home Assistant",
-        "Logs emitted at trace level, for debugging only",
-      ],
       type: "boolean",
     },
   },

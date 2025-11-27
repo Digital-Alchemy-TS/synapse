@@ -16,15 +16,9 @@ export type LawnMowerConfiguration<DATA extends object> = {
 };
 
 export type LawnMowerEvents = {
-  start_mowing: {
-    //
-  };
-  dock: {
-    //
-  };
-  pause: {
-    //
-  };
+  start_mowing: {};
+  dock: {};
+  pause: {};
 };
 
 export function VirtualLawnMower({ context, synapse }: TServiceParams) {

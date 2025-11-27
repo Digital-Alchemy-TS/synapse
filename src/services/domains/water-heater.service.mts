@@ -53,24 +53,12 @@ export type WaterHeaterConfiguration<DATA extends object, OPERATIONS extends str
 };
 
 export type WaterHeaterEvents = {
-  set_temperature: {
-    //
-  };
-  set_operation_mode: {
-    //
-  };
-  turn_away_mode_on: {
-    //
-  };
-  turn_away_mode_off: {
-    //
-  };
-  turn_on: {
-    //
-  };
-  turn_off: {
-    //
-  };
+  set_temperature: {};
+  set_operation_mode: {};
+  turn_away_mode_on: {};
+  turn_away_mode_off: {};
+  turn_on: {};
+  turn_off: {};
 };
 
 export function VirtualWaterHeater({ context, synapse }: TServiceParams) {

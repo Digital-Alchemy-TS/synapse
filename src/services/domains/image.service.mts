@@ -23,9 +23,7 @@ export type ImageConfiguration<DATA extends object> = {
   image_url?: SettableConfiguration<string, DATA>;
 };
 
-export type ImageEvents = {
-  //
-};
+export type ImageEvents = {};
 
 export function VirtualImage({ context, synapse }: TServiceParams) {
   const generate = synapse.generator.create<ImageConfiguration<object>, ImageEvents>({

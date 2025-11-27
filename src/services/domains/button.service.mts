@@ -13,9 +13,7 @@ export type ButtonConfiguration = {
 };
 
 export type ButtonEvents = {
-  press: {
-    //
-  };
+  press: {};
 };
 
 /**

@@ -50,15 +50,9 @@ export type LockConfiguration<DATA extends object> = {
 };
 
 export type LockEvents = {
-  lock: {
-    //
-  };
-  unlock: {
-    //
-  };
-  open: {
-    //
-  };
+  lock: {};
+  unlock: {};
+  open: {};
 };
 
 /**

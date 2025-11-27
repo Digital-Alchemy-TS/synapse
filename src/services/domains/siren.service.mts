@@ -23,12 +23,8 @@ export type SirenConfiguration<DATA extends object> = {
 };
 
 export type SirenEvents = {
-  turn_on: {
-    //
-  };
-  turn_off: {
-    //
-  };
+  turn_on: {};
+  turn_off: {};
 };
 
 export function VirtualSiren({ context, synapse }: TServiceParams) {

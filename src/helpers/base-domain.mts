@@ -1,6 +1,7 @@
+import { createHash } from "node:crypto";
+
 import type { TBlackHole, TContext } from "@digital-alchemy/core";
 import type { TRawDomains } from "@digital-alchemy/hass";
-import { createHash } from "crypto";
 import type { EmptyObject } from "type-fest";
 
 import type { EntityConfigCommon, NonReactive } from "./common-config.mts";

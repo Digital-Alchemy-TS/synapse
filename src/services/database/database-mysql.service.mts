@@ -1,3 +1,5 @@
+import { join } from "node:path";
+
 import type { TServiceParams } from "@digital-alchemy/core";
 import { is } from "@digital-alchemy/core";
 import { and, eq } from "drizzle-orm";
@@ -5,7 +7,6 @@ import type { MySql2Database } from "drizzle-orm/mysql2";
 import { drizzle as drizzleMysql } from "drizzle-orm/mysql2";
 import { migrate as migrateMysql } from "drizzle-orm/mysql2/migrator";
 import mysql from "mysql2/promise";
-import { join } from "path";
 
 import type { HomeAssistantEntityRow, SynapseDatabase } from "../../schema/common.mts";
 import { MIGRATION_PATH } from "../../schema/common.mts";

@@ -1,13 +1,18 @@
 import type { RemoveCallback, TServiceParams } from "@digital-alchemy/core";
 import { InternalError } from "@digital-alchemy/core";
+import type { ServiceListServiceTarget } from "@digital-alchemy/hass";
 
-import type {
-  FieldList,
-  ServiceCallData,
-  SynapseServiceCreate,
-  SynapseServiceCreateCallback,
-  SynapseServiceCreateOptions,
-} from "../index.mts";
+import {
+  type BuildServiceData,
+  type BuildServiceDataWithTarget,
+  type FieldList,
+  type ServiceCallData,
+  ServiceField,
+  type SynapseServiceCreateCallback,
+  type SynapseServiceCreateOptions,
+  type SynapseServiceReturn,
+  type ValidateServiceOptions,
+} from "../helpers/index.mts";
 
 const SERVICE_CALL_EVENT = (event_name: string) => `synapse/service_call/${event_name}`;
 
@@ -20,7 +25,7 @@ export function ServiceService({
   config,
   event,
   hass,
-}: TServiceParams): SynapseServiceCreate {
+}: TServiceParams): SynapseServiceReturn {
   /**
    * Common handler for all inbound 'synapse/service_call' socket messages.
    * Routes incoming service call messages to registered service callbacks.
@@ -34,9 +39,36 @@ export function ServiceService({
     },
   );
 
-  return function <SCHEMA extends FieldList>(
-    options: SynapseServiceCreateOptions<SCHEMA>,
-    callback: SynapseServiceCreateCallback,
+  function create<FIELDS extends FieldList, OPTIONS extends SynapseServiceCreateOptions<FIELDS>>(
+    options: ValidateServiceOptions<FIELDS, OPTIONS>,
+    callback: SynapseServiceCreateCallback<
+      OPTIONS extends {
+        target: infer TARGET;
+      }
+        ? TARGET extends ServiceListServiceTarget
+          ? BuildServiceDataWithTarget<
+              OPTIONS extends { fields: infer ACTUAL_FIELDS }
+                ? ACTUAL_FIELDS extends FieldList
+                  ? ACTUAL_FIELDS
+                  : FIELDS
+                : FIELDS,
+              TARGET
+            >
+          : BuildServiceData<
+              OPTIONS extends { fields: infer ACTUAL_FIELDS }
+                ? ACTUAL_FIELDS extends FieldList
+                  ? ACTUAL_FIELDS
+                  : FIELDS
+                : FIELDS
+            >
+        : BuildServiceData<
+            OPTIONS extends { fields: infer ACTUAL_FIELDS }
+              ? ACTUAL_FIELDS extends FieldList
+                ? ACTUAL_FIELDS
+                : FIELDS
+              : FIELDS
+          >
+    >,
   ) {
     const remove = new Set<RemoveCallback>();
 
@@ -76,5 +108,10 @@ export function ServiceService({
         remove.delete(i);
       });
     });
+  }
+
+  return {
+    create: create as SynapseServiceReturn["create"],
+    fields: ServiceField,
   };
 }

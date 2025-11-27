@@ -82,12 +82,8 @@ export type LightConfiguration<DATA extends object, COLOR_MODES extends string =
 };
 
 export type LightEvents = {
-  turn_on: {
-    //
-  };
-  turn_off: {
-    //
-  };
+  turn_on: {};
+  turn_off: {};
 };
 
 export function VirtualLight({ context, synapse }: TServiceParams) {
