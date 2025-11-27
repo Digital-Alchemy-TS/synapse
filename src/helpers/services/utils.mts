@@ -1,3 +1,4 @@
+import { is } from "@digital-alchemy/core";
 import type { ALL_DOMAINS, ServiceListSelector } from "@digital-alchemy/hass";
 
 export const inferSymbol = Symbol();
@@ -105,15 +106,13 @@ export function createField<
     required,
     ...selectorOptions
   } = options as FieldMetadata<BRANDED> | (OPTIONS & FieldMetadata<BRANDED>);
-  const hasSelectorOptions = Object.keys(selectorOptions).length > 0;
-  const selectorValue = hasSelectorOptions ? (selectorOptions as OPTIONS) : (null as OPTIONS);
   return {
     default: default_value,
     description,
     [inferSymbol]: branded,
     required,
     selector: {
-      [type]: selectorValue,
+      [type]: !is.empty(selectorOptions) ? selectorOptions : null,
     } as {
       [K in TYPE]: {
         [P in K]: OPTIONS;
