@@ -2,15 +2,16 @@ import type { RemoveCallback, TServiceParams } from "@digital-alchemy/core";
 import { InternalError } from "@digital-alchemy/core";
 import type { ServiceListServiceTarget } from "@digital-alchemy/hass";
 
-import type {
-  BuildServiceData,
-  BuildServiceDataWithTarget,
-  FieldList,
-  ServiceCallData,
-  SynapseServiceCreateCallback,
-  SynapseServiceCreateOptions,
-  SynapseServiceReturn,
-  ValidateServiceOptions,
+import {
+  type BuildServiceData,
+  type BuildServiceDataWithTarget,
+  type FieldList,
+  type ServiceCallData,
+  ServiceField,
+  type SynapseServiceCreateCallback,
+  type SynapseServiceCreateOptions,
+  type SynapseServiceReturn,
+  type ValidateServiceOptions,
 } from "../helpers/index.mts";
 
 const SERVICE_CALL_EVENT = (event_name: string) => `synapse/service_call/${event_name}`;
@@ -111,6 +112,6 @@ export function ServiceService({
 
   return {
     create: create as SynapseServiceReturn["create"],
-    fields: {},
+    fields: ServiceField,
   };
 }

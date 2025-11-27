@@ -14,6 +14,7 @@ import type {
   TPlatformId,
 } from "@digital-alchemy/hass";
 
+import type { ServiceField } from "./field.mts";
 import type { inferSymbol } from "./utils.mts";
 import type { ExtractDomainUnion } from "./utils.mts";
 
@@ -135,7 +136,7 @@ export type BuildServiceDataWithTarget<
 
 export type SynapseServiceReturn = {
   create: SynapseServiceCreate;
-  fields: {};
+  fields: typeof ServiceField;
 };
 
 type HasTargetOverrideKey<FIELDS extends FieldList> =
