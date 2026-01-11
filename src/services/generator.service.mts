@@ -153,6 +153,7 @@ export function DomainGeneratorService({ logger, internal, synapse, event, hass 
       const locals = synapse.locals.localsProxy(unique_id as TSynapseId, entity.locals ?? {});
 
       const keys = is.unique([
+        "domain",
         "locals",
         "getEntity",
         "storage",
@@ -221,6 +222,11 @@ export function DomainGeneratorService({ logger, internal, synapse, event, hass 
               : out;
           }
           switch (property) {
+            // #MARK: domain
+            case "domain": {
+              return domain;
+            }
+
             // #MARK: locals
             case "locals": {
               return locals.proxy;

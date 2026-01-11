@@ -11,9 +11,138 @@ describe("Generator", () => {
     vi.restoreAllMocks();
   });
 
+  // #MARK: domain property
+  describe("domain property", () => {
+    it("returns correct domain for sensor entities", async () => {
+      expect.assertions(1);
+      await synapseTestRunner.run(({ synapse, context }) => {
+        const sensor = synapse.sensor({ context, name: "test" });
+        expect(sensor.domain).toBe("sensor");
+      });
+    });
+
+    it("returns correct domain for binary_sensor entities", async () => {
+      expect.assertions(1);
+      await synapseTestRunner.run(({ synapse, context }) => {
+        const binarySensor = synapse.binary_sensor({ context, name: "test" });
+        expect(binarySensor.domain).toBe("binary_sensor");
+      });
+    });
+
+    it("returns correct domain for switch entities", async () => {
+      expect.assertions(1);
+      await synapseTestRunner.run(({ synapse, context }) => {
+        const switchEntity = synapse.switch({ context, name: "test" });
+        expect(switchEntity.domain).toBe("switch");
+      });
+    });
+
+    it("returns correct domain for button entities", async () => {
+      expect.assertions(1);
+      await synapseTestRunner.run(({ synapse, context }) => {
+        const button = synapse.button({ context, name: "test" });
+        expect(button.domain).toBe("button");
+      });
+    });
+
+    it("returns correct domain for lock entities", async () => {
+      expect.assertions(1);
+      await synapseTestRunner.run(({ synapse, context }) => {
+        const lock = synapse.lock({ context, name: "test" });
+        expect(lock.domain).toBe("lock");
+      });
+    });
+
+    it("returns correct domain for number entities", async () => {
+      expect.assertions(1);
+      await synapseTestRunner.run(({ synapse, context }) => {
+        const number = synapse.number({ context, name: "test" });
+        expect(number.domain).toBe("number");
+      });
+    });
+
+    it("returns correct domain for text entities", async () => {
+      expect.assertions(1);
+      await synapseTestRunner.run(({ synapse, context }) => {
+        const text = synapse.text({ context, name: "test" });
+        expect(text.domain).toBe("text");
+      });
+    });
+
+    it("returns correct domain for select entities", async () => {
+      expect.assertions(1);
+      await synapseTestRunner.run(({ synapse, context }) => {
+        const select = synapse.select({ context, name: "test", options: ["a", "b"] });
+        expect(select.domain).toBe("select");
+      });
+    });
+
+    it("returns correct domain for scene entities", async () => {
+      expect.assertions(1);
+      await synapseTestRunner.run(({ synapse, context }) => {
+        const scene = synapse.scene({ context, name: "test" });
+        expect(scene.domain).toBe("scene");
+      });
+    });
+
+    it("returns correct domain for date entities", async () => {
+      expect.assertions(1);
+      await synapseTestRunner.run(({ synapse, context }) => {
+        const date = synapse.date({ context, name: "test" });
+        expect(date.domain).toBe("date");
+      });
+    });
+
+    it("returns correct domain for datetime entities", async () => {
+      expect.assertions(1);
+      await synapseTestRunner.run(({ synapse, context }) => {
+        const datetime = synapse.datetime({ context, name: "test" });
+        expect(datetime.domain).toBe("datetime");
+      });
+    });
+
+    it("returns correct domain for time entities", async () => {
+      expect.assertions(1);
+      await synapseTestRunner.run(({ synapse, context }) => {
+        const time = synapse.time({ context, name: "test" });
+        expect(time.domain).toBe("time");
+      });
+    });
+
+    it("domain property is included in ownKeys", async () => {
+      expect.assertions(1);
+      await synapseTestRunner.run(({ synapse, context }) => {
+        const sensor = synapse.sensor({ context, name: "test" });
+        expect(Object.keys(sensor)).toContain("domain");
+      });
+    });
+
+    it("domain property is accessible via 'in' operator", async () => {
+      expect.assertions(1);
+      await synapseTestRunner.run(({ synapse, context }) => {
+        const sensor = synapse.sensor({ context, name: "test" });
+        expect("domain" in sensor).toBe(true);
+      });
+    });
+
+    it("domain property is read-only", async () => {
+      expect.assertions(1);
+      await synapseTestRunner.run(({ synapse, context, lifecycle }) => {
+        lifecycle.onReady(() => {
+          const sensor = synapse.sensor({ context, name: "test" });
+          expect(() => {
+            // @ts-expect-error test
+            sensor.domain = "other";
+          }).toThrow();
+        });
+      });
+    });
+  });
+
   // #MARK: isRegistered
   describe("operators", () => {
     const SENSOR_KEYS = [
+      "domain",
       "getEntity",
       "storage",
       "onUpdate",
