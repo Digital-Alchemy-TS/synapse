@@ -6,6 +6,7 @@ import type {
   PICK_ENTITY,
   RemoveCallback,
   TEntityUpdateCallback,
+  TRawDomains,
 } from "@digital-alchemy/hass";
 import type { CamelCase } from "type-fest";
 
@@ -181,12 +182,21 @@ export type NonReactive<CONFIGURATION extends object> = {
     : CONFIGURATION[KEY];
 };
 
+/**
+ * Extract the domain from a PICK_ENTITY type
+ */
+type ExtractDomain<ENTITY> = ENTITY extends PICK_ENTITY<infer DOMAIN> ? DOMAIN : TRawDomains;
+
 export type CommonMethods<
   CONFIGURATION extends object,
   LOCALS extends object,
   DATA extends object,
   ENTITY extends PICK_ENTITY = PICK_ENTITY,
 > = {
+  /**
+   * The domain of this entity (e.g., "sensor", "light", "switch")
+   */
+  domain: ExtractDomain<ENTITY>;
   /**
    * Look up the actual entity_id that is mapped to this entity by unique_id
    */
@@ -295,5 +305,6 @@ export type GenericSynapseEntity<DATA extends object = object> = SynapseEntityPr
   TEventMap,
   object,
   object,
-  DATA
+  DATA,
+  PICK_ENTITY
 >;
