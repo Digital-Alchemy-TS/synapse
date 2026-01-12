@@ -68,6 +68,6 @@ jobs:
           DB_PG: postgresql://synapse_user:synapse_password@localhost:5432/synapse
           DB_MYSQL: mysql://synapse_user:synapse_password@localhost:3306/synapse
       - name: Upload coverage reports to Codecov
-        uses: codecov/codecov-action@v5.4.3
+        uses: codecov/codecov-action@v5.5.2
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
