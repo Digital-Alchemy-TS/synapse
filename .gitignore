@@ -129,3 +129,4 @@ jest_sqlite.db
 synapse_storage.db
 vi_sqlite.db
 log
+reference-repo/

@@ -5,6 +5,7 @@ import { LIB_MOCK_ASSISTANT } from "@digital-alchemy/hass/mock-assistant";
 
 import { LIB_SYNAPSE } from "../synapse.module.mts";
 import { MockSynapseConfiguration } from "./extensions/configuration.service.mts";
+import { SynapseHassBridge } from "./extensions/hass-bridge.service.mts";
 
 enum InstallState {
   none = "none",
@@ -23,8 +24,9 @@ export const LIB_MOCK_SYNAPSE = CreateLibrary({
   },
   depends: [LIB_HASS, LIB_SYNAPSE, LIB_MOCK_ASSISTANT],
   name: "mock_synapse",
-  priorityInit: [],
+  priorityInit: ["config", "bridge"],
   services: {
+    bridge: SynapseHassBridge,
     config: MockSynapseConfiguration,
   },
 });
