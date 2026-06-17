@@ -7,6 +7,16 @@ import { synapseTestRunner } from "../mock/mock-synapse.module.mts";
 import { pgHomeAssistantEntity } from "../schema/pg.mts";
 import { pgHomeAssistantEntityLocals } from "../schema/pg.mts";
 
+// Live-DB integration suite: CI provisions a postgres service container and sets DB_PG.
+// Offline (no DB_PG) we skip loudly rather than fail on a refused connection.
+const DB_AVAILABLE = !!process.env.DB_PG;
+if (!DB_AVAILABLE) {
+  // eslint-disable-next-line no-console
+  console.warn(
+    "[database-pg.spec] DB_PG not set — skipping postgres integration suite (set DB_PG to run)",
+  );
+}
+
 afterEach(async () => {
   await synapseTestRunner.teardown();
   vi.restoreAllMocks();
@@ -21,14 +31,14 @@ const testRunner = () =>
     },
   });
 
-it("exists", async () => {
+it.skipIf(!DB_AVAILABLE)("exists", async () => {
   expect.assertions(1);
   await testRunner().run(({ synapse }) => {
     expect(synapse.db_postgres).toBeDefined();
   });
 });
 
-describe("update", () => {
+describe.skipIf(!DB_AVAILABLE)("update", () => {
   it("should insert new entity when it doesn't exist", async () => {
     expect.assertions(6);
     const unique_id = v4();
@@ -255,7 +265,7 @@ describe("update", () => {
   });
 });
 
-describe("load", () => {
+describe.skipIf(!DB_AVAILABLE)("load", () => {
   it("should create new entity when no rows are found during load", async () => {
     expect.assertions(3);
     const unique_id = v4();
@@ -459,7 +469,7 @@ describe("load", () => {
   });
 });
 
-describe("locals", () => {
+describe.skipIf(!DB_AVAILABLE)("locals", () => {
   it("should insert new local when it doesn't exist", async () => {
     expect.assertions(4);
     const unique_id = v4();
@@ -681,7 +691,7 @@ describe("locals", () => {
   });
 });
 
-describe("deleteEntity", () => {
+describe.skipIf(!DB_AVAILABLE)("deleteEntity", () => {
   it("should delete entity when it exists", async () => {
     expect.assertions(2);
     const unique_id = v4();

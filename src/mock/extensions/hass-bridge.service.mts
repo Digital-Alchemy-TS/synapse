@@ -75,7 +75,7 @@ export function SynapseHassBridge({
         const rawState =
           exported.is_on !== undefined ? exported.is_on : (exported.state ?? "unknown");
         const state = String(rawState);
-        const attributes = ((exported.attributes ?? {}) as ENTITY_STATE<ANY_ENTITY>["attributes"]);
+        const attributes = (exported.attributes ?? {}) as ENTITY_STATE<ANY_ENTITY>["attributes"];
 
         // Ensure entity is seeded in mock_assistant before emitting
         if (!mock_assistant.entity.byId(entity_id as ANY_ENTITY)) {
@@ -145,7 +145,7 @@ export function SynapseHassBridge({
       const rawState =
         exported.is_on !== undefined ? exported.is_on : (exported.state ?? "unknown");
       const state = String(rawState);
-      const attributes = ((exported.attributes ?? {}) as ENTITY_STATE<ANY_ENTITY>["attributes"]);
+      const attributes = (exported.attributes ?? {}) as ENTITY_STATE<ANY_ENTITY>["attributes"];
 
       if (!mock_assistant.entity.byId(entity_id as ANY_ENTITY)) {
         mock_assistant.entity.register(entity_id as ANY_ENTITY, {

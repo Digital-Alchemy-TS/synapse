@@ -3,6 +3,14 @@ import { SECOND } from "@digital-alchemy/core";
 
 import { ServiceField } from "../index.mts";
 
+// Demo-simulation constants: drive the periodic fake-device behavior in the demo app.
+const DEMO_FALLBACK_TEMP_C = 22.5;
+const DEMO_TEMP_VARIATION_RANGE_C = 2;
+const DEMO_TEMP_VARIATION_MIDPOINT = 0.5;
+const DEMO_TEMP_ROUNDING_FACTOR = 10;
+const DEMO_MOTION_TOGGLE_PROBABILITY = 0.8;
+const DEMO_UPDATE_INTERVAL_SECONDS = 5;
+
 export function DemoEntityGenerator({ scheduler, synapse, context, logger }: TServiceParams) {
   try {
     logger.info("Starting demo entity generation...");
@@ -150,20 +158,23 @@ export function DemoEntityGenerator({ scheduler, synapse, context, logger }: TSe
     // Set up periodic updates to simulate real device behavior
     scheduler.setInterval(() => {
       // Update temperature with some variation (safe for demo purposes)
-      const currentTemp = temperatureSensor.state || 22.5;
+      const currentTemp = temperatureSensor.state || DEMO_FALLBACK_TEMP_C;
       // eslint-disable-next-line sonarjs/pseudo-random
-      const variation = (Math.random() - 0.5) * 2; // ±1°C variation
-      const newTemp = Math.round((Number(currentTemp) + variation) * 10) / 10;
+      const roll = Math.random();
+      const variation = (roll - DEMO_TEMP_VARIATION_MIDPOINT) * DEMO_TEMP_VARIATION_RANGE_C;
+      const newTemp =
+        Math.round((Number(currentTemp) + variation) * DEMO_TEMP_ROUNDING_FACTOR) /
+        DEMO_TEMP_ROUNDING_FACTOR;
       temperatureSensor.state = newTemp;
 
       // Randomly toggle motion sensor (safe for demo purposes)
       // eslint-disable-next-line sonarjs/pseudo-random
-      if (Math.random() > 0.8) {
+      if (Math.random() > DEMO_MOTION_TOGGLE_PROBABILITY) {
         motionSensor.is_on = !motionSensor.is_on;
       }
 
       logger.debug({ temperature: newTemp }, "Updated demo entities");
-    }, 5 * SECOND);
+    }, DEMO_UPDATE_INTERVAL_SECONDS * SECOND);
 
     logger.info("Demo entity generation completed successfully");
   } catch (error) {
