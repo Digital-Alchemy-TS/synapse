@@ -34,7 +34,8 @@
     "node": ">=20"
   },
   "exports": {
-    ".": "./dist/index.mjs"
+    ".": "./dist/index.mjs",
+    "./mock": "./dist/mock/index.mjs"
   },
   "license": "MIT",
   "resolutions": {

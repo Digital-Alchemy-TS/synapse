@@ -85,9 +85,7 @@ export function SynapseHassBridge({
             state,
           });
           // Let the registration settle through the socket path
-          await new Promise<void>(r => {
-            setImmediate(r);
-          });
+          await Promise.resolve();
         }
 
         await mock_assistant.entity.emitChange(entity_id as ANY_ENTITY, { attributes, state });
@@ -130,9 +128,8 @@ export function SynapseHassBridge({
   // Seed mock_assistant with synapse entities after bootstrap (when storage is initialized)
   lifecycle.onBootstrap(async () => {
     // Allow synapse's own onBootstrap handlers (loadData) to complete first
-    await new Promise<void>(r => {
-      setImmediate(r);
-    });
+    // Use microtask yield instead of setImmediate for fake-timer compatibility
+    await Promise.resolve();
 
     for (const [unique_id] of entityIdMap) {
       const entity_id = entityIdMap.get(unique_id);
